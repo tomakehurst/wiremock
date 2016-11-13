@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.github.tomakehurst.wiremock.matching.optional.*;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
@@ -39,17 +40,23 @@ import static java.util.Arrays.asList;
 public class StringValuePatternJsonDeserializer extends JsonDeserializer<StringValuePattern> {
 
     private static final Map<String, Class<? extends StringValuePattern>> PATTERNS =
-        new ImmutableMap.Builder<String, Class<? extends StringValuePattern>>()
-            .put("equalTo", EqualToPattern.class)
-            .put("equalToJson", EqualToJsonPattern.class)
-            .put("matchesJsonPath", MatchesJsonPathPattern.class)
-            .put("equalToXml", EqualToXmlPattern.class)
-            .put("matchesXPath", MatchesXPathPattern.class)
-            .put("contains", ContainsPattern.class)
-            .put("matches", RegexPattern.class)
-            .put("doesNotMatch", NegativeRegexPattern.class)
-            .put("anything", AnythingPattern.class)
-            .build();
+            new ImmutableMap.Builder<String, Class<? extends StringValuePattern>>()
+                    .put("equalTo", EqualToPattern.class)
+                    .put("equalToJson", EqualToJsonPattern.class)
+                    .put("matchesJsonPath", MatchesJsonPathPattern.class)
+                    .put("equalToXml", EqualToXmlPattern.class)
+                    .put("matchesXPath", MatchesXPathPattern.class)
+                    .put("contains", ContainsPattern.class)
+                    .put("matches", RegexPattern.class)
+                    .put("doesNotMatch", NegativeRegexPattern.class)
+                    .put("anything", AnythingPattern.class)
+                    .put("matchesOrAbsent", OptionalRegexPattern.class)
+                    .put("containsOrAbsent", OptionalContainsPattern.class)
+                    .put("doesNotMatchOrAbsent", OptionalNegativeRegexPattern.class)
+                    .put("equalsToOrAbsent", OptionalEqualToPattern.class)
+                    .put("matchesOrAbsentXPath", OptionalMatchesXPathPattern.class)
+                    .put("matchesOrAbsentJsonPath", OptionalMatchesJsonPathPattern.class)
+                    .build();
 
     @Override
     public StringValuePattern deserialize(JsonParser parser, DeserializationContext context) throws IOException, JsonProcessingException {
@@ -62,7 +69,7 @@ public class StringValuePatternJsonDeserializer extends JsonDeserializer<StringV
         Class<? extends StringValuePattern> patternClass = findPatternClass(rootNode);
         if (patternClass.equals(EqualToJsonPattern.class)) {
             return deserializeEqualToJson(rootNode);
-        } else if (patternClass.equals(MatchesXPathPattern.class)) {
+        } else if (patternClass.equals(MatchesXPathPattern.class) || patternClass.equals(OptionalMatchesXPathPattern.class)) {
             return deserialiseMatchesXPathPattern(rootNode);
         }
 
@@ -89,19 +96,43 @@ public class StringValuePatternJsonDeserializer extends JsonDeserializer<StringV
         return new EqualToJsonPattern(operand, ignoreArrayOrder, ignoreExtraElements);
     }
 
-    private MatchesXPathPattern deserialiseMatchesXPathPattern(JsonNode rootNode) throws JsonMappingException {
-        if (!rootNode.has("matchesXPath")) {
-            throw new JsonMappingException(rootNode.toString() + " is not a valid comparison");
+    private StringValuePattern deserialiseMatchesXPathPattern(JsonNode rootNode) throws JsonMappingException {
+        rootHasRequiredNode(rootNode);
+        final Map<String, String> namespaces = deserializeNamespaces(rootNode);
+
+        if (hasXPathPattern(rootNode)) {
+            String operand = rootNode.findValue("matchesXPath").textValue();
+            return new MatchesXPathPattern(operand, namespaces);
+        } else if (hasOptionalXPathPattern(rootNode)) {
+            String operand = rootNode.findValue("matchesOrAbsentXPath").textValue();
+            return new OptionalMatchesXPathPattern(operand, namespaces);
+        } else {
+            throw new IllegalStateException("Illegal state expection appeared when deserialize XPathPattern");
+        }
+    }
+
+    private boolean rootHasRequiredNode(final JsonNode rootNode) throws JsonMappingException {
+        if (hasXPathPattern(rootNode) || hasOptionalXPathPattern(rootNode)) {
+            return true;
         }
 
-        String operand = rootNode.findValue("matchesXPath").textValue();
-        JsonNode namespacesNode = rootNode.findValue("xPathNamespaces");
+        throw new JsonMappingException(rootNode.toString() + " is not a valid comparison");
+    }
 
-        Map<String, String> namespaces = namespacesNode != null ?
-            toNamespaceMap(namespacesNode) :
-            Collections.<String, String>emptyMap() ;
+    private boolean hasOptionalXPathPattern(final JsonNode rootNode) throws JsonMappingException {
+        return rootNode.has("matchesOrAbsentXPath");
+    }
 
-        return new MatchesXPathPattern(operand, namespaces);
+    private boolean hasXPathPattern(final JsonNode rootNode) throws JsonMappingException {
+        return rootNode.has("matchesXPath");
+    }
+
+    private Map<String, String> deserializeNamespaces(final JsonNode rootNode) {
+        final JsonNode namespacesNode = rootNode.findValue("xPathNamespaces");
+
+        return namespacesNode != null ?
+                toNamespaceMap(namespacesNode) :
+                Collections.<String, String>emptyMap();
     }
 
     private static Map<String, String> toNamespaceMap(JsonNode namespacesNode) {
@@ -121,13 +152,13 @@ public class StringValuePatternJsonDeserializer extends JsonDeserializer<StringV
     @SuppressWarnings("unchecked")
     private static Constructor<? extends StringValuePattern> findConstructor(Class<? extends StringValuePattern> clazz) {
         Optional<Constructor<?>> optionalConstructor =
-            tryFind(asList(clazz.getDeclaredConstructors()), new Predicate<Constructor<?>>() {
-                @Override
-                public boolean apply(Constructor<?> input) {
-                    return input.getParameterTypes().length == 1 &&
-                        input.getGenericParameterTypes()[0].equals(String.class);
-                }
-            });
+                tryFind(asList(clazz.getDeclaredConstructors()), new Predicate<Constructor<?>>() {
+                    @Override
+                    public boolean apply(Constructor<?> input) {
+                        return input.getParameterTypes().length == 1 &&
+                                input.getGenericParameterTypes()[0].equals(String.class);
+                    }
+                });
 
         if (!optionalConstructor.isPresent()) {
             throw new IllegalStateException("Constructor for " + clazz.getSimpleName() + " must have a single string argument constructor");
@@ -137,7 +168,7 @@ public class StringValuePatternJsonDeserializer extends JsonDeserializer<StringV
     }
 
     private static boolean isAbsent(JsonNode rootNode) {
-        for (Map.Entry<String, JsonNode> node: ImmutableList.copyOf(rootNode.fields())) {
+        for (Map.Entry<String, JsonNode> node : ImmutableList.copyOf(rootNode.fields())) {
             if (node.getKey().equals("absent")) {
                 return true;
             }
@@ -147,7 +178,7 @@ public class StringValuePatternJsonDeserializer extends JsonDeserializer<StringV
     }
 
     private static Class<? extends StringValuePattern> findPatternClass(JsonNode rootNode) throws JsonMappingException {
-        for (Map.Entry<String, JsonNode> node: ImmutableList.copyOf(rootNode.fields())) {
+        for (Map.Entry<String, JsonNode> node : ImmutableList.copyOf(rootNode.fields())) {
             Class<? extends StringValuePattern> patternClass = PATTERNS.get(node.getKey());
             if (patternClass != null) {
                 return patternClass;

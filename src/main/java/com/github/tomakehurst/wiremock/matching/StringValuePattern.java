@@ -18,6 +18,7 @@ package com.github.tomakehurst.wiremock.matching;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.github.tomakehurst.wiremock.matching.optional.OptionalPattern;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
@@ -50,6 +51,11 @@ public abstract class StringValuePattern implements NamedValueMatcher<String> {
     }
 
     @JsonIgnore
+    public Boolean isOptional() {
+        return this instanceof OptionalPattern;
+    }
+
+    @JsonIgnore
     public String getValue() {
         return expectedValue;
     }
@@ -61,14 +67,14 @@ public abstract class StringValuePattern implements NamedValueMatcher<String> {
 
     public final String getName() {
         Constructor<?> constructor =
-            FluentIterable.of(this.getClass().getDeclaredConstructors()).firstMatch(new Predicate<Constructor<?>>() {
-            @Override
-            public boolean apply(Constructor<?> input) {
-                return (input.getParameterAnnotations().length > 0 &&
-                        input.getParameterAnnotations()[0].length > 0 &&
-                        input.getParameterAnnotations()[0][0] instanceof JsonProperty);
-            }
-        }).orNull();
+                FluentIterable.of(this.getClass().getDeclaredConstructors()).firstMatch(new Predicate<Constructor<?>>() {
+                    @Override
+                    public boolean apply(Constructor<?> input) {
+                        return (input.getParameterAnnotations().length > 0 &&
+                                input.getParameterAnnotations()[0].length > 0 &&
+                                input.getParameterAnnotations()[0][0] instanceof JsonProperty);
+                    }
+                }).orNull();
 
         if (constructor == null) {
             throw new IllegalStateException("Constructor must have a first parameter annotatated with JsonProperty(\"<operator name>\")");

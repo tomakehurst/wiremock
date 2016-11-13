@@ -55,6 +55,10 @@ public class MultiValuePattern implements NamedValueMatcher<MultiValue> {
             return getBestMatch(valuePattern, multiValue.values());
         }
 
+        if (valuePattern.isOptional() && !multiValue.isPresent()) {
+            return MatchResult.of(!multiValue.isPresent());
+        }
+
         return MatchResult.of(valuePattern.isPresent() == multiValue.isPresent());
     }
 

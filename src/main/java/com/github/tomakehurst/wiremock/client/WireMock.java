@@ -25,6 +25,7 @@ import com.github.tomakehurst.wiremock.http.DelayDistribution;
 import com.github.tomakehurst.wiremock.http.Request;
 import com.github.tomakehurst.wiremock.http.RequestMethod;
 import com.github.tomakehurst.wiremock.matching.*;
+import com.github.tomakehurst.wiremock.matching.optional.*;
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.github.tomakehurst.wiremock.verification.*;
@@ -39,11 +40,11 @@ import static com.github.tomakehurst.wiremock.matching.RequestPatternBuilder.all
 
 public class WireMock {
 
-	private static final int DEFAULT_PORT = 8080;
-	private static final String DEFAULT_HOST = "localhost";
+    private static final int DEFAULT_PORT = 8080;
+    private static final String DEFAULT_HOST = "localhost";
 
-	private final Admin admin;
-	private final GlobalSettingsHolder globalSettingsHolder = new GlobalSettingsHolder();
+    private final Admin admin;
+    private final GlobalSettingsHolder globalSettingsHolder = new GlobalSettingsHolder();
 
 	private static ThreadLocal<WireMock> defaultInstance = new ThreadLocal<WireMock>(){
             @Override
@@ -148,12 +149,19 @@ public class WireMock {
         return new MatchesJsonPathPattern(value);
     }
 
+    public static StringValuePattern optionalMatchingJsonPath(String value) {
+        return new OptionalMatchesJsonPathPattern(value);
+    }
+
     public static StringValuePattern equalToXml(String value) {
         return new EqualToXmlPattern(value);
     }
 
     public static MatchesXPathPattern matchingXPath(String value) {
         return new MatchesXPathPattern(value, Collections.<String, String>emptyMap());
+    }
+    public static OptionalMatchesXPathPattern optionalMatchingXPath(String value) {
+        return new OptionalMatchesXPathPattern(value, Collections.<String, String>emptyMap());
     }
 
     public static StringValuePattern matchingXPath(String value, Map<String, String> namespaces) {
@@ -174,6 +182,22 @@ public class WireMock {
 
     public static StringValuePattern absent() {
         return StringValuePattern.ABSENT;
+    }
+
+    public static StringValuePattern optionalMatching(final String regex) {
+        return new OptionalRegexPattern(regex);
+    }
+
+    public static StringValuePattern optionalNotMatching(final String regex) {
+        return new OptionalNegativeRegexPattern(regex);
+    }
+
+    public static StringValuePattern optionalEqualTo(final String value) {
+        return new OptionalEqualToPattern(value);
+    }
+
+    public static StringValuePattern optionalContaining(final String value) {
+        return new OptionalContainsPattern(value);
     }
 
     public void saveMappings() {
