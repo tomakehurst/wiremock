@@ -21,10 +21,13 @@ import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.extension.Parameters;
 import com.github.tomakehurst.wiremock.http.Request;
 import com.github.tomakehurst.wiremock.http.ResponseDefinition;
+import com.google.common.collect.ImmutableMap;
+
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -267,6 +270,34 @@ public class ResponseTemplateTransformerTest {
 
         assertThat(transformedResponseDef.getProxyBaseUrl(), is(
             "http://localhost:8000"
+        ));
+    }
+
+    @Test
+    public void customTemplateModel() throws Exception {
+        transformer = new ResponseTemplateTransformer(false) {
+            @Override
+            protected void templateModelHook(ImmutableMap.Builder<String, TemplateModel> modelBuilder, Parameters parameters) {
+                MapTemplateModel myModel = new MapTemplateModel();
+                myModel.put("key1", "value1");
+                myModel.put("key2", "value2");
+
+                modelBuilder.put("myModel", myModel);
+            }
+
+            class MapTemplateModel extends HashMap<String, String> implements TemplateModel { }
+        };
+
+        ResponseDefinition transformedResponseDef = transform(mockRequest()
+                        .url("/things")
+                        .body("Request body"),
+                aResponse().withBody(
+                        "Body: {{{request.body}}} {{{myModel.key1}}} {{{myModel.key2}}}"
+                )
+        );
+
+        assertThat(transformedResponseDef.getBody(), is(
+                "Body: Request body value1 value2"
         ));
     }
 

@@ -86,7 +86,7 @@ public class ResponseTemplateTransformer extends ResponseDefinitionTransformer {
     @Override
     public ResponseDefinition transform(Request request, ResponseDefinition responseDefinition, FileSource files, Parameters parameters) {
         ResponseDefinitionBuilder newResponseDefBuilder = ResponseDefinitionBuilder.like(responseDefinition);
-        final ImmutableMap<String, RequestTemplateModel> model = ImmutableMap.of("request", RequestTemplateModel.from(request));
+        final ImmutableMap<String, TemplateModel> model = getTemplateModel(request, parameters);
 
         if (responseDefinition.specifiesBodyContent()) {
             Template bodyTemplate = uncheckedCompileTemplate(responseDefinition.getBody());
@@ -124,12 +124,25 @@ public class ResponseTemplateTransformer extends ResponseDefinitionTransformer {
         return newResponseDefBuilder.build();
     }
 
-    private void applyTemplatedResponseBody(ResponseDefinitionBuilder newResponseDefBuilder, ImmutableMap<String, RequestTemplateModel> model, Template bodyTemplate) {
+    private ImmutableMap<String, TemplateModel> getTemplateModel(Request request, Parameters parameters) {
+        final ImmutableMap.Builder<String, TemplateModel> modelBuilder = ImmutableMap.builder();
+
+        modelBuilder.put("request", RequestTemplateModel.from(request));
+        templateModelHook(modelBuilder, parameters);
+
+        return modelBuilder.build();
+    }
+
+    protected void templateModelHook(ImmutableMap.Builder<String, TemplateModel> modelBuilder, Parameters parameters) {
+
+    }
+
+    private void applyTemplatedResponseBody(ResponseDefinitionBuilder newResponseDefBuilder, ImmutableMap<String, TemplateModel> model, Template bodyTemplate) {
         String newBody = uncheckedApplyTemplate(bodyTemplate, model);
         newResponseDefBuilder.withBody(newBody);
     }
 
-    private String uncheckedApplyTemplate(Template template, Object context) {
+    private String uncheckedApplyTemplate(Template template, ImmutableMap<String, TemplateModel> context) {
         try {
             return template.apply(context);
         } catch (IOException e) {
