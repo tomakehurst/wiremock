@@ -165,6 +165,16 @@ stubFor(get(urlEqualTo("/transform")).willReturn(
                 .withTransformer("body-transformer", "newValue", 66)));
 ```
 
+Another convenience provided by the Java API is ability to add transformers instances, without prior registering them as an extension: 
+
+```java
+new WireMockServer(wireMockConfig()); //.extensions(not needed)
+
+stubFor(get(urlEqualTo("/local-transform")).willReturn(aResponse()
+        .withTransformers(new MyTransformer(), new MyOtherTransformer()));
+```
+Transformers added as instances to stubs will be applied locally. The result of `.applyGlobally()` and `.getName()` methods of such transformers will have no effect.
+
 ### Response transformation
 
 

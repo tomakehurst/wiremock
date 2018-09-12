@@ -130,6 +130,11 @@ public class HttpAdminClient implements Admin {
                     "Use WireMockRule.stubFor() or WireMockServer.stubFor() to administer the local instance.");
         }
 
+        if (stubMapping.getResponse().hasTransformerInstances()) {
+            throw new AdminException("Transformer instances can't be used when administering a remote WireMock server. " +
+                    "Register transformers as extensions when starting a server and provide their names to ResponseDefinitionBuilder.withTransformers(String...), or use  WireMockRule.stubFor() or WireMockServer.stubFor() to administer the local instance.");
+        }
+
         executeRequest(
                 adminRoutes.requestSpecForTask(CreateStubMappingTask.class),
                 PathParams.empty(),

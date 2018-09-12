@@ -25,7 +25,11 @@ import com.github.tomakehurst.wiremock.common.Errors;
 import com.github.tomakehurst.wiremock.common.Json;
 import com.github.tomakehurst.wiremock.extension.AbstractTransformer;
 import com.github.tomakehurst.wiremock.extension.Parameters;
-import com.google.common.net.MediaType;
+import com.github.tomakehurst.wiremock.extension.ResponseDefinitionTransformer;
+import com.github.tomakehurst.wiremock.extension.ResponseTransformer;
+import com.google.common.base.Functions;
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
 
 import java.util.Collections;
 import java.util.List;
@@ -49,6 +53,7 @@ public class ResponseDefinition {
     private final String proxyBaseUrl;
     private final Fault fault;
     private final List<String> transformers;
+    private final List<AbstractTransformer> transformerInstances;
     private final Parameters transformerParameters;
 
     private String browserProxyUrl;
@@ -72,7 +77,26 @@ public class ResponseDefinition {
                               @JsonProperty("transformers") List<String> transformers,
                               @JsonProperty("transformerParameters") Parameters transformerParameters,
                               @JsonProperty("fromConfiguredStub") Boolean wasConfigured) {
-        this(status, statusMessage, Body.fromOneOf(null, body, jsonBody, base64Body), bodyFileName, headers, additionalProxyRequestHeaders, fixedDelayMilliseconds, delayDistribution, chunkedDribbleDelay, proxyBaseUrl, fault, transformers, transformerParameters, wasConfigured);
+        this(status, statusMessage, Body.fromOneOf(null, body, jsonBody, base64Body), bodyFileName, headers, additionalProxyRequestHeaders, fixedDelayMilliseconds, delayDistribution, chunkedDribbleDelay, proxyBaseUrl, fault, transformers, Collections.<AbstractTransformer>emptyList(), transformerParameters, wasConfigured);
+    }
+
+    public ResponseDefinition(int status,
+                              String statusMessage,
+                              String body,
+                              String base64Body,
+                              String bodyFileName,
+                              HttpHeaders headers,
+                              HttpHeaders additionalProxyRequestHeaders,
+                              Integer fixedDelayMilliseconds,
+                              DelayDistribution delayDistribution,
+                              ChunkedDribbleDelay chunkedDribbleDelay,
+                              String proxyBaseUrl,
+                              Fault fault,
+                              List<String> transformers,
+                              List<AbstractTransformer> transformerInstances,
+                              Parameters transformerParameters,
+                              Boolean wasConfigured) {
+        this(status, statusMessage, Body.fromOneOf(null, body, null, base64Body), bodyFileName, headers, additionalProxyRequestHeaders, fixedDelayMilliseconds, delayDistribution, chunkedDribbleDelay, proxyBaseUrl, fault, transformers, transformerInstances, transformerParameters, wasConfigured);
     }
 
     public ResponseDefinition(int status,
@@ -89,9 +113,10 @@ public class ResponseDefinition {
                               String proxyBaseUrl,
                               Fault fault,
                               List<String> transformers,
+                              List<AbstractTransformer> transformerInstances,
                               Parameters transformerParameters,
                               Boolean wasConfigured) {
-        this(status, statusMessage, Body.fromOneOf(body, null, jsonBody, base64Body), bodyFileName, headers, additionalProxyRequestHeaders, fixedDelayMilliseconds, delayDistribution, chunkedDribbleDelay, proxyBaseUrl, fault, transformers, transformerParameters, wasConfigured);
+        this(status, statusMessage, Body.fromOneOf(body, null, jsonBody, base64Body), bodyFileName, headers, additionalProxyRequestHeaders, fixedDelayMilliseconds, delayDistribution, chunkedDribbleDelay, proxyBaseUrl, fault, transformers, transformerInstances, transformerParameters, wasConfigured);
     }
 
     private ResponseDefinition(int status,
@@ -106,6 +131,7 @@ public class ResponseDefinition {
                                String proxyBaseUrl,
                                Fault fault,
                                List<String> transformers,
+                               List<AbstractTransformer> transformerInstances,
                                Parameters transformerParameters,
                                Boolean wasConfigured) {
         this.status = status > 0 ? status : 200;
@@ -122,20 +148,21 @@ public class ResponseDefinition {
         this.proxyBaseUrl = proxyBaseUrl;
         this.fault = fault;
         this.transformers = transformers;
+        this.transformerInstances = transformerInstances;
         this.transformerParameters = transformerParameters;
         this.wasConfigured = wasConfigured == null ? true : wasConfigured;
     }
 
     public ResponseDefinition(final int statusCode, final String bodyContent) {
-        this(statusCode, null, Body.fromString(bodyContent), null, null, null, null, null, null, null, null, Collections.<String>emptyList(), Parameters.empty(), true);
+        this(statusCode, null, Body.fromString(bodyContent), null, null, null, null, null, null, null, null, Collections.<String>emptyList(), Collections.<AbstractTransformer>emptyList(), Parameters.empty(), true);
     }
 
     public ResponseDefinition(final int statusCode, final byte[] bodyContent) {
-        this(statusCode, null, Body.fromBytes(bodyContent), null, null, null, null, null, null, null, null, Collections.<String>emptyList(), Parameters.empty(), true);
+        this(statusCode, null, Body.fromBytes(bodyContent), null, null, null, null, null, null, null, null, Collections.<String>emptyList(), Collections.<AbstractTransformer>emptyList(), Parameters.empty(), true);
     }
 
     public ResponseDefinition() {
-        this(HTTP_OK, null, Body.none(), null, null, null, null, null, null, null, null, Collections.<String>emptyList(), Parameters.empty(), true);
+        this(HTTP_OK, null, Body.none(), null, null, null, null, null, null, null, null, Collections.<String>emptyList(), Collections.<AbstractTransformer>emptyList(), Parameters.empty(), true);
     }
 
     public static ResponseDefinition notFound() {
@@ -213,6 +240,7 @@ public class ResponseDefinition {
             original.proxyBaseUrl,
             original.fault,
             original.transformers,
+            original.transformerInstances,
             original.transformerParameters,
             original.wasConfigured
         );
@@ -334,12 +362,39 @@ public class ResponseDefinition {
     }
 
     @JsonInclude(NON_EMPTY)
-    public Parameters getTransformerParameters() {
-        return transformerParameters;
+    @JsonProperty("transformerInstances")
+    public List<String> getTransformerInstanceStrings() {
+        return FluentIterable.from(transformerInstances).transform(Functions.toStringFunction()).toList();
     }
 
-    public boolean hasTransformer(AbstractTransformer transformer) {
-        return transformers != null && transformers.contains(transformer.getName());
+    @JsonIgnore
+    public List<AbstractTransformer> getTransformerInstances() {
+        return transformerInstances;
+    }
+
+    public Iterable<ResponseTransformer> selectApplicableResponseTransformers(Iterable<ResponseTransformer> globallyConfigured) {
+        return selectApplicableTransformers(globallyConfigured, ResponseTransformer.class);
+    }
+
+    public Iterable<ResponseDefinitionTransformer> selectApplicableResponseDefinitionTransformers(Iterable<ResponseDefinitionTransformer> globallyConfigured) {
+        return selectApplicableTransformers(globallyConfigured, ResponseDefinitionTransformer.class);
+    }
+
+    private <T extends AbstractTransformer> Iterable<T> selectApplicableTransformers(Iterable<T> globallyConfigured, Class<T> transformerClass) {
+        return FluentIterable.from(globallyConfigured)
+                .filter(TRANSFORMER_APPLICABLE)
+                .append(FluentIterable.from(transformerInstances)
+                        .filter(transformerClass));
+    }
+
+    @JsonIgnore
+    public boolean hasTransformerInstances() {
+        return !this.transformerInstances.isEmpty();
+    }
+
+    @JsonInclude(NON_EMPTY)
+    public Parameters getTransformerParameters() {
+        return transformerParameters;
     }
 
     @Override
@@ -359,6 +414,7 @@ public class ResponseDefinition {
             Objects.equals(proxyBaseUrl, that.proxyBaseUrl) &&
             fault == that.fault &&
             Objects.equals(transformers, that.transformers) &&
+            Objects.equals(transformerInstances, that.transformerInstances) &&
             Objects.equals(transformerParameters, that.transformerParameters) &&
             Objects.equals(browserProxyUrl, that.browserProxyUrl) &&
             Objects.equals(wasConfigured, that.wasConfigured);
@@ -366,11 +422,18 @@ public class ResponseDefinition {
 
     @Override
     public int hashCode() {
-        return Objects.hash(status, statusMessage, body, bodyFileName, headers, additionalProxyRequestHeaders, fixedDelayMilliseconds, delayDistribution, chunkedDribbleDelay, proxyBaseUrl, fault, transformers, transformerParameters, browserProxyUrl, wasConfigured);
+        return Objects.hash(status, statusMessage, body, bodyFileName, headers, additionalProxyRequestHeaders, fixedDelayMilliseconds, delayDistribution, chunkedDribbleDelay, proxyBaseUrl, fault, transformers, transformerInstances, transformerParameters, browserProxyUrl, wasConfigured);
     }
 
     @Override
     public String toString() {
         return this.wasConfigured ? Json.write(this) : "(no response definition configured)";
     }
+
+    private Predicate<AbstractTransformer> TRANSFORMER_APPLICABLE = new Predicate<AbstractTransformer>() {
+        @Override
+        public boolean apply(AbstractTransformer input) {
+            return input.applyGlobally() || (transformers != null && transformers.contains(input.getName()));
+        }
+    };
 }

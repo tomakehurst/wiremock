@@ -119,6 +119,22 @@ public class ResponseDefinitionTransformerAcceptanceTest {
         assertThat(response.content(), is("Non-global transformed body"));
     }
 
+    @Test
+    public void appliesNonGlobalExtensionsWhenSpecifiedByStubAsInstance() {
+        wm = new WireMockServer(wireMockConfig()
+                .dynamicPort());
+        wm.start();
+        client = new WireMockTestClient(wm.port());
+
+        wm.stubFor(get(urlEqualTo("/local-transform-instance")).willReturn(aResponse()
+                .withStatus(200)
+                .withBody("Should not see this")
+                .withTransformers(new NonGlobalTransformer())));
+
+        WireMockResponse response = client.get("/local-transform-instance");
+        assertThat(response.content(), is("Non-global transformed body"));
+    }
+
     @Test(expected = IllegalArgumentException.class)
     @SuppressWarnings("unchecked")
     public void preventsMoreThanOneExtensionWithTheSameNameFromBeingAdded() {

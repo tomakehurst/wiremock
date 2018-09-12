@@ -16,11 +16,13 @@
 package com.github.tomakehurst.wiremock.client;
 
 import com.github.tomakehurst.wiremock.common.Json;
+import com.github.tomakehurst.wiremock.extension.AbstractTransformer;
 import com.github.tomakehurst.wiremock.extension.Parameters;
 import com.github.tomakehurst.wiremock.http.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -44,6 +46,7 @@ public class ResponseDefinitionBuilder {
 	protected String proxyBaseUrl;
 	protected Fault fault;
 	protected List<String> responseTransformerNames;
+	protected List<AbstractTransformer> responseTransformers = Collections.emptyList();
 	protected Map<String, Object> transformerParameters = newHashMap();
 	protected Boolean wasConfigured = true;
 
@@ -64,6 +67,7 @@ public class ResponseDefinitionBuilder {
 		builder.proxyBaseUrl = responseDefinition.getProxyBaseUrl();
 		builder.fault = responseDefinition.getFault();
 		builder.responseTransformerNames = responseDefinition.getTransformers();
+		builder.responseTransformers = responseDefinition.getTransformerInstances();
 		builder.transformerParameters = responseDefinition.getTransformerParameters() != null ?
 			Parameters.from(responseDefinition.getTransformerParameters()) :
 			Parameters.empty();
@@ -140,6 +144,11 @@ public class ResponseDefinitionBuilder {
 		return this;
 	}
 
+	public ResponseDefinitionBuilder withTransformers(AbstractTransformer... responseTransformers) {
+		this.responseTransformers = asList(responseTransformers);
+		return this;
+	}
+
 	public ResponseDefinitionBuilder withTransformerParameter(String name, Object value) {
 		transformerParameters.put(name, value);
 		return this;
@@ -204,6 +213,7 @@ public class ResponseDefinitionBuilder {
 			this.fixedDelayMilliseconds = from.fixedDelayMilliseconds;
 			this.proxyBaseUrl = from.proxyBaseUrl;
 			this.responseTransformerNames = from.responseTransformerNames;
+			this.responseTransformers = from.responseTransformers;
 		}
 
 		public ProxyResponseDefinitionBuilder withAdditionalRequestHeader(String key, String value) {
@@ -251,13 +261,13 @@ public class ResponseDefinitionBuilder {
 						proxyBaseUrl,
 						fault,
 						responseTransformerNames,
+						responseTransformers,
 						transformerParameters,
-                        wasConfigured) :
+						wasConfigured) :
 				new ResponseDefinition(
 						status,
 						statusMessage,
 						stringBody,
-						null,
 						base64Body,
 						bodyFileName,
 						httpHeaders,
@@ -268,8 +278,9 @@ public class ResponseDefinitionBuilder {
 						proxyBaseUrl,
 						fault,
 						responseTransformerNames,
+						responseTransformers,
 						transformerParameters,
-					    wasConfigured
+						wasConfigured
 				);
 	}
 }

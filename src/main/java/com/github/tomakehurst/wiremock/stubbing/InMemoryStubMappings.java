@@ -69,32 +69,18 @@ public class InMemoryStubMappings implements StubMappings {
 		
 		scenarios.onStubServed(matchingMapping);
 
-        ResponseDefinition responseDefinition = applyTransformations(request,
-            matchingMapping.getResponse(),
-            ImmutableList.copyOf(transformers.values()));
+        ResponseDefinition response = matchingMapping.getResponse();
+
+		for (ResponseDefinitionTransformer transformer : response.selectApplicableResponseDefinitionTransformers(this.transformers.values())) {
+			response = transformer.transform(request, response, rootFileSource.child(FILES_ROOT), response.getTransformerParameters());
+		}
 
 		return ServeEvent.of(
             LoggedRequest.createFrom(request),
-            copyOf(responseDefinition),
+            copyOf(response),
             matchingMapping
         );
 	}
-
-    private ResponseDefinition applyTransformations(Request request,
-                                                    ResponseDefinition responseDefinition,
-                                                    List<ResponseDefinitionTransformer> transformers) {
-        if (transformers.isEmpty()) {
-            return responseDefinition;
-        }
-
-        ResponseDefinitionTransformer transformer = transformers.get(0);
-        ResponseDefinition newResponseDef =
-            transformer.applyGlobally() || responseDefinition.hasTransformer(transformer) ?
-                transformer.transform(request, responseDefinition, rootFileSource.child(FILES_ROOT), responseDefinition.getTransformerParameters()) :
-                responseDefinition;
-
-        return applyTransformations(request, newResponseDef, transformers.subList(1, transformers.size()));
-    }
 
 	@Override
 	public void addMapping(StubMapping mapping) {

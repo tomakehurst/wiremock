@@ -47,6 +47,28 @@ public class ResponseTransformerAcceptanceTest {
     }
 
     @Test
+    public void transformsLocalStubResponse() {
+        startWithExtensions();
+
+        wm.stubFor(get(urlEqualTo("/response-transform")).willReturn(aResponse().withBody("Original body")
+                .withTransformers(new StubResponseTransformer())
+        ));
+
+        assertThat(client.get("/response-transform").content(), is("Modified body"));
+    }
+
+    @Test
+    public void transformsNonGlobalLocalStubResponse() {
+        startWithExtensions();
+
+        wm.stubFor(get(urlEqualTo("/response-transform")).willReturn(aResponse().withBody("Original body")
+                .withTransformers(new NonGlobalStubResponseTransformer())
+        ));
+
+        assertThat(client.get("/response-transform").content(), is("Modified body"));
+    }
+
+    @Test
     public void acceptsTransformerParameters() {
         startWithExtensions(StubResponseTransformerWithParams.class);
 
@@ -70,7 +92,7 @@ public class ResponseTransformerAcceptanceTest {
     }
 
     @SuppressWarnings("unchecked")
-    private void startWithExtensions(Class<? extends Extension> extensionClasses) {
+    private void startWithExtensions(Class<? extends Extension>... extensionClasses) {
         wm = new WireMockServer(wireMockConfig().dynamicPort().extensions(extensionClasses));
         wm.start();
         client = new WireMockTestClient(wm.port());
@@ -93,6 +115,26 @@ public class ResponseTransformerAcceptanceTest {
         @Override
         public String getName() {
             return "stub-transformer";
+        }
+    }
+
+    public static class NonGlobalStubResponseTransformer extends ResponseTransformer {
+
+        @Override
+        public Response transform(Request request, Response response, FileSource files, Parameters parameters) {
+            return Response.Builder.like(response)
+                    .but().body("Modified body")
+                    .build();
+        }
+
+        @Override
+        public boolean applyGlobally() {
+            return false;
+        }
+
+        @Override
+        public String getName() {
+            return "non-global-stub-transformer";
         }
     }
 

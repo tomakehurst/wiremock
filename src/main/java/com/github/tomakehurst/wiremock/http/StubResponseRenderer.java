@@ -49,7 +49,12 @@ public class StubResponseRenderer implements ResponseRenderer {
 		}
 
 		Response response = buildResponse(responseDefinition);
-		return applyTransformations(responseDefinition.getOriginalRequest(), responseDefinition, response, responseTransformers);
+
+		for (ResponseTransformer transformer : responseDefinition.selectApplicableResponseTransformers(this.responseTransformers)) {
+			response = transformer.transform(responseDefinition.getOriginalRequest(), response, fileSource.child(FILES_ROOT), responseDefinition.getTransformerParameters());
+		}
+
+		return response;
 	}
 
 	private Response buildResponse(ResponseDefinition responseDefinition) {
@@ -59,23 +64,6 @@ public class StubResponseRenderer implements ResponseRenderer {
 			Response.Builder responseBuilder = renderDirectly(responseDefinition);
 			return responseBuilder.build();
 		}
-	}
-
-	private Response applyTransformations(Request request,
-										  ResponseDefinition responseDefinition,
-										  Response response,
-										  List<ResponseTransformer> transformers) {
-		if (transformers.isEmpty()) {
-			return response;
-		}
-
-		ResponseTransformer transformer = transformers.get(0);
-		Response newResponse =
-				transformer.applyGlobally() || responseDefinition.hasTransformer(transformer) ?
-						transformer.transform(request, response, fileSource.child(FILES_ROOT), responseDefinition.getTransformerParameters()) :
-						response;
-
-		return applyTransformations(request, responseDefinition, newResponse, transformers.subList(1, transformers.size()));
 	}
 
 	private Response.Builder renderDirectly(ResponseDefinition responseDefinition) {
