@@ -27,6 +27,7 @@ import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import com.github.tomakehurst.wiremock.verification.RequestJournalDisabledException;
 import com.google.common.base.Optional;
 import org.apache.http.entity.StringEntity;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
@@ -77,6 +78,11 @@ import static org.junit.Assert.fail;
 public class VerificationAcceptanceTest {
 
     public static class JournalEnabled extends AcceptanceTestBase {
+
+        @BeforeClass
+        public static void setupServer() {
+            setupServer(options().extensions(new PathContainsParamRequestMatcher()));
+        }
 
         @Test
         public void verifiesRequestBasedOnUrlOnly() {
@@ -628,6 +634,22 @@ public class VerificationAcceptanceTest {
         }
 
         @Test
+        public void verifiesRequestsViaRequestMatcherExtension() {
+            testClient.get("/local-request-matcher-ext-this");
+            testClient.get("/local-request-matcher-ext-that");
+
+            wireMockServer.verify(2, requestMadeFor("path-contains-param", Parameters.one("path", "local-request-matcher-ext")));
+        }
+
+        @Test
+        public void verifiesRequestsViaRequestMatcherExtensionRemotely() {
+            testClient.get("/remote-request-matcher-ext-this");
+            testClient.get("/remote-request-matcher-ext-that");
+
+            verify(2, requestMadeFor("path-contains-param", Parameters.one("path", "remote-request-matcher-ext")));
+        }
+
+        @Test
         public void copesWithAttemptedXmlBodyMatchWhenRequestHasNoXmlBody() {
             testClient.post("/missing-xml", new StringEntity("", TEXT_PLAIN));
 
@@ -652,6 +674,19 @@ public class VerificationAcceptanceTest {
             }));
         }
 
+        public static class PathContainsParamRequestMatcher extends RequestMatcherExtension {
+
+            @Override
+            public MatchResult match(Request request, Parameters parameters) {
+                String pathSegment = parameters.getString("path");
+                return MatchResult.of(request.getUrl().contains(pathSegment));
+            }
+
+            @Override
+            public String getName() {
+                return "path-contains-param";
+            }
+        }
     }
 
     public static class JournalDisabled {
@@ -677,7 +712,7 @@ public class VerificationAcceptanceTest {
         @Rule
         public WireMockRule wireMockRule = new WireMockRule(options()
             .dynamicPort()
-            .maxRequestJournalEntries(Optional.of(2)),
+            .maxRequestJournalEntries(2),
             false);
 
         @Test

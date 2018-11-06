@@ -73,14 +73,17 @@ public class WireMockApp implements StubServer, Admin {
         this.options = options;
 
         FileSource fileSource = options.filesRoot();
+        Map<String, RequestMatcherExtension> requestMatchers = options.extensionsOfType(RequestMatcherExtension.class);
 
         this.browserProxyingEnabled = options.browserProxyingEnabled();
         this.defaultMappingsLoader = options.mappingsLoader();
         this.mappingsSaver = options.mappingsSaver();
         globalSettingsHolder = new GlobalSettingsHolder();
-        requestJournal = options.requestJournalDisabled() ? new DisabledRequestJournal() : new InMemoryRequestJournal(options.maxRequestJournalEntries());
+        requestJournal = options.requestJournalDisabled() ?
+            new DisabledRequestJournal() :
+            new InMemoryRequestJournal(options.maxRequestJournalEntries(), requestMatchers);
         stubMappings = new InMemoryStubMappings(
-            options.extensionsOfType(RequestMatcherExtension.class),
+            requestMatchers,
             options.extensionsOfType(ResponseDefinitionTransformer.class),
             fileSource);
         nearMissCalculator = new NearMissCalculator(stubMappings, requestJournal);
@@ -104,7 +107,9 @@ public class WireMockApp implements StubServer, Admin {
         this.defaultMappingsLoader = defaultMappingsLoader;
         this.mappingsSaver = mappingsSaver;
         globalSettingsHolder = new GlobalSettingsHolder();
-        requestJournal = requestJournalDisabled ? new DisabledRequestJournal() : new InMemoryRequestJournal(maxRequestJournalEntries);
+        requestJournal = requestJournalDisabled ?
+            new DisabledRequestJournal() :
+            new InMemoryRequestJournal(maxRequestJournalEntries, requestMatchers);
         stubMappings = new InMemoryStubMappings(requestMatchers, transformers, rootFileSource);
         this.container = container;
         nearMissCalculator = new NearMissCalculator(stubMappings, requestJournal);
