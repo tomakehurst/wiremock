@@ -22,21 +22,21 @@ import com.google.common.collect.Iterators;
 import com.google.common.io.Resources;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
 import static com.github.tomakehurst.wiremock.common.Exceptions.throwUnchecked;
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.collect.Iterables.transform;
-import static com.google.common.collect.Iterators.find;
-import static com.google.common.collect.Iterators.forEnumeration;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.Thread.currentThread;
 import static java.util.Arrays.asList;
@@ -91,7 +91,7 @@ public class ClasspathFileSource implements FileSource {
             return new BinaryFile(new File(rootDirectory, name).toURI());
         }
 
-        return new BinaryFile(getZipEntryUri(name));
+        return new BinaryFile(getUri(name));
     }
 
     @Override
@@ -100,16 +100,20 @@ public class ClasspathFileSource implements FileSource {
             return new TextFile(new File(rootDirectory, name).toURI());
         }
 
-        return new TextFile(getZipEntryUri(name));
+        return new TextFile(getUri(name));
     }
 
-    private URI getZipEntryUri(final String name) {
-        ZipEntry zipEntry = find(forEnumeration(zipFile.entries()), new Predicate<ZipEntry>() {
-            public boolean apply(ZipEntry input) {
-                return input.getName().equals(path + "/" + name);
+    private URI getUri(final String name) {
+
+        URL url = Resources.getResource(path + "/" + name);
+        if (url != null) {
+            try {
+                return url.toURI();
+            } catch (URISyntaxException e) {
+                return throwUnchecked(e, URI.class);
             }
-        });
-        return getUriFor(zipEntry);
+        }
+        return null;
     }
 
     @Override
