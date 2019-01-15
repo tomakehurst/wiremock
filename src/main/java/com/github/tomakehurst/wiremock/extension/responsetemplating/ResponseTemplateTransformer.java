@@ -149,6 +149,10 @@ public class ResponseTemplateTransformer extends ResponseDefinitionTransformer {
 
         return newResponseDefBuilder.build();
     }
+    
+    public Handlebars getHandlebars() {
+    	return handlebars;
+    }
 
     private void applyTemplatedResponseBody(ResponseDefinitionBuilder newResponseDefBuilder, ImmutableMap<String, Object> model, Template bodyTemplate) {
         String newBody = uncheckedApplyTemplate(bodyTemplate, model);

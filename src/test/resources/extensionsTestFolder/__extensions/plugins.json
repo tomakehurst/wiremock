@@ -1,0 +1,31 @@
+{
+	"helpers": [
+		{
+			"helperName": "helpertest1",
+			"helperClass": "ignored.plugins.Test1Helper"
+		},
+		{
+			"helperName": "helpertest2",
+			"helperClass": "ignored.plugins.Test2Helper"
+		}
+	],
+	"extensionList": [
+		{
+			"extensionClassname": "ignored.plugins.TestExtension",
+			"arguments": []
+		},
+		{
+			"extensionClassname": "com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer",
+			"arguments": [
+				{
+					"type": "boolean",
+					"value": "true"
+				},
+				{
+					"type": "java.util.Map",
+					"value": "@helpers"
+				}
+			]
+		}
+	]
+}

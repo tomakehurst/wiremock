@@ -505,4 +505,10 @@ public class CommandLineOptions implements Options {
         return Integer.valueOf((String) optionSet.valueOf(ASYNCHRONOUS_RESPONSE_THREADS));
     }
 
+	@Override
+	public void reloadFileExtensions() {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

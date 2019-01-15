@@ -171,4 +171,10 @@ public class WarConfiguration implements Options {
     public AsynchronousResponseSettings getAsynchronousResponseSettings() {
         return new AsynchronousResponseSettings(false, 0);
     }
+
+	@Override
+	public void reloadFileExtensions() {
+		// TODO Auto-generated method stub
+		
+	}
 }
