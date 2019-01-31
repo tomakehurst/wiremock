@@ -41,6 +41,7 @@ import com.github.tomakehurst.wiremock.recording.SnapshotRecordResult;
 import com.github.tomakehurst.wiremock.recording.RecordSpec;
 import com.github.tomakehurst.wiremock.recording.RecordSpecBuilder;
 import com.github.tomakehurst.wiremock.standalone.MappingsLoader;
+import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.github.tomakehurst.wiremock.stubbing.StubMappingJsonRecorder;
@@ -392,6 +393,11 @@ public class WireMockServer implements Container, Stubbing, Admin {
     @Override
     public GetScenariosResult getAllScenarios() {
         return wireMockApp.getAllScenarios();
+    }
+
+    @Override
+    public void setScenarioState(Scenario scenario, String newState) {
+        wireMockApp.setScenarioState(scenario, newState);
     }
 
     @Override

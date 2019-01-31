@@ -130,7 +130,6 @@ public class InMemoryStubMappings implements StubMappings {
 		scenarios.onStubMappingUpdated(existingMapping, stubMapping);
 	}
 
-
 	@Override
 	public void reset() {
 		mappings.clear();
@@ -142,7 +141,12 @@ public class InMemoryStubMappings implements StubMappings {
 		scenarios.reset();
 	}
 
-    @Override
+	@Override
+	public void setScenarioState(Scenario scenario, String newState) {
+		scenarios.moveScenarioToState(scenario, newState);
+	}
+
+	@Override
     public List<StubMapping> getAll() {
         return ImmutableList.copyOf(mappings);
     }

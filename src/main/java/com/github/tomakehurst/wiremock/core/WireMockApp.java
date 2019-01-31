@@ -29,10 +29,7 @@ import com.github.tomakehurst.wiremock.matching.RequestPattern;
 import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 import com.github.tomakehurst.wiremock.recording.*;
 import com.github.tomakehurst.wiremock.standalone.MappingsLoader;
-import com.github.tomakehurst.wiremock.stubbing.InMemoryStubMappings;
-import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
-import com.github.tomakehurst.wiremock.stubbing.StubMapping;
-import com.github.tomakehurst.wiremock.stubbing.StubMappings;
+import com.github.tomakehurst.wiremock.stubbing.*;
 import com.github.tomakehurst.wiremock.verification.*;
 import com.github.tomakehurst.wiremock.verification.diff.PlainTextDiffRenderer;
 import com.google.common.base.Optional;
@@ -253,6 +250,11 @@ public class WireMockApp implements StubServer, Admin {
     @Override
     public void resetScenarios() {
         stubMappings.resetScenarios();
+    }
+
+    @Override
+    public void setScenarioState(Scenario scenario, String newState) {
+        stubMappings.setScenarioState(scenario, newState);
     }
 
     @Override

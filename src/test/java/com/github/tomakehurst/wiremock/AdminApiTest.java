@@ -399,6 +399,34 @@ public class AdminApiTest extends AcceptanceTestBase {
     }
 
     @Test
+    public void setScenarioStateViaPOST() {
+        dsl.stubFor(get(urlEqualTo("/stateful"))
+                .inScenario("changing-states")
+                .whenScenarioStateIs(STARTED)
+                .willSetStateTo("Final")
+                .willReturn(aResponse().withBody("Initial")));
+
+        dsl.stubFor(get(urlEqualTo("/stateful"))
+                .inScenario("changing-states")
+                .whenScenarioStateIs("Final")
+                .willReturn(aResponse().withBody("Final")));
+
+
+        assertThat(testClient.get("/stateful").content(), is("Initial"));
+
+        WireMockResponse response = testClient.postJson("/__admin/scenarios",
+                "{                                              " +
+                        "    \"scenarioName\": \"changing-states\",   " +
+                        "    \"state\": \"Final\"                     " +
+                        "}"
+        );
+
+        assertThat(response.content(), is("{}"));
+        assertThat(response.firstHeader("Content-Type"), is("application/json"));
+        assertThat(testClient.get("/stateful").content(), is("Final"));
+    }
+
+    @Test
     public void defaultsUnspecifiedStubMappingAttributes() {
         WireMockResponse response = testClient.postJson("/__admin/mappings", "{}");
 

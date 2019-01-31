@@ -34,6 +34,7 @@ import com.github.tomakehurst.wiremock.recording.SnapshotRecordResult;
 import com.github.tomakehurst.wiremock.recording.RecordSpec;
 import com.github.tomakehurst.wiremock.security.ClientAuthenticator;
 import com.github.tomakehurst.wiremock.security.NotAuthorisedException;
+import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.github.tomakehurst.wiremock.verification.FindNearMissesResult;
 import com.github.tomakehurst.wiremock.verification.FindRequestsResult;
@@ -252,6 +253,11 @@ public class HttpAdminClient implements Admin {
             adminRoutes.requestSpecForTask(GetAllScenariosTask.class),
             GetScenariosResult.class
         );
+    }
+
+    @Override
+    public void setScenarioState(Scenario scenario, String newState) {
+        executeRequest(adminRoutes.requestSpecForTask(SetScenarioStateTask.class));
     }
 
     @Override
