@@ -118,9 +118,18 @@ public class ResponseTemplateTransformer extends ResponseDefinitionTransformer {
         } else if (responseDefinition.specifiesBodyFile()) {
             Template filePathTemplate = uncheckedCompileTemplate(responseDefinition.getBodyFileName());
             String compiledFilePath = uncheckedApplyTemplate(filePathTemplate, model);
-            TextFile file = files.getTextFileNamed(compiledFilePath);
-            Template bodyTemplate = uncheckedCompileTemplate(file.readContentsAsString());
-            applyTemplatedResponseBody(newResponseDefBuilder, model, bodyTemplate);
+
+            // do not apply handlebars templating on binary files
+            if (parameters != null && parameters.containsKey("binary") && parameters.getBoolean("binary"))
+            {
+                newResponseDefBuilder.withBodyFile(compiledFilePath);
+            }
+            else
+            {
+                TextFile file = files.getTextFileNamed(compiledFilePath);
+                Template bodyTemplate = uncheckedCompileTemplate(file.readContentsAsString());
+                applyTemplatedResponseBody(newResponseDefBuilder, model, bodyTemplate);
+            }
         }
 
         if (responseDefinition.getHeaders() != null) {

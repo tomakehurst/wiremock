@@ -35,6 +35,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.matching.MockRequest.mockRequest;
 import static com.github.tomakehurst.wiremock.testsupport.NoFileSource.noFileSource;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class ResponseTemplateTransformerTest {
@@ -182,7 +183,21 @@ public class ResponseTemplateTransformerTest {
             )
         );
 
+        assertThat(transformedResponseDef.getBodyFileName(), is("/greet-{{request.query.name}}.txt"));
         assertThat(transformedResponseDef.getBody(), is("Hello Ram"));
+    }
+
+    @Test
+    public void templatizeBinaryBodyFile() {
+        ResponseDefinition transformedResponseDef = transformFromResponseFile(mockRequest()
+                .url("/the/entire/path?name=Ram"),
+            aResponse().withBodyFile(
+                "/greet-{{request.query.name}}.txt"
+            ).withTransformerParameter("binary", true)
+        );
+
+        assertThat(transformedResponseDef.getBodyFileName(), is("/greet-Ram.txt"));
+        assertThat(transformedResponseDef.getBody(), nullValue());
     }
 
     @Test
@@ -544,20 +559,22 @@ public class ResponseTemplateTransformerTest {
     }
 
     private ResponseDefinition transform(Request request, ResponseDefinitionBuilder responseDefinitionBuilder) {
+        ResponseDefinition base = responseDefinitionBuilder.build();
         return transformer.transform(
             request,
-            responseDefinitionBuilder.build(),
+            base,
             noFileSource(),
-            Parameters.empty()
+            base.getTransformerParameters()
         );
     }
 
     private ResponseDefinition transformFromResponseFile(Request request, ResponseDefinitionBuilder responseDefinitionBuilder) {
+        ResponseDefinition base = responseDefinitionBuilder.build();
         return transformer.transform(
             request,
-            responseDefinitionBuilder.build(),
+            base,
             new ClasspathFileSource(this.getClass().getClassLoader().getResource("templates").getPath()),
-            Parameters.empty()
+            base.getTransformerParameters()
         );
     }
 }
