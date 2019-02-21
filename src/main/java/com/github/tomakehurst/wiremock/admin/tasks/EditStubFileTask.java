@@ -29,7 +29,8 @@ public class EditStubFileTask implements AdminTask {
     public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
         byte[] fileContent = request.getBody();
         FileSource fileSource = admin.getOptions().filesRoot().child(FILES_ROOT);
-        fileSource.writeBinaryFile(pathParams.get("filename"),  fileContent);
+        String filename = pathParams.get("0");
+        fileSource.writeBinaryFile(filename,  fileContent);
         return ResponseDefinition.okForJson(fileContent);
     }
 }

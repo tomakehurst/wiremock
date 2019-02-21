@@ -24,6 +24,8 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 import static com.google.common.base.Charsets.UTF_8;
@@ -165,8 +167,17 @@ public abstract class AbstractFileSource implements FileSource {
 
     }
 
+    private void ensureDirectoryExists(File toFile) throws IOException {
+        Path toPath = toFile.toPath();
+        if (!java.nio.file.Files.exists(toPath)) {
+            Path toParentPath = toPath.getParent();
+            java.nio.file.Files.createDirectories(toParentPath);
+        }
+    }
+
     private void writeTextFileAndTranslateExceptions(String contents, File toFile) {
         try {
+            ensureDirectoryExists(toFile);
             Files.write(contents, toFile, UTF_8);
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
@@ -175,6 +186,7 @@ public abstract class AbstractFileSource implements FileSource {
 
     private void writeBinaryFileAndTranslateExceptions(byte[] contents, File toFile) {
         try {
+            ensureDirectoryExists(toFile);
             Files.write(contents, toFile);
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
