@@ -142,6 +142,11 @@ public class InMemoryStubMappings implements StubMappings {
 		scenarios.reset();
 	}
 
+	@Override
+	public void resetScenario(String scenarioName) {
+	    scenarios.resetByName(scenarioName);
+	}
+
     @Override
     public List<StubMapping> getAll() {
         return ImmutableList.copyOf(mappings);

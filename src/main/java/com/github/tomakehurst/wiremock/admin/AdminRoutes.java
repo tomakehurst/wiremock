@@ -80,6 +80,7 @@ public class AdminRoutes {
 
         router.add(GET, "/scenarios", GetAllScenariosTask.class);
         router.add(POST, "/scenarios/reset", ResetScenariosTask.class);
+        router.add(POST, "/scenarios/reset/{scenarioName}", ResetScenarioTask.class);
 
         router.add(GET,  "/requests", GetAllRequestsTask.class);
         router.add(DELETE,  "/requests", ResetRequestsTask.class);

@@ -256,6 +256,9 @@ public class WireMockApp implements StubServer, Admin {
     }
 
     @Override
+    public void resetScenario(String scenarioName) { stubMappings.resetScenario(scenarioName);}
+
+    @Override
     public void resetMappings() {
         mappingsSaver.removeAll();
         stubMappings.reset();

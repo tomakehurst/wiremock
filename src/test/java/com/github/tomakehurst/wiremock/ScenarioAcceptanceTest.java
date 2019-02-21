@@ -97,6 +97,24 @@ public class ScenarioAcceptanceTest extends AcceptanceTestBase {
 		assertThat(testClient.get("/stateful/resource").content(), is("Expected content"));
 	}
 
+	@Test
+	public void resetScenarioByNameState() {
+		givenThat(get(urlEqualTo("/stateful/resource"))
+				.willReturn(aResponse().withBody("Expected content"))
+				.inScenario("ResetScenario")
+				.whenScenarioStateIs(STARTED));
+
+		givenThat(put(urlEqualTo("/stateful/resource"))
+				.willReturn(aResponse().withStatus(HTTP_OK))
+				.inScenario("ResetScenario")
+				.willSetStateTo("Changed"));
+
+		testClient.put("/stateful/resource");
+		WireMock.resetScenario("ResetScenario");
+
+		assertThat(testClient.get("/stateful/resource").content(), is("Expected content"));
+	}
+
     @Test(expected = IllegalArgumentException.class)
     public void settingScenarioNameToNullCausesException() {
         get(urlEqualTo("/some/resource"))

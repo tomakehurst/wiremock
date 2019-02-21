@@ -422,7 +422,6 @@ subprojects {
     }
 }
 
-
 task 'bump-patch-version' {
     doLast {
         def filesWithVersion = [

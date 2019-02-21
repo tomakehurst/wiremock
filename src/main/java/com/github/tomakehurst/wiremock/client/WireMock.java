@@ -268,6 +268,10 @@ public class WireMock {
 		admin.resetScenarios();
 	}
 
+	public void resetScenarioByName(String scenarioName) {
+	    admin.resetScenario(scenarioName);
+    }
+
     public static List<Scenario> getAllScenarios() {
         return defaultInstance.get().getScenarios();
     }
@@ -279,6 +283,10 @@ public class WireMock {
     public static void resetAllScenarios() {
 		defaultInstance.get().resetScenarios();
 	}
+
+	public static void resetScenario(String scenarioName) {
+	    defaultInstance.get().resetScenarioByName(scenarioName);
+    }
 
     public void resetToDefaultMappings() {
         admin.resetToDefaultMappings();

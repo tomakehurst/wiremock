@@ -359,6 +359,15 @@ schemas:
           body:
             application/json:
               example: !include examples/empty.example.json
+    /{scenarioName}:
+      post:
+        description: Reset the state of the named scenario
+        responses:
+          200:
+            description: Successfully reset
+            body:
+              application/json:
+                example: !include examples/empty.example.json
 
 
 /near-misses:

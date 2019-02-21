@@ -237,6 +237,41 @@ public class ScenariosTest {
     }
 
     @Test
+    public void resetsScenarioByName() {
+        StubMapping mapping1 = get("/scenarios/1").inScenario("one")
+                .whenScenarioStateIs(STARTED)
+                .willSetStateTo("step_2")
+                .willReturn(ok())
+                .build();
+        scenarios.onStubMappingAdded(mapping1);
+
+        StubMapping mapping2 = get("/scenarios/1").inScenario("one")
+                .whenScenarioStateIs("step_2")
+                .willSetStateTo("step_3")
+                .willReturn(ok())
+                .build();
+        scenarios.onStubMappingAdded(mapping2);
+
+        StubMapping mapping3 = get("/scenarios/2").inScenario("two")
+                .whenScenarioStateIs(STARTED)
+                .willSetStateTo("2_step_2")
+                .willReturn(ok())
+                .build();
+        scenarios.onStubMappingAdded(mapping3);
+
+        scenarios.onStubServed(mapping1);
+        scenarios.onStubServed(mapping3);
+
+        assertThat(scenarios.getByName("one").getState(), is("step_2"));
+        assertThat(scenarios.getByName("two").getState(), is("2_step_2"));
+
+        scenarios.resetByName("one");
+
+        assertThat(scenarios.getByName("one").getState(), is(STARTED));
+        assertThat(scenarios.getByName("two").getState(), is("2_step_2"));
+    }
+
+    @Test
     public void clearsScenarios() {
         StubMapping mapping1 = get("/scenarios/1").inScenario("one")
             .whenScenarioStateIs(STARTED)

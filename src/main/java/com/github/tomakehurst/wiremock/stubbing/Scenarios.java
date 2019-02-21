@@ -114,4 +114,9 @@ public class Scenarios {
         return mapping.getRequiredScenarioState().equals(currentScenarioState);
     }
 
+    public void resetByName(String scenarioName) {
+        Scenario scenario = getByName(scenarioName);
+        scenarioMap.replace(scenarioName, scenario.reset());
+    }
+
 }
