@@ -15,6 +15,13 @@
  */
 package com.github.tomakehurst.wiremock.stubbing;
 
+import static com.github.tomakehurst.wiremock.common.LocalNotifier.notifier;
+import static com.github.tomakehurst.wiremock.core.WireMockApp.FILES_ROOT;
+import static com.github.tomakehurst.wiremock.http.ResponseDefinition.copyOf;
+import static com.google.common.collect.FluentIterable.from;
+import static com.google.common.collect.Iterables.find;
+import static com.google.common.collect.Iterables.tryFind;
+
 import com.github.tomakehurst.wiremock.common.FileSource;
 import com.github.tomakehurst.wiremock.common.Json;
 import com.github.tomakehurst.wiremock.common.SingleRootFileSource;
@@ -26,18 +33,12 @@ import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 
-import java.util.*;
-
-import static com.github.tomakehurst.wiremock.common.LocalNotifier.notifier;
-import static com.github.tomakehurst.wiremock.core.WireMockApp.FILES_ROOT;
-import static com.github.tomakehurst.wiremock.http.ResponseDefinition.copyOf;
-import static com.google.common.collect.FluentIterable.from;
-import static com.google.common.collect.Iterables.filter;
-import static com.google.common.collect.Iterables.find;
-import static com.google.common.collect.Iterables.tryFind;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 
 public class InMemoryStubMappings implements StubMappings {
@@ -62,13 +63,17 @@ public class InMemoryStubMappings implements StubMappings {
 
 	@Override
 	public ServeEvent serveFor(Request request) {
-		StubMapping matchingMapping = find(
+	    StubMapping matchingMapping;
+	    synchronized (scenarios) {
+	        matchingMapping = find(
 				mappings,
 				mappingMatchingAndInCorrectScenarioState(request),
 				StubMapping.NOT_CONFIGURED);
 		
-		scenarios.onStubServed(matchingMapping);
-
+		
+		    scenarios.onStubServed(matchingMapping);
+        }
+		
         ResponseDefinition responseDefinition = applyTransformations(request,
             matchingMapping.getResponse(),
             ImmutableList.copyOf(transformers.values()));

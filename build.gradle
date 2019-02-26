@@ -26,7 +26,7 @@ allprojects {
     apply plugin: 'project-report'
 
     group = 'com.github.tomakehurst'
-    version = '2.21.0'
+    version = '2.21.0-threadsafe'
 
     sourceCompatibility = 1.7
     targetCompatibility = 1.7
