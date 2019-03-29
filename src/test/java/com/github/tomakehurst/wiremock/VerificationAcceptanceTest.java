@@ -59,6 +59,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static com.github.tomakehurst.wiremock.client.WireMock.verifyZeroInteractions;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.github.tomakehurst.wiremock.matching.RequestPatternBuilder.forCustomMatcher;
@@ -650,6 +651,22 @@ public class VerificationAcceptanceTest {
                     return MatchResult.of(request.getUrl().equals("/custom-verify"));
                 }
             }));
+        }
+
+        @Test
+        public void verifiesZeroInteractions() {
+            verifyZeroInteractions();
+        }
+
+        @Test
+        public void throwsVerificationExceptionWhenZeroInteractionsExpectedButReceivedRequest() {
+            testClient.get("/xyz");
+            try {
+                verifyZeroInteractions();
+                fail();
+            } catch (VerificationException e) {
+                assertThat(e.getMessage(), is("Expected 0 requests but received 1"));
+            }
         }
 
     }
