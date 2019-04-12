@@ -18,10 +18,12 @@ package com.github.tomakehurst.wiremock.extension.responsetemplating;
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.Helper;
 import com.github.jknack.handlebars.Template;
+import com.github.jknack.handlebars.cache.TemplateCache;
 import com.github.jknack.handlebars.helper.AssignHelper;
 import com.github.jknack.handlebars.helper.ConditionalHelpers;
 import com.github.jknack.handlebars.helper.NumberHelper;
 import com.github.jknack.handlebars.helper.StringHelpers;
+import com.github.jknack.handlebars.io.TemplateLoader;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.common.FileSource;
 import com.github.tomakehurst.wiremock.common.TextFile;
@@ -63,6 +65,10 @@ public class ResponseTemplateTransformer extends ResponseDefinitionTransformer {
 
     public ResponseTemplateTransformer(boolean global, Map<String, Helper> helpers) {
         this(global, new Handlebars(), helpers);
+    }
+
+    public ResponseTemplateTransformer(boolean global, TemplateCache templateCache, Map<String, Helper> helpers) {
+        this(global, templateCache == null ? new Handlebars() : new Handlebars().with(templateCache), helpers);
     }
 
     public ResponseTemplateTransformer(boolean global, Handlebars handlebars, Map<String, Helper> helpers) {

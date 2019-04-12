@@ -15,6 +15,8 @@
  */
 package com.github.tomakehurst.wiremock.standalone;
 
+import com.github.jknack.handlebars.Helper;
+import com.github.jknack.handlebars.Options;
 import com.github.tomakehurst.wiremock.client.BasicCredentials;
 import com.github.tomakehurst.wiremock.common.FileSource;
 import com.github.tomakehurst.wiremock.common.ProxySettings;
@@ -22,6 +24,7 @@ import com.github.tomakehurst.wiremock.core.Options;
 import com.github.tomakehurst.wiremock.extension.Parameters;
 import com.github.tomakehurst.wiremock.extension.ResponseDefinitionTransformer;
 import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer;
+import com.github.tomakehurst.wiremock.extension.responsetemplating.helpers.HandlebarsHelper;
 import com.github.tomakehurst.wiremock.http.CaseInsensitiveKey;
 import com.github.tomakehurst.wiremock.http.Request;
 import com.github.tomakehurst.wiremock.http.ResponseDefinition;
@@ -32,10 +35,12 @@ import com.github.tomakehurst.wiremock.security.Authenticator;
 import com.google.common.base.Optional;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.Map;
 
-import static com.github.tomakehurst.wiremock.common.ProxySettings.NO_PROXY;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.matching.MockRequest.mockRequest;
+import static com.github.tomakehurst.wiremock.testsupport.NoFileSource.noFileSource;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
@@ -340,12 +345,49 @@ public class CommandLineOptionsTest {
     }
 
     @Test
+    public void enablesGlobalResponseTemplatingAsClassNames() {
+        CommandLineOptions options = new CommandLineOptions(
+                "--global-response-templating", "com.github.tomakehurst.wiremock.standalone.CommandLineOptionsTest$Helpers");
+        Map<String, ResponseDefinitionTransformer> extensions = options.extensionsOfType(ResponseDefinitionTransformer.class);
+        assertThat(extensions.entrySet(), hasSize(1));
+        assertThat(extensions.get("response-template").applyGlobally(), is(true));
+
+        ResponseTemplateTransformer transformer = (ResponseTemplateTransformer)extensions.get("response-template");
+        ResponseDefinition transformedResponseDef = transformer.transform(mockRequest(),
+                aResponse().withBody("{{echo 'global'}}").build(),
+                noFileSource(),
+                Parameters.empty()
+        );
+
+        assertThat(transformedResponseDef.getBody(), is("GLOBAL"));
+    }
+
+    @Test
     public void enablesLocalResponseTemplating() {
         CommandLineOptions options = new CommandLineOptions("--local-response-templating");
         Map<String, ResponseTemplateTransformer> extensions = options.extensionsOfType(ResponseTemplateTransformer.class);
         assertThat(extensions.entrySet(), hasSize(1));
         assertThat(extensions.get("response-template").applyGlobally(), is(false));
     }
+
+    @Test
+    public void enablesLocalResponseTemplatingAsClassNames() {
+        CommandLineOptions options = new CommandLineOptions(
+                "--local-response-templating", "com.github.tomakehurst.wiremock.standalone.CommandLineOptionsTest$Helpers");
+        Map<String, ResponseDefinitionTransformer> extensions = options.extensionsOfType(ResponseDefinitionTransformer.class);
+        assertThat(extensions.entrySet(), hasSize(1));
+        assertThat(extensions.get("response-template").applyGlobally(), is(false));
+
+        ResponseTemplateTransformer transformer = (ResponseTemplateTransformer)extensions.get("response-template");
+        ResponseDefinition transformedResponseDef = transformer.transform(mockRequest(),
+                aResponse().withBody("{{echo 'local'}}").build(),
+                noFileSource(),
+                Parameters.empty()
+        );
+
+        assertThat(transformedResponseDef.getBody(), is("LOCAL"));
+    }
+
 
     @Test
     public void supportsAdminApiBasicAuth() {
@@ -407,6 +449,35 @@ public class CommandLineOptionsTest {
 
         options.setResultingPort(1338);
         assertThat(options.toString(), allOf(containsString("1338")));
+    }
+
+    public enum Helpers implements Helper<String> {
+        echo {
+            private EchoHelper helper = new EchoHelper("echo");
+
+            public Object apply(String value, Options options) throws IOException {
+                return helper.apply(String.valueOf(value), options);
+            }
+        };
+
+        @Override
+        public Object apply(String value, Options options) throws IOException {
+            return value.toString();
+        }
+    }
+
+    public static class EchoHelper extends HandlebarsHelper<Object> {
+
+        private final String name;
+
+        public EchoHelper(String name){
+            this.name = name;
+        }
+
+        @Override
+        public Object apply(Object value, Options options) throws IOException {
+            return value.toString().toUpperCase();
+        }
     }
 
     public static class ResponseDefinitionTransformerExt1 extends ResponseDefinitionTransformer {

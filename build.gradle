@@ -212,7 +212,6 @@ subprojects {
         relocate "org.custommonkey", "wiremock.org.custommonkey"
         relocate "com.flipkart", "wiremock.com.flipkart"
         relocate "net.sf", "wiremock.net.sf"
-        relocate "com.github.jknack", "wiremock.com.github.jknack"
         relocate "org.antlr", "wiremock.org.antlr"
 
         dependencies {
