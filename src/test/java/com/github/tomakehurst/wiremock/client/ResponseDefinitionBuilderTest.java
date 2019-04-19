@@ -31,12 +31,13 @@
 package com.github.tomakehurst.wiremock.client;
 
 import com.github.tomakehurst.wiremock.http.Fault;
+import com.github.tomakehurst.wiremock.http.HttpHeader;
 import com.github.tomakehurst.wiremock.http.ResponseDefinition;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.Charsets;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
 public class ResponseDefinitionBuilderTest {
@@ -78,5 +79,15 @@ public class ResponseDefinitionBuilderTest {
         ResponseDefinition copiedResponseDefinition = ResponseDefinitionBuilder.like(originalResponseDefinition).build();
 
         assertThat(copiedResponseDefinition, is(originalResponseDefinition));
+    }
+
+    @Test
+    public void withCookieShouldBuildAResponseSettingTheGivenCookie() {
+        ResponseDefinition responseDefinition = ResponseDefinitionBuilder.responseDefinition()
+                .withCookie("cookiename", "cookieval")
+                .build();
+
+        assertThat(responseDefinition.getHeaders().all(), hasItem(
+                new HttpHeader("Set-Cookie", "cookiename=cookieval")));
     }
 }

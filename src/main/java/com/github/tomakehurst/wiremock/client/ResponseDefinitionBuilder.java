@@ -92,6 +92,29 @@ public class ResponseDefinitionBuilder {
 		return this;
 	}
 
+	/**
+	 * A short-cut to stub a response to return a given cookie.
+	 * <p>
+	 * It's equivalent to {@code withHeader("Set-Cookie", "name=value")}
+	 * <p>
+	 * Example:
+	 * <pre>
+	 * givenThat(post(urlEqualTo("/login"))
+	 *     .willReturn(ok()
+	 *         .withCookie("JSESSIONID", "asd")));
+	 * </pre>
+	 * instead of the longer form:
+	 * <pre>
+	 * givenThat(post(urlEqualTo("/login"))
+	 *     .willReturn(ok()
+	 *         .withHeader("Set-Cookie", "JSESSIONID=asd")));
+	 * </pre>
+	 */
+	public ResponseDefinitionBuilder withCookie(String name, String value) {
+		return withHeader(com.google.common.net.HttpHeaders.SET_COOKIE,
+				String.format("%s=%s", name, value));
+	}
+
 	public ResponseDefinitionBuilder withHeader(String key, String... values) {
 		headers.add(new HttpHeader(key, values));
 		return this;
