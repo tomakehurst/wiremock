@@ -33,4 +33,5 @@ public interface RequestJournal {
 	void reset();
 
     void requestReceived(ServeEvent serveEvent);
+    void removeEvents(List<LoggedRequest> events);
 }

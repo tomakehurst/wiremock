@@ -84,6 +84,7 @@ public class AdminRoutes {
         router.add(GET,  "/requests", GetAllRequestsTask.class);
         router.add(DELETE,  "/requests", ResetRequestsTask.class);
         router.add(POST, "/requests/reset", OldResetRequestsTask.class);  // Deprecated
+        router.add(POST, "/requests/reset/selected", ResetSelectedRequestsTask.class);
         router.add(POST, "/requests/count", GetRequestCountTask.class);
         router.add(POST, "/requests/find", FindRequestsTask.class);
         router.add(GET,  "/requests/unmatched", FindUnmatchedRequestsTask.class);

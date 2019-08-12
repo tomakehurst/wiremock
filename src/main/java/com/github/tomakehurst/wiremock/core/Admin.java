@@ -42,6 +42,7 @@ public interface Admin {
     void saveMappings();
 
 	void resetRequests();
+    void resetSelectedRequests(RequestPattern requestPattern);
     void resetScenarios();
     void resetMappings();
     void resetAll();

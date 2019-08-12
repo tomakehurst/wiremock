@@ -187,6 +187,13 @@ public class HttpAdminClient implements Admin {
     }
 
     @Override
+    public void resetSelectedRequests(RequestPattern requestPattern) {
+        postJsonAssertOkAndReturnBody(
+                urlFor(ResetSelectedRequestsTask.class),
+                Json.write(requestPattern));
+    }
+
+    @Override
     public void resetScenarios() {
         executeRequest(adminRoutes.requestSpecForTask(ResetScenariosTask.class));
     }

@@ -24,6 +24,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
@@ -70,7 +71,18 @@ public class InMemoryRequestJournal implements RequestJournal {
         removeOldEntries();
 	}
 
-    @Override
+	@Override
+	public void removeEvents(List<LoggedRequest> events) {
+        List<ServeEvent> serveEventsToRemove = new ArrayList<>();
+        for (ServeEvent serveEvent : serveEvents) {
+            if (events.contains(serveEvent.getRequest())) {
+                serveEventsToRemove.add(serveEvent);
+            }
+        }
+        serveEvents.removeAll(serveEventsToRemove);
+	}
+
+	@Override
     public List<ServeEvent> getAllServeEvents() {
         return ImmutableList.copyOf(serveEvents).reverse();
     }

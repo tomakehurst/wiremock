@@ -280,6 +280,12 @@ public class WireMockApp implements StubServer, Admin {
     }
 
     @Override
+    public void resetSelectedRequests(RequestPattern requestPattern) {
+        List<LoggedRequest> requests = requestJournal.getRequestsMatching(requestPattern);
+        requestJournal.removeEvents(requests);
+    }
+
+    @Override
     public void resetToDefaultMappings() {
         stubMappings.reset();
         resetRequests();
