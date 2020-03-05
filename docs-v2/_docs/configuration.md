@@ -70,6 +70,9 @@ WireMock can accept HTTPS connections from clients, require a client to present 
 // Set the keystore containing the HTTPS certificate
 .keystorePath("/path/to/https-certs-keystore.jks")
 
+// Set the password to the key manager
+.keyManagerPassword("ultrasecret!")
+
 // Set the password to the keystore
 .keystorePassword("verysecret!")
 

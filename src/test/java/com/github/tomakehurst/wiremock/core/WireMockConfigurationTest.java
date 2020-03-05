@@ -15,11 +15,13 @@
  */
 package com.github.tomakehurst.wiremock.core;
 
+import com.github.tomakehurst.wiremock.common.HttpsSettings;
 import com.google.common.base.Optional;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 public class WireMockConfigurationTest {
@@ -49,5 +51,14 @@ public class WireMockConfigurationTest {
         QueuedThreadPool threadPool = (QueuedThreadPool) wireMockConfiguration.threadPoolFactory().buildThreadPool(wireMockConfiguration);
 
         assertThat(threadPool.getMaxThreads(), is(maxThreads));
+    }
+
+    @Test
+    public void keyManagerPassword() {
+        WireMockConfiguration wireMockConfiguration = WireMockConfiguration.wireMockConfig().keymanagerPassword("somekmpasswd");
+
+        HttpsSettings httpsSettings = wireMockConfiguration.httpsSettings();
+
+        assertEquals("somekmpasswd", httpsSettings.keyManagerPassword());
     }
 }

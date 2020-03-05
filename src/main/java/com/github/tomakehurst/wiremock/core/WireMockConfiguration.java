@@ -56,6 +56,7 @@ public class WireMockConfiguration implements Options {
     private int containerThreads = DEFAULT_CONTAINER_THREADS;
 
     private int httpsPort = -1;
+    private String keyManagerPassword = "password";
     private String keyStorePath = Resources.getResource("keystore").toString();
     private String keyStorePassword = "password";
     private String keyStoreType = "JKS";
@@ -160,6 +161,11 @@ public class WireMockConfiguration implements Options {
 
     public WireMockConfiguration jettyStopTimeout(Long jettyStopTimeout) {
         this.jettyStopTimeout = jettyStopTimeout;
+        return this;
+    }
+
+    public WireMockConfiguration keymanagerPassword(String keyManagerPassword) {
+        this.keyManagerPassword = keyManagerPassword;
         return this;
     }
 
@@ -374,6 +380,7 @@ public class WireMockConfiguration implements Options {
     public HttpsSettings httpsSettings() {
         return new HttpsSettings.Builder()
                 .port(httpsPort)
+                .keyManagerPassword(keyManagerPassword)
                 .keyStorePath(keyStorePath)
                 .keyStorePassword(keyStorePassword)
                 .keyStoreType(keyStoreType)

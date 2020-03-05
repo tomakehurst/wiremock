@@ -41,14 +41,23 @@ certificate to use with HTTPS. The keystore must have a password of
 If this option isn't used WireMock will default to its own self-signed
 certificate.
 
+`--keymanager-password`: Password to the key manager, if something other than
+"password".
+
 `--keystore-password`: Password to the keystore, if something other than
 "password".
+
+`--keystore-type`: Optional type of the keystore. Defaults to "JKS"
+if not specified.
 
 `--https-truststore`: Path to a keystore file containing client
 certificates. See https and proxy-client-certs for details.
 
 `--truststore-password`: Optional password to the trust store. Defaults
 to "password" if not specified.
+
+`--truststore-type`: Optional type of the trust store. Defaults
+to "JKS" if not specified.
 
 `--https-require-client-cert`: Force clients to authenticate with a
 client certificate. See https for details.

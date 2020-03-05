@@ -20,6 +20,7 @@ import com.google.common.io.Resources;
 public class HttpsSettings {
 
     private final int port;
+    private final String keyManagerPassword;
     private final String keyStorePath;
     private final String keyStorePassword;
     private final String keyStoreType;
@@ -28,8 +29,9 @@ public class HttpsSettings {
     private final String trustStoreType;
     private final boolean needClientAuth;
 
-    public HttpsSettings(int port, String keyStorePath, String keyStorePassword, String keyStoreType,  String trustStorePath, String trustStorePassword, String trustStoreType, boolean needClientAuth) {
+    public HttpsSettings(int port, String keyManagerPassword, String keyStorePath, String keyStorePassword, String keyStoreType,  String trustStorePath, String trustStorePassword, String trustStoreType, boolean needClientAuth) {
         this.port = port;
+        this.keyManagerPassword = keyManagerPassword;
         this.keyStorePath = keyStorePath;
         this.keyStorePassword = keyStorePassword;
         this.keyStoreType = keyStoreType;
@@ -42,6 +44,10 @@ public class HttpsSettings {
     public int port() {
         return port;
     }
+
+    public String keyManagerPassword() {
+		return keyManagerPassword;
+	}
 
     public String keyStorePath() {
         return keyStorePath;
@@ -100,6 +106,7 @@ public class HttpsSettings {
     public static class Builder {
 
         private int port;
+        private String keyManagerPassword = "password";
         private String keyStorePath = Resources.getResource("keystore").toString();
         private String keyStorePassword = "password";
         private String keyStoreType = "JKS";
@@ -110,6 +117,11 @@ public class HttpsSettings {
 
         public Builder port(int port) {
             this.port = port;
+            return this;
+        }
+
+        public Builder keyManagerPassword(String keyManagerPassword) {
+            this.keyManagerPassword = keyManagerPassword;
             return this;
         }
 
@@ -149,7 +161,7 @@ public class HttpsSettings {
         }
 
         public HttpsSettings build() {
-            return new HttpsSettings(port, keyStorePath, keyStorePassword,  keyStoreType,  trustStorePath, trustStorePassword, trustStoreType, needClientAuth);
+            return new HttpsSettings(port, keyManagerPassword, keyStorePath, keyStorePassword,  keyStoreType,  trustStorePath, trustStorePassword, trustStoreType, needClientAuth);
         }
     }
 }

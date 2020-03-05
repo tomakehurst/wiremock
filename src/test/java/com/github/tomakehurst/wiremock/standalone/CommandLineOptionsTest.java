@@ -109,6 +109,14 @@ public class CommandLineOptionsTest {
     }
 
     @Test
+    public void setsKeyManagerPassword() {
+        CommandLineOptions options = new CommandLineOptions("--https-port", "8443",
+                "--https-keystore", "/my/keystore",
+                "--keymanager-password", "somekmpwd");
+        assertThat(options.httpsSettings().keyManagerPassword(), is("somekmpwd"));
+    }
+
+    @Test
     public void setsTrustStorePathAndPassword() {
         CommandLineOptions options = new CommandLineOptions("--https-port", "8443",
                 "--https-keystore", "/my/keystore",
@@ -123,6 +131,30 @@ public class CommandLineOptionsTest {
         CommandLineOptions options = new CommandLineOptions("--https-port", "8443", "--https-keystore", "/my/keystore", "--keystore-password", "someotherpwd");
         assertThat(options.httpsSettings().keyStorePath(), is("/my/keystore"));
         assertThat(options.httpsSettings().keyStorePassword(), is("someotherpwd"));
+    }
+
+    @Test
+    public void setsKeyStoreType() {
+        CommandLineOptions options = new CommandLineOptions("--keystore-type", "keystoretype");
+        assertThat(options.httpsSettings().keyStoreType(), is("keystoretype"));
+    }
+
+    @Test
+    public void defaultsKeyStoreTypeIfNotSpecified() {
+        CommandLineOptions options = new CommandLineOptions();
+        assertThat(options.httpsSettings().keyStoreType(), is("JKS"));
+    }
+
+    @Test
+    public void setsTrustStoreType() {
+        CommandLineOptions options = new CommandLineOptions("--truststore-type", "truststoretype");
+        assertThat(options.httpsSettings().trustStoreType(), is("truststoretype"));
+    }
+
+    @Test
+    public void defaultsTrustStoreTypeIfNotSpecified() {
+        CommandLineOptions options = new CommandLineOptions();
+        assertThat(options.httpsSettings().trustStoreType(), is("JKS"));
     }
 
     @Test(expected=IllegalArgumentException.class)
