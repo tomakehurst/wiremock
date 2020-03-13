@@ -31,7 +31,7 @@ public class DeleteStubFileTask implements AdminTask {
     @Override
     public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
         FileSource fileSource = admin.getOptions().filesRoot().child(FILES_ROOT);
-        File filename = new File(fileSource.getPath(), pathParams.get("filename"));
+        File filename = new File(fileSource.getPath(), pathParams.get("0"));
         boolean deleted = filename.delete();
         if (deleted) {
             return ResponseDefinition.ok();
