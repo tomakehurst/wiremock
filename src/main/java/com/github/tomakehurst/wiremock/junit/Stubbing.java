@@ -15,6 +15,7 @@
  */
 package com.github.tomakehurst.wiremock.junit;
 
+import com.github.tomakehurst.wiremock.client.CountMatchingStrategy;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import com.github.tomakehurst.wiremock.matching.StringValuePattern;
@@ -42,6 +43,7 @@ public interface Stubbing {
 
     void verify(RequestPatternBuilder requestPatternBuilder);
     void verify(int count, RequestPatternBuilder requestPatternBuilder);
+    void verify(CountMatchingStrategy count, RequestPatternBuilder requestPatternBuilder);
     List<LoggedRequest> findAll(RequestPatternBuilder requestPatternBuilder);
     List<ServeEvent> getAllServeEvents();
 
