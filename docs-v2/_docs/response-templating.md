@@ -132,7 +132,8 @@ wm.stubFor(get(urlPathMatching("/static/.*"))
   },
   "response" : {
     "status" : 200,
-    "bodyFileName" : "files/{{request.requestLine.pathSegments.[1]}}"
+    "bodyFileName" : "files/{{request.requestLine.pathSegments.[1]}}",
+    "transformers": ["response-template"]
   }
 }
 ```
