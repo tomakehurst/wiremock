@@ -94,6 +94,8 @@ public class WireMockConfiguration implements Options {
     private Integer jettyAcceptors;
     private Integer jettyAcceptQueueSize;
     private Integer jettyHeaderBufferSize;
+    private Integer jettyHeaderRequestSize;
+    private Integer jettyHeaderResponseSize;
     private Long jettyStopTimeout;
 
     private Map<String, Extension> extensions = newLinkedHashMap();
@@ -168,8 +170,19 @@ public class WireMockConfiguration implements Options {
         return this;
     }
 
+    @Deprecated
     public WireMockConfiguration jettyHeaderBufferSize(Integer jettyHeaderBufferSize) {
         this.jettyHeaderBufferSize = jettyHeaderBufferSize;
+        return this;
+    }
+
+    public WireMockConfiguration jettyHeaderRequestSize(Integer jettyHeaderRequestSize) {
+        this.jettyHeaderRequestSize = jettyHeaderRequestSize;
+        return this;
+    }
+
+    public WireMockConfiguration jettyHeaderResponseSize(Integer jettyHeaderResponseSize) {
+        this.jettyHeaderResponseSize = jettyHeaderResponseSize;
         return this;
     }
 
@@ -450,6 +463,8 @@ public class WireMockConfiguration implements Options {
                 .withAcceptors(jettyAcceptors)
                 .withAcceptQueueSize(jettyAcceptQueueSize)
                 .withRequestHeaderSize(jettyHeaderBufferSize)
+                .withRequestHeaderSize(jettyHeaderRequestSize)
+                .withResponseHeaderSize(jettyHeaderResponseSize)
                 .withStopTimeout(jettyStopTimeout)
                 .build();
     }

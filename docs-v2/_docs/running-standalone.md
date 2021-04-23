@@ -135,8 +135,14 @@ accepting requests.
 
 `--jetty-accept-queue-size`: The Jetty queue size for accepted requests.
 
-`--jetty-header-buffer-size`: The Jetty buffer size for request headers,
+`--jetty-header-buffer-size`: Deprecated, use `--jetty-header-request-size`. The Jetty buffer size for request headers,
 e.g. `--jetty-header-buffer-size 16384`, defaults to 8192K.
+
+`--jetty-header-request-size`: The Jetty buffer size for request headers,
+e.g. `--jetty-header-request-size 16384`, defaults to 8192K.
+
+`--jetty-header-response-size`: The Jetty buffer size for response headers,
+e.g. `--jetty-header-response-size 16384`, defaults to 8192K.
 
 `--async-response-enabled`: Enable asynchronous request processing in Jetty. 
 Recommended when using WireMock for performance testing with delays, as it allows much more efficient use of container threads and therefore higher throughput. Defaults to `false`.

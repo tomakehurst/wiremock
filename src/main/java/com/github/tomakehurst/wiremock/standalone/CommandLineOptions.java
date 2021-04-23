@@ -91,7 +91,10 @@ public class CommandLineOptions implements Options {
     private static final String JETTY_ACCEPTOR_THREAD_COUNT = "jetty-acceptor-threads";
     private static final String PRINT_ALL_NETWORK_TRAFFIC = "print-all-network-traffic";
     private static final String JETTY_ACCEPT_QUEUE_SIZE = "jetty-accept-queue-size";
+    @Deprecated
     private static final String JETTY_HEADER_BUFFER_SIZE = "jetty-header-buffer-size";
+    private static final String JETTY_HEADER_REQUEST_SIZE = "jetty-header-request-size";
+    private static final String JETTY_HEADER_RESPONSE_SIZE = "jetty-header-response-size";
     private static final String JETTY_STOP_TIMEOUT = "jetty-stop-timeout";
     private static final String ROOT_DIR = "root-dir";
     private static final String CONTAINER_THREADS = "container-threads";
@@ -150,7 +153,9 @@ public class CommandLineOptions implements Options {
         optionParser.accepts(MAX_ENTRIES_REQUEST_JOURNAL, "Set maximum number of entries in request journal (if enabled) to discard old entries if the log becomes too large. Default: no discard").withRequiredArg();
         optionParser.accepts(JETTY_ACCEPTOR_THREAD_COUNT, "Number of Jetty acceptor threads").withRequiredArg();
         optionParser.accepts(JETTY_ACCEPT_QUEUE_SIZE, "The size of Jetty's accept queue size").withRequiredArg();
-        optionParser.accepts(JETTY_HEADER_BUFFER_SIZE, "The size of Jetty's buffer for request headers").withRequiredArg();
+        optionParser.accepts(JETTY_HEADER_BUFFER_SIZE, "Deprecated. The size of Jetty's buffer for request headers").withRequiredArg();
+        optionParser.accepts(JETTY_HEADER_REQUEST_SIZE, "The size of Jetty's buffer for request headers").withRequiredArg();
+        optionParser.accepts(JETTY_HEADER_RESPONSE_SIZE, "The size of Jetty's buffer for response headers").withRequiredArg();
         optionParser.accepts(JETTY_STOP_TIMEOUT, "Timeout in milliseconds for Jetty to stop").withRequiredArg();
         optionParser.accepts(PRINT_ALL_NETWORK_TRAFFIC, "Print all raw incoming and outgoing network traffic to console");
         optionParser.accepts(GLOBAL_RESPONSE_TEMPLATING, "Preprocess all responses with Handlebars templates");
@@ -308,8 +313,17 @@ public class CommandLineOptions implements Options {
             builder = builder.withAcceptQueueSize(Integer.parseInt((String) optionSet.valueOf(JETTY_ACCEPT_QUEUE_SIZE)));
         }
 
+        //@Deprecated
         if (optionSet.hasArgument(JETTY_HEADER_BUFFER_SIZE)) {
             builder = builder.withRequestHeaderSize(Integer.parseInt((String) optionSet.valueOf(JETTY_HEADER_BUFFER_SIZE)));
+        }
+
+        if (optionSet.hasArgument(JETTY_HEADER_REQUEST_SIZE)) {
+            builder = builder.withRequestHeaderSize(Integer.parseInt((String) optionSet.valueOf(JETTY_HEADER_REQUEST_SIZE)));
+        }
+
+        if (optionSet.hasArgument(JETTY_HEADER_RESPONSE_SIZE)) {
+            builder = builder.withResponseHeaderSize(Integer.parseInt((String) optionSet.valueOf(JETTY_HEADER_RESPONSE_SIZE)));
         }
 
         if (optionSet.hasArgument(JETTY_STOP_TIMEOUT)) {

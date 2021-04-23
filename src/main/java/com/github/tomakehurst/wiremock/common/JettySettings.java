@@ -24,15 +24,20 @@ public class JettySettings {
     private final Optional<Integer> acceptors;
     private final Optional<Integer> acceptQueueSize;
     private final Optional<Integer> requestHeaderSize;
+    private final Optional<Integer> responseHeaderSize;
     private final Optional<Long> stopTimeout;
 
-    private JettySettings(Optional<Integer> acceptors,
-                          Optional<Integer> acceptQueueSize,
-                          Optional<Integer> requestHeaderSize,
-                          Optional<Long> stopTimeout) {
+    private JettySettings(
+            Optional<Integer> acceptors,
+            Optional<Integer> acceptQueueSize,
+            Optional<Integer> requestHeaderSize,
+            Optional<Integer> responseHeaderSize,
+            Optional<Long> stopTimeout
+    ) {
         this.acceptors = acceptors;
         this.acceptQueueSize = acceptQueueSize;
         this.requestHeaderSize = requestHeaderSize;
+        this.responseHeaderSize = responseHeaderSize;
         this.stopTimeout = stopTimeout;
     }
 
@@ -48,6 +53,10 @@ public class JettySettings {
         return requestHeaderSize;
     }
 
+    public Optional<Integer> getResponseHeaderSize() {
+        return responseHeaderSize;
+    }
+
     public Optional<Long> getStopTimeout() {
         return stopTimeout;
     }
@@ -58,6 +67,7 @@ public class JettySettings {
                 "acceptors=" + acceptors +
                 ", acceptQueueSize=" + acceptQueueSize +
                 ", requestHeaderSize=" + requestHeaderSize +
+                ", responseHeaderSize=" + responseHeaderSize +
                 '}';
     }
 
@@ -65,6 +75,7 @@ public class JettySettings {
         private Integer acceptors;
         private Integer acceptQueueSize;
         private Integer requestHeaderSize;
+        private Integer responseHeaderSize;
         private Long stopTimeout;
 
         private Builder() {
@@ -89,16 +100,24 @@ public class JettySettings {
             return this;
         }
 
+        public Builder withResponseHeaderSize(Integer responseHeaderSize) {
+            this.responseHeaderSize = responseHeaderSize;
+            return this;
+        }
+
         public Builder withStopTimeout(Long stopTimeout) {
             this.stopTimeout = stopTimeout;
             return this;
         }
 
         public JettySettings build() {
-            return new JettySettings(Optional.fromNullable(acceptors),
+            return new JettySettings(
+                    Optional.fromNullable(acceptors),
                     Optional.fromNullable(acceptQueueSize),
                     Optional.fromNullable(requestHeaderSize),
-                    Optional.fromNullable(stopTimeout));
+                    Optional.fromNullable(responseHeaderSize),
+                    Optional.fromNullable(stopTimeout)
+            );
         }
     }
 

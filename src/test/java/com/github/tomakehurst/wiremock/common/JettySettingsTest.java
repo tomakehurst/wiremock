@@ -35,12 +35,14 @@ public class JettySettingsTest {
         builder.withAcceptors(number)
                 .withAcceptQueueSize(number)
                 .withRequestHeaderSize(number)
+                .withResponseHeaderSize(number)
                 .withStopTimeout(longNumber);
         JettySettings jettySettings = builder.build();
 
         ensurePresent(jettySettings.getAcceptors());
         ensurePresent(jettySettings.getAcceptQueueSize());
         ensurePresent(jettySettings.getRequestHeaderSize());
+        ensurePresent(jettySettings.getResponseHeaderSize());
         ensureLongPresent(jettySettings.getStopTimeout());
     }
 

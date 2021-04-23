@@ -398,8 +398,14 @@ public class Examples extends AcceptanceTestBase {
             // Set the Jetty accept queue size. Defaults to Jetty's default of unbounded.
             .jettyAcceptQueueSize(100)
 
-            // Set the size of Jetty's header buffer (to avoid exceptions when very large request headers are sent). Defaults to 8192.
+            // Deprecated. Set the size of Jetty's header buffer (to avoid exceptions when very large request headers are sent). Defaults to 8192.
             .jettyHeaderBufferSize(16834)
+
+            // Set the size of Jetty's request header buffer (to avoid exceptions when very large request headers are sent). Defaults to 8192.
+            .jettyHeaderRequestSize(16834)
+
+            // Set the size of Jetty's response header buffer (to avoid exceptions when very large request headers are sent). Defaults to 8192.
+            .jettyHeaderResponseSize(16834)
 
             // Set the timeout to wait for Jetty to stop in milliseconds. Defaults to 0 (no wait)
             .jettyStopTimeout(5000L)

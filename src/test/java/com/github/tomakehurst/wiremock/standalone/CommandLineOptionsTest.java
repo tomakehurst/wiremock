@@ -277,9 +277,22 @@ public class CommandLineOptionsTest {
     }
 
     @Test
+    @Deprecated
     public void returnsCorrectlyParsedJettyHeaderBufferSize() {
         CommandLineOptions options = new CommandLineOptions("--jetty-header-buffer-size", "16384");
         assertThat(options.jettySettings().getRequestHeaderSize().get(), is(16384));
+    }
+
+    @Test
+    public void returnsCorrectlyParsedJettyHeaderRequestSize() {
+        CommandLineOptions options = new CommandLineOptions("--jetty-header-request-size", "16384");
+        assertThat(options.jettySettings().getRequestHeaderSize().get(), is(16384));
+    }
+
+    @Test
+    public void returnsCorrectlyParsedJettyHeaderResponseSize() {
+        CommandLineOptions options = new CommandLineOptions("--jetty-header-response-size", "16384");
+        assertThat(options.jettySettings().getResponseHeaderSize().get(), is(16384));
     }
 
     @Test
