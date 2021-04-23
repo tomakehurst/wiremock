@@ -18,7 +18,26 @@ package com.github.tomakehurst.wiremock.common;
 import com.github.tomakehurst.wiremock.http.Request;
 import com.github.tomakehurst.wiremock.http.Response;
 
-public interface IdGenerator {
+import java.util.Random;
 
-    RequestResponseId generate(Request request, Response response, byte[] bodyBytes);
+public class VeryShortRandomIdGenerator implements IdGenerator {
+    
+    private static final String CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+    @Override
+    public RequestResponseId generate(Request _request, Response _response, byte[] _bodyBytes) {
+        final StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 5; i++) {
+            sb.append(randomChar());
+        }
+        
+        return new RequestResponseId(sb.toString());
+    }
+    
+    private static char randomChar() {
+        final Random random = new Random();
+        final int index = random.nextInt(CHARS.length());
+        return CHARS.charAt(index);
+    }
+
 }

@@ -16,8 +16,11 @@
 package com.github.tomakehurst.wiremock.stubbing;
 
 import com.github.tomakehurst.wiremock.common.FileSource;
+import com.github.tomakehurst.wiremock.common.HashIdGenerator;
 import com.github.tomakehurst.wiremock.common.IdGenerator;
+import com.github.tomakehurst.wiremock.common.RequestResponseId;
 import com.github.tomakehurst.wiremock.core.Admin;
+import com.github.tomakehurst.wiremock.core.Options;
 import com.github.tomakehurst.wiremock.http.*;
 import com.github.tomakehurst.wiremock.matching.MockMultipart;
 import com.github.tomakehurst.wiremock.matching.RequestPattern;
@@ -31,9 +34,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
 
 import static com.github.tomakehurst.wiremock.common.Gzip.gzip;
@@ -55,7 +55,8 @@ public class StubMappingJsonRecorderTest {
 	private StubMappingJsonRecorder listener;
 	private FileSource mappingsFileSource;
 	private FileSource filesFileSource;
-    private Admin admin;
+	private Admin admin;
+	private Options options;
 
 	private Mockery context;
 
@@ -65,6 +66,12 @@ public class StubMappingJsonRecorderTest {
 		mappingsFileSource = context.mock(FileSource.class, "mappingsFileSource");
 		filesFileSource = context.mock(FileSource.class, "filesFileSource");
         admin = context.mock(Admin.class);
+        options = context.mock(Options.class);
+
+        context.checking(new Expectations() {{
+            allowing(admin).getOptions(); will(returnValue(options));
+            allowing(options).getFileIdMethod(); will(returnValue(Options.FileIdMethod.RANDOM));
+        }});
 
         constructRecordingListener(Collections.<String>emptyList());
 	}
@@ -90,6 +97,7 @@ public class StubMappingJsonRecorderTest {
 	public void writesMappingFileAndCorrespondingBodyFileOnRequest() {
 		context.checking(new Expectations() {{
 		    allowing(admin).countRequestsMatching(with(any(RequestPattern.class))); will(returnValue(VerificationResult.withCount(0)));
+
 			one(mappingsFileSource).writeTextFile(with(equal("mapping-recorded-content-1$2!3.json")),
 					with(equalToJson(SAMPLE_REQUEST_MAPPING, STRICT_ORDER)));
 			one(filesFileSource).writeBinaryFile(with(equal("body-recorded-content-1$2!3.txt")),
@@ -481,6 +489,194 @@ public class StubMappingJsonRecorderTest {
                 response().status(200).body("anything").fromProxy(true).build());
     }
 
+    private static final String REQUEST_HASH_MAPPING =
+                    "{                                                                  \n"+
+                    "   \"id\" : \"a8fd63b8-96ae-32e7-9aba-69df9f922c83\",              \n"+
+                    "   \"request\" : {                                                 \n"+
+                    "       \"url\" : \"/favorite/api/request/hash/test\",              \n"+
+                    "       \"method\" : \"POST\",                                      \n"+
+                    "       \"bodyPatterns\" : [ {                                      \n"+
+                    "           \"equalTo\" : \"key1=request-hash-test\"                \n"+
+                    "       } ]                                                         \n"+
+                    "   },                                                              \n"+
+                    "   \"response\" : {                                                \n"+
+                    "       \"status\" : 200,                                           \n"+
+                    "       \"bodyFileName\" : \"body-favorite-api-request-hash-test-78F90BB7.txt\"\n"+
+                    "   },                                                              \n"+
+                    "   \"uuid\" : \"a8fd63b8-96ae-32e7-9aba-69df9f922c83\",            \n"+
+                    "   \"hashDetails\" : {                                             \n"+
+                    "       \"request\" : {                                             \n"+
+                    "           \"body\" : \"key1=request-hash-test\",                  \n"+
+                    "           \"bodyHash\" : 24292361,                                \n"+
+                    "           \"cookies\" : [ ],                                      \n"+
+                    "           \"headers\" : {                                         \n"+
+                    "               \"Accept-Content\" : \"text/plain\",                \n"+
+                    "               \"Content-Type\" : \"application/x-www-form-urlencoded\"\n"+
+                    "           },                                                      \n"+
+                    "           \"method\" : \"POST\",                                  \n"+
+                    "           \"multiparts\" : [ ],                                   \n"+
+                    "           \"url\" : \"/favorite/api/request/hash/test\"           \n"+
+                    "       }                                                           \n"+
+                    "   }                                                               \n"+
+                    "}";
+
+    Request getRequestForRequestResponseTest(Mockery context) {
+        return new MockRequestBuilder(context)
+                .withHeader("Accept-Content", "text/plain")
+                .withHeader("Content-Type", "application/x-www-form-urlencoded")
+                .withMethod(RequestMethod.POST)
+                .withUrl("/favorite/api/request/hash/test")
+                .withBody("key1=request-hash-test")
+                .build();
+    }
+
+    Response responseForRequestResponseTest = response()
+            .status(200)
+            .fromProxy(true)
+            .headers(new HttpHeaders(
+                    httpHeader("Content-Encoding", "text/plain"),
+                    httpHeader("Content-Length", "123"))
+            )
+            .body("Recorded body content")
+            .build();
+
+    @Test
+    public void requestHashProcessing() {
+
+        listener.setIdGenerator(new HashIdGenerator(Options.FileIdMethod.REQUEST_HASH));
+
+        context.checking(new Expectations() {{
+            allowing(admin).countRequestsMatching(with(any(RequestPattern.class))); will(returnValue(VerificationResult.withCount(0)));
+            allowing(options).getFileIdMethod(); will(returnValue(Options.FileIdMethod.REQUEST_HASH));
+            will(returnValue(VerificationResult.withCount(0)));
+            one(mappingsFileSource).writeTextFile(with(equal("mapping-favorite-api-request-hash-test-78F90BB7.json")),
+                    with(equalToJson(REQUEST_HASH_MAPPING)));
+            ignoring(filesFileSource);
+        }});
+
+        listener.requestReceived(getRequestForRequestResponseTest(context), responseForRequestResponseTest);
+    }
+
+    private static final String RESPONSE_HASH_MAPPING =
+                    "{                                                                  \n"+
+                    "   \"id\" : \"4d79cb9c-f6e5-37f5-bcdc-4e6518aaaf28\",              \n"+
+                    "   \"request\" : {                                                 \n"+
+                    "       \"url\" : \"/favorite/api/request/hash/test\",              \n"+
+                    "       \"method\" : \"POST\",                                      \n"+
+                    "       \"bodyPatterns\" : [ {                                      \n"+
+                    "           \"equalTo\" : \"key1=request-hash-test\"                \n"+
+                    "       } ]                                                         \n"+
+                    "   },                                                              \n"+
+                    "   \"response\" : {                                                \n"+
+                    "       \"status\" : 200,                                           \n"+
+                    "       \"bodyFileName\" : \"body-favorite-api-request-hash-test-9489DE93.txt\"\n"+
+                    "   },                                                              \n"+
+                    "   \"uuid\" : \"4d79cb9c-f6e5-37f5-bcdc-4e6518aaaf28\",            \n"+
+                    "   \"hashDetails\" : {                                             \n"+
+                    "       \"response\" : {                                            \n"+
+                    "           \"body\" : \"Recorded body content\",                   \n"+
+                    "           \"bodyHash\" : 1959204842,                              \n"+
+                    "           \"headers\" : {                                         \n"+
+                    "               \"Content-Encoding\" : \"text/plain\",              \n"+
+                    "               \"Content-Length\" : \"123\"                        \n"+
+                    "           },                                                      \n"+
+                    "           \"status\" : 200                                        \n"+
+                    "       }                                                           \n"+
+                    "   }                                                               \n"+
+                    "}";
+
+    @Test
+    public void responseHashProcessing() {
+
+        listener.setIdGenerator(new HashIdGenerator(Options.FileIdMethod.RESPONSE_HASH));
+
+        context.checking(new Expectations() {{
+            allowing(admin).countRequestsMatching(with(any(RequestPattern.class))); will(returnValue(VerificationResult.withCount(0)));
+            allowing(options).getFileIdMethod(); will(returnValue(Options.FileIdMethod.RESPONSE_HASH));
+            will(returnValue(VerificationResult.withCount(0)));
+            one(mappingsFileSource).writeTextFile(with(equal("mapping-favorite-api-request-hash-test-9489DE93.json")),
+                    with(equalToJson(RESPONSE_HASH_MAPPING)));
+            ignoring(filesFileSource);
+        }});
+
+        listener.requestReceived(getRequestForRequestResponseTest(context), responseForRequestResponseTest);
+    }
+
+    private static final String REQUEST_RESPONSE_HASH_MAPPING =
+                    "{                                                                  \n"+
+                    "   \"id\" : \"279a3e4d-a1dd-34a7-b84a-01b4b30c9eb1\",              \n"+
+                    "   \"request\" : {                                                 \n"+
+                    "       \"url\" : \"/favorite/api\",                                \n"+
+                    "       \"method\" : \"POST\",                                      \n"+
+                    "       \"bodyPatterns\" : [ {                                      \n"+
+                    "           \"equalTo\" : \"key1=value1\"                           \n"+
+                    "       } ]                                                         \n"+
+                    "   },                                                              \n"+
+                    "   \"response\" : {                                                \n"+
+                    "       \"status\" : 200,                                           \n"+
+                    "       \"bodyFileName\" : \"body-favorite-api-3737FABD.txt\"       \n"+
+                    "   },                                                              \n"+
+                    "   \"uuid\" : \"279a3e4d-a1dd-34a7-b84a-01b4b30c9eb1\",            \n"+
+                    "   \"hashDetails\" : {                                             \n"+
+                    "       \"request\" : {                                             \n"+
+                    "           \"body\" : \"key1=value1\",                             \n"+
+                    "           \"bodyHash\" : 74827466,                                \n"+
+                    "           \"cookies\" : [ ],                                      \n"+
+                    "           \"headers\" : {                                         \n"+
+                    "               \"Accept-Content\" : \"text/plain\",                \n"+
+                    "               \"Content-Type\" : \"application/x-www-form-urlencoded\"\n"+
+                    "           },                                                      \n"+
+                    "           \"method\" : \"POST\",                                  \n"+
+                    "           \"multiparts\" : [ ],                                   \n"+
+                    "           \"url\" : \"/favorite/api\"                             \n"+
+                    "       },                                                          \n"+
+                    "       \"response\" : {                                            \n"+
+                    "           \"body\" : \"Recorded body content\",                   \n"+
+                    "           \"bodyHash\" : 1959204842,                              \n"+
+                    "           \"headers\" : {                                         \n"+
+                    "               \"Content-Encoding\" : \"text/plain\",              \n"+
+                    "               \"Content-Length\" : \"123\"                        \n"+
+                    "           },                                                      \n"+
+                    "           \"status\" : 200                                        \n"+
+                    "       }                                                           \n"+
+                    "   }                                                               \n"+
+                    "}";
+
+    @Test
+    public void requestResponseHashProcessing() {
+
+        listener.setIdGenerator(new HashIdGenerator(Options.FileIdMethod.REQUEST_RESPONSE_HASH));
+
+        context.checking(new Expectations() {{
+            allowing(admin).countRequestsMatching(with(any(RequestPattern.class))); will(returnValue(VerificationResult.withCount(0)));
+            allowing(options).getFileIdMethod(); will(returnValue(Options.FileIdMethod.REQUEST_RESPONSE_HASH));
+            will(returnValue(VerificationResult.withCount(0)));
+            one(mappingsFileSource).writeTextFile(with(equal("mapping-favorite-api-3737FABD.json")),
+                    with(equalToJson(REQUEST_RESPONSE_HASH_MAPPING)));
+            ignoring(filesFileSource);
+        }});
+
+        Request request = new MockRequestBuilder(context)
+                .withHeader("Accept-Content", "text/plain")
+                .withHeader("Content-Type", "application/x-www-form-urlencoded")
+                .withMethod(RequestMethod.POST)
+                .withUrl("/favorite/api")
+                .withBody("key1=value1")
+                .build();
+
+        Response response = response()
+                .status(200)
+                .fromProxy(true)
+                .headers(new HttpHeaders(
+                        httpHeader("Content-Encoding", "text/plain"),
+                        httpHeader("Content-Length", "123"))
+                )
+                .body("Recorded body content")
+                .build();
+
+        listener.requestReceived(request, response);
+    }
+
     @Test
     public void detectsJsonExtensionFromFileExtension() throws Exception {
         assertResultingFileExtension("/my/file.json", "json");
@@ -584,8 +780,8 @@ public class StubMappingJsonRecorderTest {
 
 	private IdGenerator fixedIdGenerator(final String id) {
 	    return new IdGenerator() {
-            public String generate() {
-                return id;
+            public RequestResponseId generate(Request request, Response response, byte[] responseBytes) {
+                return new RequestResponseId(id);
             }
         };
 	}

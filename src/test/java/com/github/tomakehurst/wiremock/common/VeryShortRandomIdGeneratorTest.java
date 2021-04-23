@@ -15,24 +15,21 @@
  */
 package com.github.tomakehurst.wiremock.common;
 
-import java.util.Random;
+import org.junit.Test;
 
-public class VeryShortIdGenerator implements IdGenerator {
-    
-    private static final String CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+import static com.github.tomakehurst.wiremock.testsupport.WireMatchers.matches;
+import static org.hamcrest.MatcherAssert.assertThat;
 
-    public String generate() {
-        final StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < 5; i++) {
-            sb.append(randomChar());
-        }
+public class VeryShortRandomIdGeneratorTest {
+
+    @Test
+    public void IdsGeneratedContainOnlyLegalCharsAndAreRightLength() {
+        final IdGenerator generator = new VeryShortRandomIdGenerator();
         
-        return sb.toString();
+        for (int i = 0; i < 1000; i++) {
+            final RequestResponseId id = generator.generate(null, null, null);
+            assertThat(id.value(), matches("[A-Za-z0-9]{5}"));
+        }
     }
     
-    private static char randomChar() {
-        final Random random = new Random();
-        final int index = random.nextInt(CHARS.length());
-        return CHARS.charAt(index);
-    }
 }

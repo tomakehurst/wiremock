@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonView;
+import com.github.tomakehurst.wiremock.common.HashIdGenerator;
 import com.github.tomakehurst.wiremock.common.Json;
 import com.github.tomakehurst.wiremock.common.Metadata;
 import com.github.tomakehurst.wiremock.extension.Parameters;
@@ -31,7 +32,7 @@ import java.util.UUID;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 
-@JsonPropertyOrder({ "id", "name", "request", "newRequest", "response", "uuid" })
+@JsonPropertyOrder({ "id", "name", "request", "newRequest", "response", "uuid", "hashDetails" })
 @JsonIgnoreProperties({ "$schema" }) // Allows this to be added as a hint to IDEs like VS Code
 public class StubMapping {
 	
@@ -48,6 +49,7 @@ public class StubMapping {
 	private String scenarioName;
 	private String requiredScenarioState;
 	private String newScenarioState;
+	private HashIdGenerator.HashDetails hashDetails;
 
     private Map<String, Parameters> postServeActions;
 
@@ -126,6 +128,14 @@ public class StubMapping {
 
 	public void setResponse(ResponseDefinition response) {
 		this.response = response;
+	}
+
+	public HashIdGenerator.HashDetails getHashDetails() {
+		return hashDetails;
+	}
+
+	public void setHashDetails(HashIdGenerator.HashDetails hashDetails) {
+		this.hashDetails = hashDetails;
 	}
 
     @Override

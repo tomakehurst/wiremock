@@ -36,12 +36,14 @@ import com.github.tomakehurst.wiremock.standalone.MappingsSource;
 import com.github.tomakehurst.wiremock.verification.notmatched.NotMatchedRenderer;
 import com.github.tomakehurst.wiremock.verification.notmatched.PlainTextStubNotMatchedRenderer;
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.io.Resources;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.github.tomakehurst.wiremock.common.BrowserProxySettings.DEFAULT_CA_KESTORE_PASSWORD;
 import static com.github.tomakehurst.wiremock.common.BrowserProxySettings.DEFAULT_CA_KEYSTORE_PATH;
@@ -111,6 +113,8 @@ public class WireMockConfiguration implements Options {
     private String permittedSystemKeys = null;
 
     private boolean stubCorsEnabled = false;
+    private FileIdMethod fileIdMethod = FileIdMethod.RANDOM;
+    private Set<String> hashHeadersToIgnore = ImmutableSet.of();
 
     private MappingsSource getMappingsSource() {
         if (mappingsSource == null) {
@@ -414,6 +418,16 @@ public class WireMockConfiguration implements Options {
         return this;
     }
 
+    public WireMockConfiguration fileIdMethod(FileIdMethod fileIdMethod) {
+        this.fileIdMethod = fileIdMethod;
+        return this;
+    }
+
+    public WireMockConfiguration hashHeadersToIgnore(Set<String> headersToIgnore) {
+        this.hashHeadersToIgnore = headersToIgnore;
+        return this;
+    }
+
     @Override
     public int portNumber() {
         return portNumber;
@@ -573,6 +587,16 @@ public class WireMockConfiguration implements Options {
     @Override
     public boolean getStubCorsEnabled() {
         return stubCorsEnabled;
+    }
+
+    @Override
+    public FileIdMethod getFileIdMethod() {
+        return fileIdMethod;
+    }
+
+    @Override
+    public Set<String> getHashHeadersToIgnore() {
+        return hashHeadersToIgnore;
     }
 
     @Override

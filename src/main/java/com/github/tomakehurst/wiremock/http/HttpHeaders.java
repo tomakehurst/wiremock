@@ -110,6 +110,17 @@ public class HttpHeaders {
                 .build());
     }
 
+    public HttpHeaders excluding(Set<CaseInsensitiveKey> toIgnore) {
+        if (toIgnore.isEmpty())
+            return this;
+        List<HttpHeader> httpHeaderList = newArrayList();
+        for (CaseInsensitiveKey key: headers.keySet()) {
+            if (!toIgnore.contains(key))
+                httpHeaderList.add(new HttpHeader(key.value(), headers.get(key)));
+        }
+        return new HttpHeaders(httpHeaderList);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

@@ -34,10 +34,12 @@ import com.google.common.base.Optional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public interface Options {
 
     enum ChunkedEncodingPolicy { ALWAYS, NEVER, BODY_FILE }
+    enum FileIdMethod { RANDOM, REQUEST_HASH, RESPONSE_HASH, REQUEST_RESPONSE_HASH }
 
     int DEFAULT_PORT = 8080;
     int DYNAMIC_PORT = 0;
@@ -79,4 +81,6 @@ public interface Options {
     boolean getGzipDisabled();
     boolean getStubRequestLoggingDisabled();
     boolean getStubCorsEnabled();
+    FileIdMethod getFileIdMethod();
+    Set<String> getHashHeadersToIgnore();
 }

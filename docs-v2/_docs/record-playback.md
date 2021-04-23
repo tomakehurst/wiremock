@@ -335,6 +335,15 @@ By default generated stubs will be set to persistent, meaning that they will be 
 Setting `persist` to `false` means that stubs will not be saved and will be deleted on the next reset.
 
 
+### Recorded File ID Method
+
+By default each stub mapping is assigned a random 5 digit alphanumeric identifier.  However, if you want to have stable
+file IDs, you can use the command line option `--file-id-method` when [running standalone](/docs/running-standalone) to
+override this behavior.
+
+You can use the [configuration API](/docs/configuration) `fileIdMethod` to set the file ID generation method when running programatically.  
+
+
 ### Repeats as scenarios
 
 What happens when the recorder sees two identical requests that produce different results?

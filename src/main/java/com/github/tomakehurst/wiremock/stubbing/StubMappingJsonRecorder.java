@@ -47,7 +47,14 @@ public class StubMappingJsonRecorder implements RequestListener {
         this.filesFileSource = filesFileSource;
         this.admin = admin;
         this.headersToMatch = headersToMatch;
-        idGenerator = new VeryShortIdGenerator();
+        switch (admin.getOptions().getFileIdMethod()) {
+            case RANDOM:
+                idGenerator = new VeryShortRandomIdGenerator();
+                break;
+            default:
+                idGenerator = new HashIdGenerator(admin.getOptions().getFileIdMethod(), admin.getOptions().getHashHeadersToIgnore());
+                break;
+        }
     }
 
     @Override
@@ -129,14 +136,14 @@ public class StubMappingJsonRecorder implements RequestListener {
     }
 
     private void writeToMappingAndBodyFile(Request request, Response response, RequestPattern requestPattern) {
-        String fileId = idGenerator.generate();
         byte[] body = bodyDecompressedIfRequired(response);
+        RequestResponseId fileId = idGenerator.generate(request, response, body);
 
-        String mappingFileName = UniqueFilenameGenerator.generate(request.getUrl(), "mapping", fileId);
+        String mappingFileName = UniqueFilenameGenerator.generate(request.getUrl(), "mapping", fileId.value());
         String bodyFileName = UniqueFilenameGenerator.generate(
             request.getUrl(),
             "body",
-            fileId,
+            fileId.value(),
             ContentTypes.determineFileExtension(
                 request.getUrl(),
                 response.getHeaders().getContentTypeHeader(),
@@ -152,7 +159,9 @@ public class StubMappingJsonRecorder implements RequestListener {
         ResponseDefinition responseToWrite = responseDefinitionBuilder.build();
 
         StubMapping mapping = new StubMapping(requestPattern, responseToWrite);
-        mapping.setUuid(UUID.nameUUIDFromBytes(fileId.getBytes()));
+        mapping.setUuid(UUID.nameUUIDFromBytes(fileId.value().getBytes()));
+        if (fileId instanceof HashIdGenerator.HashRequestResponseId)
+            mapping.setHashDetails(((HashIdGenerator.HashRequestResponseId) fileId).hashDetails);
 
         filesFileSource.writeBinaryFile(bodyFileName, body);
         mappingsFileSource.writeTextFile(mappingFileName, write(mapping));

@@ -571,6 +571,14 @@ public class CommandLineOptionsTest {
         assertThat(options, matchesMultiLine(".*trust-proxy-target: *localhost, example\\.com.*"));
     }
 
+    @Test
+    public void fileIdMethodWorks() {
+        assertThat(new CommandLineOptions("--file-id-method", "RANDOM").getFileIdMethod(), is(Options.FileIdMethod.RANDOM));
+        assertThat(new CommandLineOptions("--file-id-method", "REQUEST_HASH").getFileIdMethod(), is(Options.FileIdMethod.REQUEST_HASH));
+        assertThat(new CommandLineOptions("--file-id-method", "RESPONSE_HASH").getFileIdMethod(), is(Options.FileIdMethod.RESPONSE_HASH));
+        assertThat(new CommandLineOptions("--file-id-method", "REQUEST_RESPONSE_HASH").getFileIdMethod(), is(Options.FileIdMethod.REQUEST_RESPONSE_HASH));
+    }
+
     public static class ResponseDefinitionTransformerExt1 extends ResponseDefinitionTransformer {
         @Override
         public ResponseDefinition transform(Request request, ResponseDefinition responseDefinition, FileSource files, Parameters parameters) { return null; }

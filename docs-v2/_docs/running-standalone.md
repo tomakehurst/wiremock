@@ -166,6 +166,29 @@ The last of these will cause chunked encoding to be used only when a stub define
 
 `--enable-stub-cors`: Enable automatic sending of cross-origin (CORS) response headers. Defaults to off.
 
+`--file-id-method`: Allows you to select a stable method for generating file IDs (files created when recording stub mappings).
+
+* **RANDOM**
+ID is randomly generated 5 digit alphanumeric string.  This method generates a new
+ID for every recording, even if the HTTP request and response are identical to previous requests / responses. *This is the default file ID method.* 
+
+* **REQUEST_HASH**
+ID is hash based on the HTTP request.  Useful if you want to see if
+responses for a given HTTP request are changing.    Caution: repeated
+requests to the same endpoint will overwrite previous responses.
+
+* **RESPONSE_HASH**
+ID is hash based on the HTTP response.  Useful to minimize the number
+of files created when two different HTTP requests produce identical
+responses.
+
+* **REQUEST_RESPONSE_HASH**
+ID is a hash based on both the HTTP request and response.
+
+`--hash-exclude-headers`: Comma separated list of headers (request or
+response headers) to ignore when creating a hash or the request and/or
+response.
+
 `--help`: Show command line help
 
 ## Configuring WireMock using the Java client

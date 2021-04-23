@@ -142,6 +142,32 @@ WireMock, when started programmatically, will default to `src/test/resources` as
 .usingFilesUnderClasspath("root/path/under/classpath")
 ```
 
+## Recorded File ID Method
+
+Allows you to select a stable method for generating file IDs (files created when recording stub mappings).
+
+```java
+// Make recordings use stable file IDs based on the HTTP request
+.fileIdMethod(FileIdMethod.REQUEST_HASH)
+```
+
+   * **RANDOM**
+   ID is randomly generated 5 digit alphanumeric string.  This method generates a new
+   ID for every recording, even if the HTTP request and response are identical to previous requests / responses. *This is the default file ID method.* 
+
+   * **REQUEST_HASH**
+   ID is hash based on the HTTP request.  Useful if you want to see if
+   responses for a given HTTP request are changing.  Caution: repeated
+   requests to the same endpoint will overwrite previous responses.
+
+   * **RESPONSE_HASH**
+   ID is hash based on the HTTP response.  Useful to minimize the number
+   of files created when two different HTTP requests produce identical
+   responses.
+
+   * **REQUEST_RESPONSE_HASH**
+   ID is a hash based on both the HTTP request and response.
+
 ## Request journal
 
 The request journal records requests received by WireMock. It is required by the verification features, so these will throw errors if it is disabled.
