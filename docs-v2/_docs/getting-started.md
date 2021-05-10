@@ -26,7 +26,7 @@ To add the standard WireMock JAR as a project dependency, put the following in t
 ### Gradle
 
 ```groovy
-testCompile "com.github.tomakehurst:wiremock-jre8:{{ site.wiremock_version }}"
+testImplementation "com.github.tomakehurst:wiremock-jre8:{{ site.wiremock_version }}"
 ```
 
 WireMock is also shipped in Java 7 and standalone versions, both of which work better in certain contexts.
