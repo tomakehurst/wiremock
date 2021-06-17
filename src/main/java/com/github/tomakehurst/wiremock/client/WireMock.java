@@ -17,6 +17,7 @@ package com.github.tomakehurst.wiremock.client;
 
 import com.github.tomakehurst.wiremock.admin.model.ListStubMappingsResult;
 import com.github.tomakehurst.wiremock.admin.model.SingleStubMappingResult;
+import com.github.tomakehurst.wiremock.common.Json;
 import com.github.tomakehurst.wiremock.stubbing.*;
 import com.github.tomakehurst.wiremock.common.FileSource;
 import com.github.tomakehurst.wiremock.common.SingleRootFileSource;
@@ -439,6 +440,17 @@ public class WireMock {
 
     public static ResponseDefinitionBuilder okTextXml(String body) {
         return okForContentType("text/xml", body);
+    }
+
+    public static ResponseDefinitionBuilder jsonResponse(String body, int status) {
+	    return aResponse()
+            .withStatus(status)
+            .withHeader(CONTENT_TYPE, "application/json")
+            .withBody(body);
+    }
+
+    public static ResponseDefinitionBuilder jsonResponse(Object body, int status) {
+	    return jsonResponse(Json.write(body), status);
     }
 
     public static MappingBuilder proxyAllTo(String url) {
