@@ -35,6 +35,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class PortNumberTest {
 
     private List<WireMockServer> createdServers;
+    private final int HTTP_UNAUTHORIZED = 401;
 
     @Before
     public void setup() {
@@ -59,7 +60,7 @@ public class PortNumberTest {
 
         wireMockClient.addResponse(MappingJsonSamples.BASIC_MAPPING_REQUEST_WITH_RESPONSE_HEADER);
         WireMockResponse response = wireMockClient.get("/a/registered/resource");
-        assertThat(response.statusCode(), is(401));
+        assertThat(response.statusCode(), is(HTTP_UNAUTHORIZED));
     }
 
 
