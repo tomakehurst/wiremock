@@ -69,9 +69,10 @@ public class WireMockServerTests {
         WireMockServer wireMockServer = new WireMockServer(options().dynamicPort());
         wireMockServer.start();
         int port = wireMockServer.port();
+        String bindAddress = wireMockServer.getOptions().bindAddress();
 
-        assertThat(wireMockServer.url("/something"), is(String.format("http://localhost:%d/something", port)));
-        assertThat(wireMockServer.url("something"), is(String.format("http://localhost:%d/something", port)));
+        assertThat(wireMockServer.url("/something"), is(String.format("http://%s:%d/something", bindAddress, port)));
+        assertThat(wireMockServer.url("something"), is(String.format("http://%s:%d/something", bindAddress, port)));
     }
 
     @Test
@@ -82,9 +83,10 @@ public class WireMockServerTests {
         );
         wireMockServer.start();
         int port = wireMockServer.httpsPort();
+        String bindAddress = wireMockServer.getOptions().bindAddress();
 
-        assertThat(wireMockServer.url("/something"), is(String.format("https://localhost:%d/something", port)));
-        assertThat(wireMockServer.url("something"), is(String.format("https://localhost:%d/something", port)));
+        assertThat(wireMockServer.url("/something"), is(String.format("https://%s:%d/something", bindAddress, port)));
+        assertThat(wireMockServer.url("something"), is(String.format("https://%s:%d/something", bindAddress, port)));
     }
 
     @Test
@@ -93,7 +95,7 @@ public class WireMockServerTests {
         wireMockServer.start();
         int port = wireMockServer.port();
 
-        assertThat(wireMockServer.baseUrl(), is(String.format("http://localhost:%d", port)));
+        assertThat(wireMockServer.baseUrl(), is(String.format("http://%s:%d", wireMockServer.getOptions().bindAddress(), port)));
     }
 
     @Test
@@ -105,7 +107,7 @@ public class WireMockServerTests {
         wireMockServer.start();
         int port = wireMockServer.httpsPort();
 
-        assertThat(wireMockServer.baseUrl(), is(String.format("https://localhost:%d", port)));
+        assertThat(wireMockServer.baseUrl(), is(String.format("https://%s:%d", wireMockServer.getOptions().bindAddress(), port)));
     }
 
     // https://github.com/tomakehurst/wiremock/issues/193
