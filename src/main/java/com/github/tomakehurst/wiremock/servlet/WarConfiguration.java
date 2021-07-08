@@ -20,6 +20,8 @@ import com.github.tomakehurst.wiremock.common.BrowserProxySettings;
 import com.github.tomakehurst.wiremock.core.MappingsSaver;
 import com.github.tomakehurst.wiremock.core.Options;
 import com.github.tomakehurst.wiremock.extension.Extension;
+import com.github.tomakehurst.wiremock.extension.ResponseDefinitionTransformer;
+import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer;
 import com.github.tomakehurst.wiremock.http.CaseInsensitiveKey;
 import com.github.tomakehurst.wiremock.http.HttpServerFactory;
 import com.github.tomakehurst.wiremock.http.ThreadPoolFactory;
@@ -27,22 +29,25 @@ import com.github.tomakehurst.wiremock.http.trafficlistener.DoNothingWiremockNet
 import com.github.tomakehurst.wiremock.http.trafficlistener.WiremockNetworkTrafficListener;
 import com.github.tomakehurst.wiremock.security.Authenticator;
 import com.github.tomakehurst.wiremock.security.NoAuthenticator;
+import com.github.tomakehurst.wiremock.servlet.NotImplementedMappingsSaver;
 import com.github.tomakehurst.wiremock.standalone.JsonFileMappingsSource;
 import com.github.tomakehurst.wiremock.standalone.MappingsLoader;
 import com.github.tomakehurst.wiremock.verification.notmatched.NotMatchedRenderer;
 import com.github.tomakehurst.wiremock.verification.notmatched.PlainTextStubNotMatchedRenderer;
 import com.google.common.base.Optional;
-
-import javax.servlet.ServletContext;
+import com.google.common.collect.ImmutableMap;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.ServletContext;
+
 
 import static java.util.Collections.emptyList;
 
 public class WarConfiguration implements Options {
 
     private static final String FILE_SOURCE_ROOT_KEY = "WireMockFileSourceRoot";
+    private static final String LOCAL_RESPONSE_TEMPLATING = "LocalResponseTemplating";
 
     private final ServletContext servletContext;
 
@@ -152,7 +157,19 @@ public class WarConfiguration implements Options {
 
     @Override
     public <T extends Extension> Map<String, T> extensionsOfType(Class<T> extensionType) {
-        return Collections.emptyMap();
+        ImmutableMap.Builder<String, T> builder = ImmutableMap.builder();
+        if (getLocalResponseTemplating() && ResponseDefinitionTransformer.class.isAssignableFrom(extensionType)) {
+            ResponseTemplateTransformer transformer = ResponseTemplateTransformer.builder()
+                    .global(false)
+                    .build();
+            builder.put(transformer.getName(), (T) transformer);
+        }
+
+        return builder.build();
+    }
+    
+    private boolean getLocalResponseTemplating() {
+        return Boolean.parseBoolean(servletContext.getInitParameter(LOCAL_RESPONSE_TEMPLATING));
     }
 
     @Override
