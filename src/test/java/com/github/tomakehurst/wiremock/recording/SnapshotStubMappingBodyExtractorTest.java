@@ -25,8 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.ok;
-import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -103,4 +102,35 @@ public class SnapshotStubMappingBodyExtractorTest {
             );
         }});
     }
+
+    @Test
+    public void determinesFileNamePropertyWithNamedStubMappingForUnauthorized() {
+        StubMapping stubMapping = WireMock.get("/foo")
+                .willReturn(unauthorizedJson("{}"))
+                .build();
+        stubMapping.setName("TEST NAME!");
+        setFileExpectations("test-name-" + stubMapping.getId() + ".json", "{}");
+        bodyExtractor.extractInPlace(stubMapping);
+    }
+
+    @Test
+    public void determinesFileNamePropertyWithNameStubMappingForUnauthorizedWithJsonBody() {
+        StubMapping stubMapping = WireMock.get("/foo")
+                .willReturn(unauthorized().withJsonBody("{}"))
+                .build();
+        stubMapping.setName("TEST NAME!");
+        setFileExpectations("test-name-" + stubMapping.getId() + ".json", "{}");
+        bodyExtractor.extractInPlace(stubMapping);
+    }
+
+    @Test
+    public void determinesFileNamePropertyWithNameStubMappingForBadRequestWithJsonBody() {
+        StubMapping stubMapping = WireMock.get("/foo")
+                .willReturn(badRequest().withJsonBody("{}"))
+                .build();
+        stubMapping.setName("TEST NAME!");
+        setFileExpectations("test-name-" + stubMapping.getId() + ".json", "{}");
+        bodyExtractor.extractInPlace(stubMapping);
+    }
+
 }

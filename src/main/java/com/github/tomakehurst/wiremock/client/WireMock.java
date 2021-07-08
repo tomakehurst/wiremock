@@ -550,6 +550,10 @@ public class WireMock {
         return aResponse().withStatus(401);
     }
 
+    public static ResponseDefinitionBuilder unauthorizedJson(String body) {
+	    return aResponse().withStatus(401).withJsonBody(body);
+    }
+
     public static ResponseDefinitionBuilder forbidden() {
         return aResponse().withStatus(403);
     }

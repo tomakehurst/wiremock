@@ -27,6 +27,7 @@ import java.util.Map;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMap;
+import static com.google.common.net.HttpHeaders.CONTENT_TYPE;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static java.util.Arrays.asList;
 
@@ -109,6 +110,11 @@ public class ResponseDefinitionBuilder {
 
     public ResponseDefinitionBuilder withJsonBody(JsonNode jsonBody) {
         this.jsonBody = jsonBody;
+        return this;
+    }
+
+    public ResponseDefinitionBuilder withJsonBody(String jsonBodyContent) {
+        this.withHeader(CONTENT_TYPE, "application/json").withBody(jsonBodyContent);
         return this;
     }
 
