@@ -48,6 +48,7 @@ public class StubMapping {
 	private String scenarioName;
 	private String requiredScenarioState;
 	private String newScenarioState;
+    private ResponseSequence responseSequence;
 
     private Map<String, Parameters> postServeActions;
 
@@ -56,10 +57,14 @@ public class StubMapping {
 	private long insertionIndex;
 	private boolean isDirty = true;
 
-	public StubMapping(RequestPattern requestPattern, ResponseDefinition response) {
-		setRequest(requestPattern);
-		this.response = response;
-	}
+    public StubMapping(RequestPattern requestPattern) {
+        setRequest(requestPattern);
+    }
+
+    public StubMapping(RequestPattern requestPattern, ResponseDefinition response) {
+        setRequest(requestPattern);
+        this.response = response;
+    }
 
 	public StubMapping() {
 		//Concession to Jackson
@@ -116,16 +121,38 @@ public class StubMapping {
 		return firstNonNull(request, RequestPattern.ANYTHING);
 	}
 
-	public ResponseDefinition getResponse() {
-		return firstNonNull(response, ResponseDefinition.ok());
-	}
-
 	public void setRequest(RequestPattern request) {
 		this.request = request;
 	}
 
+	public ResponseDefinition getResponse() {
+		return firstNonNull(response, ResponseDefinition.ok());
+	}
+
 	public void setResponse(ResponseDefinition response) {
 		this.response = response;
+	}
+
+	public ResponseSequence getResponseSequence() {
+		return responseSequence;
+	}
+
+	public void setResponseSequence(ResponseSequence responseSequence) {
+		this.responseSequence = responseSequence;
+	}
+
+	@JsonIgnore
+	public ResponseDefinition yieldResponse() {
+		return firstNonNull(
+				yieldResponseFromSequence(),
+				getResponse());
+	}
+
+	private ResponseDefinition yieldResponseFromSequence() {
+		if (responseSequence == null) {
+			return null;
+		}
+		return responseSequence.yieldResponse();
 	}
 
     @Override
@@ -235,11 +262,12 @@ public class StubMapping {
 			Objects.equals(requiredScenarioState, that.requiredScenarioState) &&
 			Objects.equals(newScenarioState, that.newScenarioState) &&
 			Objects.equals(postServeActions, that.postServeActions) &&
-			Objects.equals(metadata, that.metadata);
+			Objects.equals(metadata, that.metadata) &&
+			Objects.equals(responseSequence, that.responseSequence);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(uuid, request, response, priority, scenarioName, requiredScenarioState, newScenarioState, postServeActions, metadata, isDirty);
+		return Objects.hash(uuid, request, response, priority, scenarioName, requiredScenarioState, newScenarioState, postServeActions, metadata, isDirty, responseSequence);
 	}
 }

@@ -21,13 +21,15 @@ import com.github.tomakehurst.wiremock.http.Request;
 import com.github.tomakehurst.wiremock.http.RequestMethod;
 import com.github.tomakehurst.wiremock.http.ResponseDefinition;
 import com.github.tomakehurst.wiremock.matching.*;
+import com.github.tomakehurst.wiremock.stubbing.ResponseSequence;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Maps.newLinkedHashMap;
 
@@ -44,6 +46,8 @@ class BasicMappingBuilder implements ScenarioMappingBuilder {
     private boolean isPersistent = false;
     private Map<String, Parameters> postServeActions = newLinkedHashMap();
     private Metadata metadata;
+    private List<ResponseDefinitionBuilder> responseDefBuilderSequence = new ArrayList<>();
+    private boolean loopResponseSequence = false;
 
     BasicMappingBuilder(RequestMethod method, UrlPattern urlPattern) {
         requestPatternBuilder = new RequestPatternBuilder(method, urlPattern);
@@ -60,6 +64,18 @@ class BasicMappingBuilder implements ScenarioMappingBuilder {
 	@Override
 	public BasicMappingBuilder willReturn(ResponseDefinitionBuilder responseDefBuilder) {
 		this.responseDefBuilder = responseDefBuilder;
+		return this;
+	}
+
+	@Override
+	public MappingBuilder thenReturn(ResponseDefinitionBuilder responseDefBuilder) {
+		responseDefBuilderSequence.add(responseDefBuilder);
+		return this;
+	}
+
+	@Override
+	public MappingBuilder loopResponseSequence() {
+		loopResponseSequence = true;
 		return this;
 	}
 
@@ -219,8 +235,7 @@ class BasicMappingBuilder implements ScenarioMappingBuilder {
 			throw new IllegalStateException("Scenario name must be specified to require or set a new scenario state");
 		}
 		RequestPattern requestPattern = requestPatternBuilder.build();
-		ResponseDefinition response = firstNonNull(responseDefBuilder, aResponse()).build();
-		StubMapping mapping = new StubMapping(requestPattern, response);
+		StubMapping mapping = new StubMapping(requestPattern);
 		mapping.setPriority(priority);
 		mapping.setScenarioName(scenarioName);
 		mapping.setRequiredScenarioState(requiredScenarioState);
@@ -228,12 +243,25 @@ class BasicMappingBuilder implements ScenarioMappingBuilder {
 		mapping.setUuid(id);
 		mapping.setName(name);
         mapping.setPersistent(isPersistent);
-
         mapping.setPostServeActions(postServeActions.isEmpty() ? null : postServeActions);
-
         mapping.setMetadata(metadata);
+        setResponse(mapping);
 
 		return mapping;
+	}
+
+	private void setResponse(StubMapping mapping) {
+		if (!responseDefBuilderSequence.isEmpty()) {
+			List<ResponseDefinition> sequence = new ArrayList<>();
+			for (ResponseDefinitionBuilder builder : responseDefBuilderSequence) {
+				sequence.add(builder.build());
+			}
+			mapping.setResponseSequence(new ResponseSequence(sequence, loopResponseSequence));
+		} else if (responseDefBuilder != null) {
+			mapping.setResponse(responseDefBuilder.build());
+		} else {
+			mapping.setResponse(aResponse().build());
+		}
 	}
 
 }

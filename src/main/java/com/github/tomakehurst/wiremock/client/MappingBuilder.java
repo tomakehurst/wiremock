@@ -61,6 +61,8 @@ public interface MappingBuilder {
     MappingBuilder andMatching(String customRequestMatcherName, Parameters parameters);
 
     MappingBuilder willReturn(ResponseDefinitionBuilder responseDefBuilder);
+    MappingBuilder thenReturn(ResponseDefinitionBuilder responseDefBuilder);
+    MappingBuilder loopResponseSequence();
 
     StubMapping build();
 }

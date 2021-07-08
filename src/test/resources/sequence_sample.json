@@ -1,0 +1,38 @@
+{
+	"request": {
+		"method": "GET",
+		"url": "/my/other/resource",
+		"headers": {
+			"Content-Type": {
+				"equalTo": "text/xml"
+			},
+			"Accept": {
+				"matches": "(.*)xml(.*)"
+			},
+			"Etag": {
+				"doesNotMatch": "s0912lksjd(.+)"
+			}
+		}
+	},
+	"responseSequence": {
+		"loopResponseSequence": true,
+		"responses": [
+			{
+				"status": 200,
+				"body": "YES INDEED!",
+				"headers": {
+					"Content-Type": "text/plain",
+					"Cache-Control": "no-cache"
+				}
+			},
+			{
+				"status": 500,
+				"body": "PERHAPS NOT!",
+				"headers": {
+					"Content-Type": "text/plain",
+					"Cache-Control": "no-cache"
+				}
+			}
+		]
+	}
+}
