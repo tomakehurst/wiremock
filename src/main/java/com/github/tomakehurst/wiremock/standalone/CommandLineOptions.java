@@ -23,7 +23,6 @@ import com.github.tomakehurst.wiremock.core.Options;
 import com.github.tomakehurst.wiremock.core.WireMockApp;
 import com.github.tomakehurst.wiremock.extension.Extension;
 import com.github.tomakehurst.wiremock.extension.ExtensionLoader;
-import com.github.tomakehurst.wiremock.extension.ResponseDefinitionTransformer;
 import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer;
 import com.github.tomakehurst.wiremock.http.CaseInsensitiveKey;
 import com.github.tomakehurst.wiremock.http.HttpServerFactory;
@@ -70,6 +69,7 @@ public class CommandLineOptions implements Options {
 	private static final String PROXY_ALL = "proxy-all";
     private static final String PRESERVE_HOST_HEADER = "preserve-host-header";
     private static final String PROXY_VIA = "proxy-via";
+    private static final String TIMEOUT = "timeout";
     private static final String PORT = "port";
     private static final String DISABLE_HTTP = "disable-http";
     private static final String BIND_ADDRESS = "bind-address";
@@ -113,6 +113,8 @@ public class CommandLineOptions implements Options {
     private static final String HTTPS_CA_KEYSTORE = "ca-keystore";
     private static final String HTTPS_CA_KEYSTORE_PASSWORD = "ca-keystore-password";
     private static final String HTTPS_CA_KEYSTORE_TYPE = "ca-keystore-type";
+    private static final String DISABLE_OPTIMIZE_XML_FACTORIES_LOADING = "disable-optimize-xml-factories-loading";
+    private static final String DISABLE_STRICT_HTTP_HEADERS = "disable-strict-http-headers";
 
     private final OptionSet optionSet;
     private final FileSource fileSource;
@@ -130,6 +132,9 @@ public class CommandLineOptions implements Options {
         optionParser.accepts(HTTPS_PORT, "If this option is present WireMock will enable HTTPS on the specified port").withRequiredArg();
         optionParser.accepts(BIND_ADDRESS, "The IP to listen connections").withRequiredArg();
         optionParser.accepts(CONTAINER_THREADS, "The number of container threads").withRequiredArg();
+        optionParser.accepts(TIMEOUT, "The default global timeout.");
+        optionParser.accepts(DISABLE_OPTIMIZE_XML_FACTORIES_LOADING, "Whether to disable optimize XML factories loading or not.");
+        optionParser.accepts(DISABLE_STRICT_HTTP_HEADERS, "Whether to disable strict HTTP header handling of Jetty or not.");
         optionParser.accepts(REQUIRE_CLIENT_CERT, "Make the server require a trusted client certificate to enable a connection");
         optionParser.accepts(HTTPS_TRUSTSTORE_TYPE, "The HTTPS trust store type").withRequiredArg().defaultsTo("JKS");
         optionParser.accepts(HTTPS_TRUSTSTORE_PASSWORD, "Password for the trust store").withRequiredArg().defaultsTo("password");
@@ -605,6 +610,21 @@ public class CommandLineOptions implements Options {
     @Override
     public boolean getStubCorsEnabled() {
         return optionSet.has(ENABLE_STUB_CORS);
+    }
+
+    @Override
+    public long timeout() {
+        return optionSet.has(TIMEOUT) ? Long.parseLong((String)optionSet.valueOf(TIMEOUT)) : DEFAULT_TIMEOUT;
+    }
+
+    @Override
+    public boolean getDisableOptimizeXmlFactoriesLoading() {
+        return optionSet.has(DISABLE_OPTIMIZE_XML_FACTORIES_LOADING);
+    }
+
+    @Override
+    public boolean getDisableStrictHttpHeaders() {
+        return optionSet.has(DISABLE_STRICT_HTTP_HEADERS);
     }
 
     @SuppressWarnings("unchecked")

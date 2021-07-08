@@ -41,6 +41,7 @@ public interface Options {
 
     int DEFAULT_PORT = 8080;
     int DYNAMIC_PORT = 0;
+    int DEFAULT_TIMEOUT = 300_000;
     int DEFAULT_CONTAINER_THREADS = 25;
     String DEFAULT_BIND_ADDRESS = "0.0.0.0";
 
@@ -79,4 +80,7 @@ public interface Options {
     boolean getGzipDisabled();
     boolean getStubRequestLoggingDisabled();
     boolean getStubCorsEnabled();
+    long timeout();
+    boolean getDisableOptimizeXmlFactoriesLoading();
+    boolean getDisableStrictHttpHeaders();
 }

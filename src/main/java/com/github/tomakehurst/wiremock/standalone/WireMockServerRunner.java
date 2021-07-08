@@ -42,10 +42,6 @@ public class WireMockServerRunner {
             "| $$/   \\  $$| $$| $$      |  $$$$$$$| $$ \\/  | $$|  $$$$$$/|  $$$$$$$| $$ \\  $$\n" +
             "|__/     \\__/|__/|__/       \\_______/|__/     |__/ \\______/  \\_______/|__/  \\__/";
 
-    static {
-        System.setProperty("org.mortbay.log.class", "com.github.tomakehurst.wiremock.jetty.LoggerAdapter");
-    }
-
 	private WireMockServer wireMockServer;
 
 	public void run(String... args) {

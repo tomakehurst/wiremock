@@ -201,6 +201,21 @@ public class WarConfiguration implements Options {
     }
 
     @Override
+    public long timeout() {
+        return 0;
+    }
+
+    @Override
+    public boolean getDisableOptimizeXmlFactoriesLoading() {
+        return false;
+    }
+
+    @Override
+    public boolean getDisableStrictHttpHeaders() {
+        return false;
+    }
+
+    @Override
     public BrowserProxySettings browserProxySettings() {
         return BrowserProxySettings.DISABLED;
     }
