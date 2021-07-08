@@ -637,6 +637,14 @@ public class WireMock {
     public List<ServeEvent> getServeEvents() {
         return admin.getServeEvents().getRequests();
     }
+    
+    public static List<ServeEvent> getAllServeEvents(UUID stubMappingUUID) {
+        return defaultInstance.get().getServeEvents(stubMappingUUID);
+    }
+
+    public List<ServeEvent> getServeEvents(UUID stubMappingUUID) {
+        return admin.getServeEvents(stubMappingUUID).getRequests();
+    }
 
     public static void removeServeEvent(UUID eventId) {
 	    defaultInstance.get().removeEvent(eventId);

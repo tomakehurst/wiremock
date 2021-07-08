@@ -38,6 +38,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 
 import java.util.Collections;
 import java.util.List;
@@ -308,6 +309,17 @@ public class WireMockApp implements StubServer, Admin {
                 LimitAndOffsetPaginator.none(requestJournal.getAllServeEvents())
             );
         }
+    }
+    
+    @Override
+    public GetServeEventsResult getServeEvents(UUID stubMappingUUID) {
+        List<ServeEvent> serveEvents = Lists.newArrayList();
+        for (ServeEvent serveEvent : getServeEvents().getRequests()) {
+            if (serveEvent.getStubMapping().getId().equals(stubMappingUUID)) {
+                serveEvents.add(serveEvent);
+            }
+        }
+        return GetServeEventsResult.requestJournalEnabled(LimitAndOffsetPaginator.none(serveEvents));
     }
 
     @Override
