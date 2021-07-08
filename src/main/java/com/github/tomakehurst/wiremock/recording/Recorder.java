@@ -105,7 +105,7 @@ public class Recorder {
         final List<StubMapping> stubMappings = serveEventsToStubMappings(
             Lists.reverse(serveEvents),
             recordSpec.getFilters(),
-            new SnapshotStubMappingGenerator(recordSpec.getCaptureHeaders(), recordSpec.getRequestBodyPatternFactory()),
+            getSnapshotStubMappingGenerator(recordSpec),
             getStubMappingPostProcessor(admin.getOptions(), recordSpec)
         );
 
@@ -130,6 +130,18 @@ public class Recorder {
             .transform(stubMappingGenerator);
 
         return stubMappingPostProcessor.process(stubMappings);
+    }
+
+    public SnapshotStubMappingGenerator getSnapshotStubMappingGenerator(RecordSpec recordSpec) {
+        if (recordSpec.shouldCaptureAllHeaders()) {
+            return new SnapshotStubMappingGenerator(
+                new CaptureAllHeadersRequestTransformer(recordSpec.getCaptureHeaders(),
+                    recordSpec.getRequestBodyPatternFactory()),
+                new LoggedResponseDefinitionTransformer());
+        } else {
+            return new SnapshotStubMappingGenerator(recordSpec.getCaptureHeaders(),
+                recordSpec.getRequestBodyPatternFactory());
+        }
     }
 
     public SnapshotStubMappingPostProcessor getStubMappingPostProcessor(Options options, RecordSpec recordSpec) {

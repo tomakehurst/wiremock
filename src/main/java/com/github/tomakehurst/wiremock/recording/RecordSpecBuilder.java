@@ -40,6 +40,7 @@ public class RecordSpecBuilder {
     private List<String> transformerNames;
     private Parameters transformerParameters;
     private boolean allowNonProxied;
+    private boolean captureAllHeaders = false;
 
     public RecordSpecBuilder forTarget(String targetBaseUrl) {
         this.targetBaseUrl = targetBaseUrl;
@@ -136,6 +137,11 @@ public class RecordSpecBuilder {
         return this;
     }
 
+    public RecordSpecBuilder captureAllRequestHeaders(boolean captureAllHeaders){
+        this.captureAllHeaders = captureAllHeaders;
+        return this;
+    }
+
     public RecordSpec build() {
         RequestPattern filterRequestPattern = filterRequestPatternBuilder != null ?
             filterRequestPatternBuilder.build() :
@@ -156,7 +162,8 @@ public class RecordSpecBuilder {
             persistentStubs,
             repeatsAsScenarios,
             transformerNames,
-            transformerParameters
+            transformerParameters,
+            captureAllHeaders
         );
     }
 }

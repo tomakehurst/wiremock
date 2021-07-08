@@ -20,10 +20,14 @@ import com.github.tomakehurst.wiremock.http.LoggedResponse;
 import com.github.tomakehurst.wiremock.http.Request;
 import com.github.tomakehurst.wiremock.http.Response;
 import com.github.tomakehurst.wiremock.http.ResponseDefinition;
+import com.github.tomakehurst.wiremock.matching.EqualToPattern;
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
+import com.github.tomakehurst.wiremock.testsupport.MockRequestBuilder;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
+import java.util.HashMap;
+import java.util.Map;
 import org.jmock.Mockery;
 import org.junit.Test;
 
@@ -46,9 +50,85 @@ public class SnapshotStubMappingGeneratorTest {
         StubMapping actual = stubMappingTransformer.apply(serveEvent());
         StubMapping expected = new StubMapping(requestPatternBuilder.build(), responseDefinition);
         expected.setId(actual.getId());
-
         assertThat(actual, is(expected));
     }
+
+    @Test
+    public void applyCaptureHeadersTest() {
+        Map<String,String> testRequestHeaders = new HashMap<>();
+        testRequestHeaders.put("capture", "test");
+        testRequestHeaders.put("noCapture", "test");
+
+        Map<String,CaptureHeadersSpec> headersToCapture = new HashMap<>();
+        headersToCapture.put("capture",new CaptureHeadersSpec(true));
+
+        final RequestPatternBuilder expectedRequestPatternBuilder = newRequestPattern().withHeader("capture",new EqualToPattern("test",true));
+        final ResponseDefinition responseDefinition = ResponseDefinition.ok();
+
+        SnapshotStubMappingGenerator stubMappingTransformer = new SnapshotStubMappingGenerator(
+            new RequestPatternTransformer(headersToCapture,null),
+            responseDefinitionTransformer(responseDefinition)
+        );
+
+        StubMapping actual = stubMappingTransformer.apply(serveEventWithRequestHeaders(testRequestHeaders));
+        StubMapping expected = new StubMapping(expectedRequestPatternBuilder.build(), responseDefinition);
+
+        assertThat(actual.getRequest().getHeaders(), is(expected.getRequest().getHeaders()));
+    }
+
+    @Test
+    public void applyCaptureAllHeadersTestNoBlackList() {
+        Map<String,String> testRequestHeaders = new HashMap<>();
+        testRequestHeaders.put("capture", "test");
+        testRequestHeaders.put("alsoCapture", "test");
+
+        final RequestPatternBuilder expectedRequestPatternBuilder = newRequestPattern();
+        for(String s : testRequestHeaders.keySet()){
+            expectedRequestPatternBuilder.withHeader(s, new EqualToPattern(testRequestHeaders.get(s),true));
+        }
+
+        final ResponseDefinition responseDefinition = ResponseDefinition.ok();
+
+        SnapshotStubMappingGenerator stubMappingTransformer = new SnapshotStubMappingGenerator(
+            new CaptureAllHeadersRequestTransformer(null,null),
+            responseDefinitionTransformer(responseDefinition)
+        );
+
+        StubMapping actual = stubMappingTransformer.apply(serveEventWithRequestHeaders(testRequestHeaders));
+        StubMapping expected = new StubMapping(expectedRequestPatternBuilder.build(), responseDefinition);
+
+        assertThat(actual.getRequest().getHeaders(), is(expected.getRequest().getHeaders()));
+    }
+
+    @Test
+    public void applyCaptureAllHeadersTestWithBlacklist() {
+        Map<String,String> testRequestHeaders = new HashMap<>();
+        testRequestHeaders.put("capture", "test");
+        testRequestHeaders.put("alsoCapture", "test");
+        testRequestHeaders.put("ignore", "test");
+
+        Map<String,CaptureHeadersSpec> headersToIgnore = new HashMap<>();
+        headersToIgnore.put("Ignore",new CaptureHeadersSpec(true));
+
+        final RequestPatternBuilder expectedRequestPatternBuilder = newRequestPattern();
+        expectedRequestPatternBuilder.withHeader("capture", new EqualToPattern("test",true));
+        expectedRequestPatternBuilder.withHeader("alsoCapture", new EqualToPattern("test",true));
+
+
+        final ResponseDefinition responseDefinition = ResponseDefinition.ok();
+
+        SnapshotStubMappingGenerator stubMappingTransformer = new SnapshotStubMappingGenerator(
+            new CaptureAllHeadersRequestTransformer(headersToIgnore,null),
+            responseDefinitionTransformer(responseDefinition)
+        );
+
+        StubMapping actual = stubMappingTransformer.apply(serveEventWithRequestHeaders(testRequestHeaders));
+        StubMapping expected = new StubMapping(expectedRequestPatternBuilder.build(), responseDefinition);
+
+        assertThat(actual.getRequest().getHeaders(), is(expected.getRequest().getHeaders()));
+    }
+
+
 
     private static RequestPatternTransformer requestPatternTransformer(final RequestPatternBuilder requestPatternBuilder) {
         return new RequestPatternTransformer(null, null) {
@@ -72,6 +152,20 @@ public class SnapshotStubMappingGeneratorTest {
         return new ServeEvent(
             null,
             LoggedRequest.createFrom(aRequest(new Mockery()).build()),
+            null,
+            null,
+            LoggedResponse.from(Response.notConfigured()),
+            false,
+            Timing.UNTIMED);
+    }
+    private static ServeEvent serveEventWithRequestHeaders(Map<String,String> headers) {
+        MockRequestBuilder request = aRequest(new Mockery());
+        for(String s : headers.keySet()){
+            request.withHeader(s, headers.get(s));
+        }
+        return new ServeEvent(
+            null,
+            LoggedRequest.createFrom(request.build()),
             null,
             null,
             LoggedResponse.from(Response.notConfigured()),

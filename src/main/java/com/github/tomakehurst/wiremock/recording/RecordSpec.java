@@ -35,6 +35,7 @@ public class RecordSpec {
     private final ProxiedServeEventFilters filters;
 
     // Headers from the request to include in the stub mapping, if they match the corresponding matcher
+    // If captureAllHeaders is enabled, this is treated as a BlackList instead of a WhiteList
     private final Map<String, CaptureHeadersSpec> captureHeaders;
 
     // Factory for the StringValuePattern that will be used to match request bodies
@@ -58,6 +59,10 @@ public class RecordSpec {
     // Parameters for stub mapping transformers
     private final Parameters transformerParameters;
 
+    // If this is set to true, all headers will be captured for each request and must match exactly to be replayed
+    // To ignore headers add them to the captureHeaders Map
+    private final Boolean captureAllHeaders;
+
     @JsonCreator
     public RecordSpec(
         @JsonProperty("targetBaseUrl") String targetBaseUrl,
@@ -69,7 +74,8 @@ public class RecordSpec {
         @JsonProperty("persist") Boolean persist,
         @JsonProperty("repeatsAsScenarios") Boolean repeatsAsScenarios,
         @JsonProperty("transformers") List<String> transformers,
-        @JsonProperty("transformerParameters") Parameters transformerParameters) {
+        @JsonProperty("transformerParameters") Parameters transformerParameters,
+        @JsonProperty("captureAllHeaders") Boolean captureAllHeaders) {
         this.targetBaseUrl = targetBaseUrl;
         this.filters = filters == null ? ProxiedServeEventFilters.ALLOW_ALL : filters;
         this.captureHeaders = captureHeaders;
@@ -80,16 +86,17 @@ public class RecordSpec {
         this.repeatsAsScenarios = repeatsAsScenarios;
         this.transformers = transformers;
         this.transformerParameters = transformerParameters;
+        this.captureAllHeaders = captureAllHeaders  == null ? false: captureAllHeaders;
     }
 
     private RecordSpec() {
-        this(null, null, null, null, null, null, null, null, null, null);
+        this(null, null, null, null, null, null, null, null, null, null,null);
     }
 
     public static final RecordSpec DEFAULTS = new RecordSpec();
 
     public static RecordSpec forBaseUrl(String targetBaseUrl) {
-        return new RecordSpec(targetBaseUrl, null, null, null, null, null, null, true, null, null);
+        return new RecordSpec(targetBaseUrl, null, null, null, null, null, null, true, null, null, null);
     }
 
     public String getTargetBaseUrl() {
@@ -122,4 +129,7 @@ public class RecordSpec {
 
     public RequestBodyPatternFactory getRequestBodyPatternFactory() { return requestBodyPatternFactory; }
 
+    public Boolean shouldCaptureAllHeaders() {
+        return captureAllHeaders;
+    }
 }
