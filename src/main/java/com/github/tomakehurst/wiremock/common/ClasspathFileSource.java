@@ -49,11 +49,22 @@ public class ClasspathFileSource implements FileSource {
         this.path = path;
 
         try {
-            URL resource = firstNonNull(
+            ClassLoader cl = firstNonNull(
                     currentThread().getContextClassLoader(),
-                    Resources.class.getClassLoader())
-                        .getResource(path);
+                    Resources.class.getClassLoader()
+            );
+            URL resource = cl.getResource(path);
 
+            // If the resource didn't exist, and the path included a leading slash, try it without.
+            // (When WireMock is packaged inside a runnable jar, frequently the 'mappings' directory may be at the root
+            // level. Some users then attempt 'usingFilesUnderClasspath("")' or 'new ClasspathFileSource(""). Since the
+            // #child method uses 'path + "/" + subDirectoryName', the child ClasspathFileSource then uses "/mappings".
+            // That leading slash will not work in this scenario.)
+            if (resource == null && path.startsWith(File.separator)) {
+                resource = cl.getResource(path.replaceFirst(File.separator, ""));
+            }
+
+            // If it still didn't exist...
             if (resource == null) {
                 rootDirectory = new File(path);
                 this.pathUri = rootDirectory.toURI();

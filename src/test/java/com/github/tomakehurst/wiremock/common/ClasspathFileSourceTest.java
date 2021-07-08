@@ -47,7 +47,7 @@ public class ClasspathFileSourceTest {
     @SuppressWarnings("unchecked")
     @Test
     public void listsFilesRecursivelyFromFileSystem() {
-        initForFileSystem();
+        initForFileSystem("filesource");
 
         List<TextFile> files = classpathFileSource.listFilesRecursively();
 
@@ -93,7 +93,7 @@ public class ClasspathFileSourceTest {
 
     @Test
     public void readsBinaryFileFromFileSystem() {
-        initForFileSystem();
+        initForFileSystem("filesource");
 
         BinaryFile binaryFile = classpathFileSource.getBinaryFileNamed("subdir/deepfile.json");
 
@@ -103,7 +103,7 @@ public class ClasspathFileSourceTest {
 
     @Test
     public void createsChildSource() {
-        initForFileSystem();
+        initForFileSystem("filesource");
 
         FileSource child = classpathFileSource.child("subdir");
 
@@ -119,19 +119,27 @@ public class ClasspathFileSourceTest {
 
     @Test
     public void failsSilentlyOnWrites() {
-        initForFileSystem();
+        initForFileSystem("filesource");
         classpathFileSource.deleteFile("one");
         classpathFileSource.writeBinaryFile("any-bytes", new byte[] {});
         classpathFileSource.writeTextFile("any-text", "things");
         classpathFileSource.createIfNecessary();
     }
 
+    @Test
+    public void handlesLeadingSlash() {
+        // See https://github.com/tomakehurst/wiremock/issues/504
+        initForFileSystem("");
+        FileSource child = classpathFileSource.child("filesource/subdir");
+        assertTrue(child.exists());
+    }
+
     void initForJar() {
         classpathFileSource = new ClasspathFileSource("META-INF/maven/com.google.guava");
     }
 
-    private void initForFileSystem() {
-        classpathFileSource = new ClasspathFileSource("filesource");
+    private void initForFileSystem(String path) {
+        classpathFileSource = new ClasspathFileSource(path);
     }
 
 
