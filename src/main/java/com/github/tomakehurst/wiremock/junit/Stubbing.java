@@ -23,34 +23,47 @@ import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import com.github.tomakehurst.wiremock.verification.NearMiss;
-
 import java.util.List;
 import java.util.UUID;
 
 public interface Stubbing {
 
-    StubMapping givenThat(MappingBuilder mappingBuilder);
-    StubMapping stubFor(MappingBuilder mappingBuilder);
-    void editStub(MappingBuilder mappingBuilder);
-    void removeStub(MappingBuilder mappingBuilder);
-    void removeStub(StubMapping mappingBuilder);
+  StubMapping givenThat(MappingBuilder mappingBuilder);
 
-    List<StubMapping> getStubMappings();
-    StubMapping getSingleStubMapping(UUID id);
+  StubMapping stubFor(MappingBuilder mappingBuilder);
 
-    List<StubMapping> findStubMappingsByMetadata(StringValuePattern pattern);
-    void removeStubMappingsByMetadata(StringValuePattern pattern);
+  void editStub(MappingBuilder mappingBuilder);
 
-    void verify(RequestPatternBuilder requestPatternBuilder);
-    void verify(int count, RequestPatternBuilder requestPatternBuilder);
-    void verify(CountMatchingStrategy countMatchingStrategy, RequestPatternBuilder requestPatternBuilder);
-    List<LoggedRequest> findAll(RequestPatternBuilder requestPatternBuilder);
-    List<ServeEvent> getAllServeEvents();
+  void removeStub(MappingBuilder mappingBuilder);
 
-    void setGlobalFixedDelay(int milliseconds);
+  void removeStub(StubMapping mappingBuilder);
 
-    List<LoggedRequest> findAllUnmatchedRequests();
-    List<NearMiss> findNearMissesForAllUnmatchedRequests();
-    List<NearMiss> findNearMissesFor(LoggedRequest loggedRequest);
-    List<NearMiss> findAllNearMissesFor(RequestPatternBuilder requestPatternBuilder);
+  List<StubMapping> getStubMappings();
+
+  StubMapping getSingleStubMapping(UUID id);
+
+  List<StubMapping> findStubMappingsByMetadata(StringValuePattern pattern);
+
+  void removeStubMappingsByMetadata(StringValuePattern pattern);
+
+  void verify(RequestPatternBuilder requestPatternBuilder);
+
+  void verify(int count, RequestPatternBuilder requestPatternBuilder);
+
+  void verify(
+      CountMatchingStrategy countMatchingStrategy, RequestPatternBuilder requestPatternBuilder);
+
+  List<LoggedRequest> findAll(RequestPatternBuilder requestPatternBuilder);
+
+  List<ServeEvent> getAllServeEvents();
+
+  void setGlobalFixedDelay(int milliseconds);
+
+  List<LoggedRequest> findAllUnmatchedRequests();
+
+  List<NearMiss> findNearMissesForAllUnmatchedRequests();
+
+  List<NearMiss> findNearMissesFor(LoggedRequest loggedRequest);
+
+  List<NearMiss> findAllNearMissesFor(RequestPatternBuilder requestPatternBuilder);
 }

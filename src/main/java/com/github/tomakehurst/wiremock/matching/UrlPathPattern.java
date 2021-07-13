@@ -19,22 +19,22 @@ import com.github.tomakehurst.wiremock.common.Urls;
 
 public class UrlPathPattern extends UrlPattern {
 
-    public UrlPathPattern(StringValuePattern testUrl, boolean regex) {
-        super(testUrl, regex);
+  public UrlPathPattern(StringValuePattern testUrl, boolean regex) {
+    super(testUrl, regex);
+  }
+
+  @Override
+  public MatchResult match(String url) {
+    if (url == null) {
+      return MatchResult.noMatch();
     }
 
-    @Override
-    public MatchResult match(String url) {
-        if (url == null) {
-            return MatchResult.noMatch();
-        }
+    String path = Urls.getPath(url);
+    return super.match(path);
+  }
 
-        String path = Urls.getPath(url);
-        return super.match(path);
-    }
-
-    @Override
-    public String toString() {
-        return "path " + pattern.toString();
-    }
+  @Override
+  public String toString() {
+    return "path " + pattern.toString();
+  }
 }

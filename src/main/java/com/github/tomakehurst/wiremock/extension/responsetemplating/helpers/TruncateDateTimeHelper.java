@@ -17,24 +17,24 @@ package com.github.tomakehurst.wiremock.extension.responsetemplating.helpers;
 
 import com.github.jknack.handlebars.Options;
 import com.github.tomakehurst.wiremock.common.DateTimeTruncation;
-
 import java.io.IOException;
 import java.util.Date;
 
 public class TruncateDateTimeHelper extends HandlebarsHelper<Object> {
 
-    @Override
-    public Object apply(Object context, Options options) throws IOException {
-        if (options.params.length < 1) {
-            return handleError("Truncation type must be specified as the first parameter to truncateDate");
-        }
-
-        if (context instanceof Date) {
-            Date date = (Date) context;
-            DateTimeTruncation truncation = DateTimeTruncation.fromString(options.params[0].toString());
-            return truncation.truncate(date);
-        }
-
-        return handleError("A date object must be passed to the truncateDate helper");
+  @Override
+  public Object apply(Object context, Options options) throws IOException {
+    if (options.params.length < 1) {
+      return handleError(
+          "Truncation type must be specified as the first parameter to truncateDate");
     }
+
+    if (context instanceof Date) {
+      Date date = (Date) context;
+      DateTimeTruncation truncation = DateTimeTruncation.fromString(options.params[0].toString());
+      return truncation.truncate(date);
+    }
+
+    return handleError("A date object must be passed to the truncateDate helper");
+  }
 }

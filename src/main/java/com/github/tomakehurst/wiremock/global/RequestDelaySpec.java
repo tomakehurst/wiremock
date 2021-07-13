@@ -20,15 +20,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class RequestDelaySpec {
 
-    private final int milliseconds;
+  private final int milliseconds;
 
-    @JsonCreator
-    public RequestDelaySpec(@JsonProperty("milliseconds") int milliseconds) {
-        this.milliseconds = milliseconds;
-    }
+  @JsonCreator
+  public RequestDelaySpec(@JsonProperty("milliseconds") int milliseconds) {
+    this.milliseconds = milliseconds;
+  }
 
-    @JsonProperty("milliseconds")
-    public int milliseconds() {
-        return milliseconds;
-    }
+  @JsonProperty("milliseconds")
+  public int milliseconds() {
+    return milliseconds;
+  }
 }

@@ -15,22 +15,22 @@
  */
 package com.github.tomakehurst.wiremock.common;
 
+import static com.google.common.base.Charsets.UTF_8;
+
 import java.io.File;
 import java.net.URI;
 
-import static com.google.common.base.Charsets.UTF_8;
-
 public class TextFile extends BinaryFile {
 
-	public TextFile(URI uri) {
-        super(uri);
-	}
-	
-	public String readContentsAsString() {
-        return new String(super.readContents(), UTF_8);
-	}
+  public TextFile(URI uri) {
+    super(uri);
+  }
 
-    public String getPath() {
-        return new File(getUri().getSchemeSpecificPart()).getPath();
-    }
+  public String readContentsAsString() {
+    return new String(super.readContents(), UTF_8);
+  }
+
+  public String getPath() {
+    return new File(getUri().getSchemeSpecificPart()).getPath();
+  }
 }

@@ -16,54 +16,50 @@
 package com.github.tomakehurst.wiremock.common.ssl;
 
 import com.github.tomakehurst.wiremock.common.Source;
-
 import java.security.KeyStore;
 
 public class KeyStoreSettings {
 
-    public static final KeyStoreSettings NO_STORE = new KeyStoreSettings(null, null, null);
+  public static final KeyStoreSettings NO_STORE = new KeyStoreSettings(null, null, null);
 
-    private final KeyStoreSource keyStoreSource;
+  private final KeyStoreSource keyStoreSource;
 
-    public KeyStoreSettings(KeyStoreSource keyStoreSource) {
-        this.keyStoreSource = keyStoreSource;
+  public KeyStoreSettings(KeyStoreSource keyStoreSource) {
+    this.keyStoreSource = keyStoreSource;
+  }
+
+  public KeyStoreSettings(String path, String password, String type) {
+    this(
+        path != null && password != null && type != null
+            ? KeyStoreSourceFactory.getAppropriateForJreVersion(path, type, password.toCharArray())
+            : null);
+  }
+
+  public String path() {
+    if (keyStoreSource instanceof ReadOnlyFileOrClasspathKeyStoreSource) {
+      return ((ReadOnlyFileOrClasspathKeyStoreSource) keyStoreSource).getPath();
     }
 
-    public KeyStoreSettings(String path, String password, String type) {
-        this(
-            path != null && password != null && type != null ? KeyStoreSourceFactory.getAppropriateForJreVersion(
-                path,
-                type,
-                password.toCharArray()) :
-            null
-        );
-    }
+    return "(no path - custom keystore source)";
+  }
 
-    public String path() {
-        if (keyStoreSource instanceof ReadOnlyFileOrClasspathKeyStoreSource) {
-            return ((ReadOnlyFileOrClasspathKeyStoreSource) keyStoreSource).getPath();
-        }
+  public String password() {
+    return keyStoreSource.getKeyStorePassword();
+  }
 
-        return "(no path - custom keystore source)";
-    }
+  public String type() {
+    return keyStoreSource.getKeyStoreType();
+  }
 
-    public String password() {
-        return keyStoreSource.getKeyStorePassword();
-    }
+  public KeyStore loadStore() {
+    return keyStoreSource.load();
+  }
 
-    public String type() {
-        return keyStoreSource.getKeyStoreType();
-    }
+  public Source<KeyStore> getSource() {
+    return keyStoreSource;
+  }
 
-    public KeyStore loadStore() {
-        return keyStoreSource.load();
-    }
-
-    public Source<KeyStore> getSource() {
-        return keyStoreSource;
-    }
-
-    public boolean exists() {
-        return keyStoreSource.exists();
-    }
+  public boolean exists() {
+    return keyStoreSource.exists();
+  }
 }

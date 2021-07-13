@@ -15,58 +15,60 @@
  */
 package com.github.tomakehurst.wiremock.recording;
 
+import static org.junit.Assert.assertEquals;
+
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.extension.StubMappingTransformer;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.github.tomakehurst.wiremock.testsupport.GlobalStubMappingTransformer;
 import com.github.tomakehurst.wiremock.testsupport.NonGlobalStubMappingTransformer;
 import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import org.junit.Test;
 
-import java.util.ArrayList;
-
-import static org.junit.Assert.assertEquals;
-
 public class SnapshotStubMappingTransformerRunnerTest {
-    private final StubMapping stubMapping = WireMock.get("/").build();
+  private final StubMapping stubMapping = WireMock.get("/").build();
 
-    @Test
-    public void applyWithNoTransformers() {
-        StubMapping result = new SnapshotStubMappingTransformerRunner(
-            new ArrayList<StubMappingTransformer>()
-        ).apply(stubMapping);
+  @Test
+  public void applyWithNoTransformers() {
+    StubMapping result =
+        new SnapshotStubMappingTransformerRunner(new ArrayList<StubMappingTransformer>())
+            .apply(stubMapping);
 
-        assertEquals(stubMapping, result);
-    }
+    assertEquals(stubMapping, result);
+  }
 
-    @Test
-    public void applyWithUnregisteredNonGlobalTransformer() {
-        // Should not apply the transformer as it isn't registered
-        StubMapping result = new SnapshotStubMappingTransformerRunner(
-            Lists.<StubMappingTransformer>newArrayList(new NonGlobalStubMappingTransformer())
-        ).apply(stubMapping);
+  @Test
+  public void applyWithUnregisteredNonGlobalTransformer() {
+    // Should not apply the transformer as it isn't registered
+    StubMapping result =
+        new SnapshotStubMappingTransformerRunner(
+                Lists.<StubMappingTransformer>newArrayList(new NonGlobalStubMappingTransformer()))
+            .apply(stubMapping);
 
-        assertEquals(stubMapping, result);
-    }
+    assertEquals(stubMapping, result);
+  }
 
-    @Test
-    public void applyWithRegisteredNonGlobalTransformer() {
-        StubMapping result = new SnapshotStubMappingTransformerRunner(
-            Lists.<StubMappingTransformer>newArrayList(new NonGlobalStubMappingTransformer()),
-            Lists.newArrayList("nonglobal-transformer"),
-            null,
-            null
-        ).apply(stubMapping);
+  @Test
+  public void applyWithRegisteredNonGlobalTransformer() {
+    StubMapping result =
+        new SnapshotStubMappingTransformerRunner(
+                Lists.<StubMappingTransformer>newArrayList(new NonGlobalStubMappingTransformer()),
+                Lists.newArrayList("nonglobal-transformer"),
+                null,
+                null)
+            .apply(stubMapping);
 
-        assertEquals("/?transformed=nonglobal", result.getRequest().getUrl());
-    }
+    assertEquals("/?transformed=nonglobal", result.getRequest().getUrl());
+  }
 
-    @Test
-    public void applyWithGlobalTransformer() {
-        StubMapping result = new SnapshotStubMappingTransformerRunner(
-            Lists.<StubMappingTransformer>newArrayList(new GlobalStubMappingTransformer())
-        ).apply(stubMapping);
+  @Test
+  public void applyWithGlobalTransformer() {
+    StubMapping result =
+        new SnapshotStubMappingTransformerRunner(
+                Lists.<StubMappingTransformer>newArrayList(new GlobalStubMappingTransformer()))
+            .apply(stubMapping);
 
-        assertEquals("/?transformed=global", result.getRequest().getUrl());
-    }
+    assertEquals("/?transformed=global", result.getRequest().getUrl());
+  }
 }

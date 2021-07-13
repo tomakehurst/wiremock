@@ -23,9 +23,9 @@ import com.github.tomakehurst.wiremock.http.ResponseDefinition;
 
 public class ResetRequestsTask implements AdminTask {
 
-    @Override
-    public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
-        admin.resetRequests();
-        return ResponseDefinition.okEmptyJson();
-    }
+  @Override
+  public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
+    admin.resetRequests();
+    return ResponseDefinition.okEmptyJson();
+  }
 }

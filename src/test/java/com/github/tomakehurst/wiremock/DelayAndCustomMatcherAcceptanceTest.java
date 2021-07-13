@@ -15,6 +15,13 @@
  */
 package com.github.tomakehurst.wiremock;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.is;
+
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.common.FileSource;
 import com.github.tomakehurst.wiremock.extension.Parameters;
@@ -28,55 +35,55 @@ import com.google.common.base.Stopwatch;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-
 public class DelayAndCustomMatcherAcceptanceTest {
 
-    @Rule
-    public WireMockRule wireMockRule = new WireMockRule(options().dynamicPort().extensions(BodyChanger.class));
+  @Rule
+  public WireMockRule wireMockRule =
+      new WireMockRule(options().dynamicPort().extensions(BodyChanger.class));
 
-    @Test
-    public void delayIsAddedWhenCustomResponseTransformerPresent() {
-        stubFor(get(urlEqualTo("/delay-this"))
-            .willReturn(aResponse()
-                .withStatus(200)
-                .withTransformers("response-body-changer")
-                .withUniformRandomDelay(500, 1000)));
+  @Test
+  public void delayIsAddedWhenCustomResponseTransformerPresent() {
+    stubFor(
+        get(urlEqualTo("/delay-this"))
+            .willReturn(
+                aResponse()
+                    .withStatus(200)
+                    .withTransformers("response-body-changer")
+                    .withUniformRandomDelay(500, 1000)));
 
-        WireMockTestClient client = new WireMockTestClient(wireMockRule.port());
+    WireMockTestClient client = new WireMockTestClient(wireMockRule.port());
 
-        Stopwatch stopwatch = Stopwatch.createStarted();
-        WireMockResponse response = client.get("/delay-this");
-        stopwatch.stop();
+    Stopwatch stopwatch = Stopwatch.createStarted();
+    WireMockResponse response = client.get("/delay-this");
+    stopwatch.stop();
 
-        assertThat(stopwatch.elapsed(MILLISECONDS), greaterThanOrEqualTo(500L));
-        assertThat(response.statusCode(), is(200));
-        assertThat(response.content(), is("Transformed body"));
+    assertThat(stopwatch.elapsed(MILLISECONDS), greaterThanOrEqualTo(500L));
+    assertThat(response.statusCode(), is(200));
+    assertThat(response.content(), is("Transformed body"));
+  }
+
+  public static class BodyChanger extends ResponseDefinitionTransformer {
+
+    @Override
+    public ResponseDefinition transform(
+        Request request,
+        ResponseDefinition responseDefinition,
+        FileSource files,
+        Parameters parameters) {
+      return ResponseDefinitionBuilder.like(responseDefinition)
+          .but()
+          .withBody("Transformed body")
+          .build();
     }
 
-    public static class BodyChanger extends ResponseDefinitionTransformer {
-
-        @Override
-        public ResponseDefinition transform(Request request, ResponseDefinition responseDefinition, FileSource files, Parameters parameters) {
-            return ResponseDefinitionBuilder
-                .like(responseDefinition).but()
-                .withBody("Transformed body")
-                .build();
-        }
-
-        @Override
-        public boolean applyGlobally() {
-            return false;
-        }
-
-        @Override
-        public String getName() {
-            return "response-body-changer";
-        }
+    @Override
+    public boolean applyGlobally() {
+      return false;
     }
+
+    @Override
+    public String getName() {
+      return "response-body-changer";
+    }
+  }
 }

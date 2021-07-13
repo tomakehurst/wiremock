@@ -15,112 +15,110 @@
  */
 package com.github.tomakehurst.wiremock.extension.responsetemplating.helpers;
 
+import static org.junit.Assert.*;
+
 import com.github.jknack.handlebars.Options;
 import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
 import com.github.tomakehurst.wiremock.common.LocalNotifier;
 import com.github.tomakehurst.wiremock.extension.responsetemplating.SystemKeyAuthoriser;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import java.io.IOException;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.IOException;
-import static org.junit.Assert.*;
-
 public class SystemValueHelperTest {
 
-    private SystemValueHelper helper;
+  private SystemValueHelper helper;
 
-    @Before
-    public void init() {
-        helper = new SystemValueHelper(new SystemKeyAuthoriser(ImmutableSet.of(".*")));
-        LocalNotifier.set(new ConsoleNotifier(true));
-    }
+  @Before
+  public void init() {
+    helper = new SystemValueHelper(new SystemKeyAuthoriser(ImmutableSet.of(".*")));
+    LocalNotifier.set(new ConsoleNotifier(true));
+  }
 
-    @Test
-    public void getExistingEnvironmentVariableShouldNotNull() throws Exception {
-        ImmutableMap<String, Object> optionsHash = ImmutableMap.<String, Object>of(
-                "key", "PATH",
-                "type", "ENVIRONMENT"
-        );
+  @Test
+  public void getExistingEnvironmentVariableShouldNotNull() throws Exception {
+    ImmutableMap<String, Object> optionsHash =
+        ImmutableMap.<String, Object>of(
+            "key", "PATH",
+            "type", "ENVIRONMENT");
 
-        String output = render(optionsHash);
-        assertNotNull(output);
-        assertTrue(output.length() > 0);
-    }
+    String output = render(optionsHash);
+    assertNotNull(output);
+    assertTrue(output.length() > 0);
+  }
 
-    @Test
-    public void getNonExistingEnvironmentVariableShouldNull() throws Exception {
-        ImmutableMap<String, Object> optionsHash = ImmutableMap.<String, Object>of(
-                "key", "NON_EXISTING_VAR",
-                "type", "ENVIRONMENT"
-        );
+  @Test
+  public void getNonExistingEnvironmentVariableShouldNull() throws Exception {
+    ImmutableMap<String, Object> optionsHash =
+        ImmutableMap.<String, Object>of(
+            "key", "NON_EXISTING_VAR",
+            "type", "ENVIRONMENT");
 
-        String output = render(optionsHash);
-        assertNull(output);
-    }
+    String output = render(optionsHash);
+    assertNull(output);
+  }
 
-    @Test
-    public void getForbiddenEnvironmentVariableShouldReturnError() throws Exception {
-        helper = new SystemValueHelper(new SystemKeyAuthoriser(ImmutableSet.of("JAVA*")));
+  @Test
+  public void getForbiddenEnvironmentVariableShouldReturnError() throws Exception {
+    helper = new SystemValueHelper(new SystemKeyAuthoriser(ImmutableSet.of("JAVA*")));
 
-        ImmutableMap<String, Object> optionsHash = ImmutableMap.<String, Object>of(
-                "key", "TEST_VAR",
-                "type", "ENVIRONMENT"
-        );
-        String value = render(optionsHash);
-        assertEquals("[ERROR: Access to TEST_VAR is denied]", value);
-    }
+    ImmutableMap<String, Object> optionsHash =
+        ImmutableMap.<String, Object>of(
+            "key", "TEST_VAR",
+            "type", "ENVIRONMENT");
+    String value = render(optionsHash);
+    assertEquals("[ERROR: Access to TEST_VAR is denied]", value);
+  }
 
-    @Test
-    public void getEmptyKeyShouldReturnError() throws Exception {
-        ImmutableMap<String, Object> optionsHash = ImmutableMap.<String, Object>of(
-                "key", "",
-                "type", "PROPERTY"
-        );
-        String value = render(optionsHash);
-        assertEquals("[ERROR: The key cannot be empty]", value);
-    }
+  @Test
+  public void getEmptyKeyShouldReturnError() throws Exception {
+    ImmutableMap<String, Object> optionsHash =
+        ImmutableMap.<String, Object>of(
+            "key", "",
+            "type", "PROPERTY");
+    String value = render(optionsHash);
+    assertEquals("[ERROR: The key cannot be empty]", value);
+  }
 
-    @Test
-    public void getAllowedPropertyShouldSuccess() throws Exception {
-        helper = new SystemValueHelper(new SystemKeyAuthoriser(ImmutableSet.of("test.*")));
-        System.setProperty("test.key", "aaa");
-        assertEquals("aaa", System.getProperty("test.key"));
-        ImmutableMap<String, Object> optionsHash = ImmutableMap.<String, Object>of(
-                "key", "test.key",
-                "type", "PROPERTY"
-        );
-        String value = render(optionsHash);
-        assertEquals("aaa", value);
-    }
+  @Test
+  public void getAllowedPropertyShouldSuccess() throws Exception {
+    helper = new SystemValueHelper(new SystemKeyAuthoriser(ImmutableSet.of("test.*")));
+    System.setProperty("test.key", "aaa");
+    assertEquals("aaa", System.getProperty("test.key"));
+    ImmutableMap<String, Object> optionsHash =
+        ImmutableMap.<String, Object>of(
+            "key", "test.key",
+            "type", "PROPERTY");
+    String value = render(optionsHash);
+    assertEquals("aaa", value);
+  }
 
-    @Test
-    public void getForbiddenPropertyShouldReturnError() throws Exception {
-        helper = new SystemValueHelper(new SystemKeyAuthoriser(ImmutableSet.of("JAVA.*")));
-        System.setProperty("test.key", "aaa");
-        ImmutableMap<String, Object> optionsHash = ImmutableMap.<String, Object>of(
-                "key", "test.key",
-                "type", "PROPERTY"
-        );
-        String value = render(optionsHash);
-        assertEquals("[ERROR: Access to test.key is denied]", value);
-    }
+  @Test
+  public void getForbiddenPropertyShouldReturnError() throws Exception {
+    helper = new SystemValueHelper(new SystemKeyAuthoriser(ImmutableSet.of("JAVA.*")));
+    System.setProperty("test.key", "aaa");
+    ImmutableMap<String, Object> optionsHash =
+        ImmutableMap.<String, Object>of(
+            "key", "test.key",
+            "type", "PROPERTY");
+    String value = render(optionsHash);
+    assertEquals("[ERROR: Access to test.key is denied]", value);
+  }
 
-    @Test
-    public void getNonExistingSystemPropertyShouldNull() throws Exception {
-        ImmutableMap<String, Object> optionsHash = ImmutableMap.<String, Object>of(
-                "key", "not.existing.prop",
-                "type", "PROPERTY"
-        );
-        String output = render(optionsHash);
-        assertNull(output);
-    }
+  @Test
+  public void getNonExistingSystemPropertyShouldNull() throws Exception {
+    ImmutableMap<String, Object> optionsHash =
+        ImmutableMap.<String, Object>of(
+            "key", "not.existing.prop",
+            "type", "PROPERTY");
+    String output = render(optionsHash);
+    assertNull(output);
+  }
 
-    private String render(ImmutableMap<String, Object> optionsHash) throws IOException {
-        return helper.apply(null,
-                new Options.Builder(null, null, null, null, null)
-                        .setHash(optionsHash).build()
-        );
-    }
+  private String render(ImmutableMap<String, Object> optionsHash) throws IOException {
+    return helper.apply(
+        null, new Options.Builder(null, null, null, null, null).setHash(optionsHash).build());
+  }
 }

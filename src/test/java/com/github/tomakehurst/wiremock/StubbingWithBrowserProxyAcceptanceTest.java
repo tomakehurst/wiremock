@@ -15,8 +15,16 @@
  */
 package com.github.tomakehurst.wiremock;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+
 import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import org.apache.http.HttpHost;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -31,143 +39,123 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-
 public class StubbingWithBrowserProxyAcceptanceTest {
 
-    static final String EXPECTED_RESPONSE_BODY = "Got it";
+  static final String EXPECTED_RESPONSE_BODY = "Got it";
 
-    @ClassRule
-    public static WireMockClassRule wm = new WireMockClassRule(wireMockConfig()
-            .dynamicPort()
-            .enableBrowserProxying(true)
-            .notifier(new ConsoleNotifier(true))
-    );
+  @ClassRule
+  public static WireMockClassRule wm =
+      new WireMockClassRule(
+          wireMockConfig()
+              .dynamicPort()
+              .enableBrowserProxying(true)
+              .notifier(new ConsoleNotifier(true)));
 
-    @Rule
-    public WireMockClassRule instance = wm;
+  @Rule public WireMockClassRule instance = wm;
 
-    static CloseableHttpClient client;
+  static CloseableHttpClient client;
 
-    @BeforeClass
-    public static void init() {
-        client = HttpClientBuilder.create()
-                .setDnsResolver(new CustomLocalTldDnsResolver("internal"))
-                .setProxy(new HttpHost("localhost", wm.port()))
-                .build();
+  @BeforeClass
+  public static void init() {
+    client =
+        HttpClientBuilder.create()
+            .setDnsResolver(new CustomLocalTldDnsResolver("internal"))
+            .setProxy(new HttpHost("localhost", wm.port()))
+            .build();
+  }
+
+  @Test
+  public void matchesOnHostname() throws Exception {
+    stubFor(
+        get(urlPathEqualTo("/mypath"))
+            .withHost(equalTo("righthost.internal"))
+            .willReturn(ok(EXPECTED_RESPONSE_BODY)));
+
+    HttpUriRequest request = RequestBuilder.get("http://righthost.internal/mypath").build();
+    makeRequestAndAssertOk(request);
+  }
+
+  @Test
+  public void doesNotMatchOnHostnameWhenIncorrect() throws Exception {
+    stubFor(
+        get(urlPathEqualTo("/mypath"))
+            .withHost(equalTo("righthost.internal"))
+            .willReturn(ok(EXPECTED_RESPONSE_BODY)));
+
+    HttpUriRequest request = RequestBuilder.get("http://wronghost.internal/mypath").build();
+    makeRequestAndAssertNotOk(request);
+  }
+
+  @Test
+  public void matchesAnyHostnameWhenNotSpecified() throws Exception {
+    stubFor(get(urlPathEqualTo("/mypath")).willReturn(ok(EXPECTED_RESPONSE_BODY)));
+
+    HttpUriRequest request = RequestBuilder.get("http://whatever.internal/mypath").build();
+    makeRequestAndAssertOk(request);
+  }
+
+  @Test
+  public void matchesPortNumber() throws Exception {
+    stubFor(get(urlPathEqualTo("/mypath")).withPort(1234).willReturn(ok(EXPECTED_RESPONSE_BODY)));
+
+    HttpUriRequest request = RequestBuilder.get("http://localhost:1234/mypath").build();
+    makeRequestAndAssertOk(request);
+  }
+
+  @Test
+  public void doesNotMatchOnPortNumberWhenIncorrect() throws Exception {
+    stubFor(get(urlPathEqualTo("/mypath")).withPort(1234).willReturn(ok(EXPECTED_RESPONSE_BODY)));
+
+    HttpUriRequest request = RequestBuilder.get("http://localhost:4321/mypath").build();
+    makeRequestAndAssertNotOk(request);
+  }
+
+  @Test
+  public void matchesOnScheme() throws Exception {
+    stubFor(
+        get(urlPathEqualTo("/mypath")).withScheme("http").willReturn(ok(EXPECTED_RESPONSE_BODY)));
+
+    HttpUriRequest request = RequestBuilder.get("http://whatever/mypath").build();
+    makeRequestAndAssertOk(request);
+  }
+
+  @Test
+  public void doesNotMatchWhenSchemeIncorrect() throws Exception {
+    stubFor(
+        get(urlPathEqualTo("/mypath")).withScheme("https").willReturn(ok(EXPECTED_RESPONSE_BODY)));
+
+    HttpUriRequest request = RequestBuilder.get("http://whatever/mypath").build();
+    makeRequestAndAssertNotOk(request);
+  }
+
+  private void makeRequestAndAssertOk(HttpUriRequest request) throws Exception {
+    try (CloseableHttpResponse response = client.execute(request)) {
+      assertThat(EntityUtils.toString(response.getEntity()), is(EXPECTED_RESPONSE_BODY));
+    }
+  }
+
+  private void makeRequestAndAssertNotOk(HttpUriRequest request) throws Exception {
+    try (CloseableHttpResponse response = client.execute(request)) {
+      assertThat(EntityUtils.toString(response.getEntity()), not(is(EXPECTED_RESPONSE_BODY)));
+    }
+  }
+
+  private static class CustomLocalTldDnsResolver implements DnsResolver {
+
+    private final String tldToSendToLocalhost;
+
+    public CustomLocalTldDnsResolver(String tldToSendToLocalhost) {
+      this.tldToSendToLocalhost = tldToSendToLocalhost;
     }
 
-    @Test
-    public void matchesOnHostname() throws Exception {
-        stubFor(get(urlPathEqualTo("/mypath"))
-                .withHost(equalTo("righthost.internal"))
-                .willReturn(ok(EXPECTED_RESPONSE_BODY))
-        );
+    @Override
+    public InetAddress[] resolve(String host) throws UnknownHostException {
 
-        HttpUriRequest request = RequestBuilder.get("http://righthost.internal/mypath").build();
-        makeRequestAndAssertOk(request);
+      if (host.endsWith("." + tldToSendToLocalhost)) {
+        return new InetAddress[] {InetAddress.getLocalHost()};
+      } else {
+        return new SystemDefaultDnsResolver().resolve(host);
+      }
     }
-
-    @Test
-    public void doesNotMatchOnHostnameWhenIncorrect() throws Exception {
-        stubFor(get(urlPathEqualTo("/mypath"))
-                .withHost(equalTo("righthost.internal"))
-                .willReturn(ok(EXPECTED_RESPONSE_BODY))
-        );
-
-        HttpUriRequest request = RequestBuilder.get("http://wronghost.internal/mypath").build();
-        makeRequestAndAssertNotOk(request);
-    }
-
-    @Test
-    public void matchesAnyHostnameWhenNotSpecified() throws Exception {
-        stubFor(get(urlPathEqualTo("/mypath"))
-                .willReturn(ok(EXPECTED_RESPONSE_BODY))
-        );
-
-        HttpUriRequest request = RequestBuilder.get("http://whatever.internal/mypath").build();
-        makeRequestAndAssertOk(request);
-    }
-    
-    @Test
-    public void matchesPortNumber() throws Exception {
-        stubFor(get(urlPathEqualTo("/mypath"))
-                .withPort(1234)
-                .willReturn(ok(EXPECTED_RESPONSE_BODY))
-        );
-
-        HttpUriRequest request = RequestBuilder.get("http://localhost:1234/mypath").build();
-        makeRequestAndAssertOk(request);
-    }
-
-    @Test
-    public void doesNotMatchOnPortNumberWhenIncorrect() throws Exception {
-        stubFor(get(urlPathEqualTo("/mypath"))
-                .withPort(1234)
-                .willReturn(ok(EXPECTED_RESPONSE_BODY))
-        );
-
-        HttpUriRequest request = RequestBuilder.get("http://localhost:4321/mypath").build();
-        makeRequestAndAssertNotOk(request);
-    }
-
-    @Test
-    public void matchesOnScheme() throws Exception {
-        stubFor(get(urlPathEqualTo("/mypath"))
-                .withScheme("http")
-                .willReturn(ok(EXPECTED_RESPONSE_BODY))
-        );
-
-        HttpUriRequest request = RequestBuilder.get("http://whatever/mypath").build();
-        makeRequestAndAssertOk(request);
-    }
-
-    @Test
-    public void doesNotMatchWhenSchemeIncorrect() throws Exception {
-        stubFor(get(urlPathEqualTo("/mypath"))
-                .withScheme("https")
-                .willReturn(ok(EXPECTED_RESPONSE_BODY))
-        );
-
-        HttpUriRequest request = RequestBuilder.get("http://whatever/mypath").build();
-        makeRequestAndAssertNotOk(request);
-    }
-    
-    private void makeRequestAndAssertOk(HttpUriRequest request) throws Exception {
-        try (CloseableHttpResponse response = client.execute(request)) {
-            assertThat(EntityUtils.toString(response.getEntity()), is(EXPECTED_RESPONSE_BODY));
-        }
-    }
-
-    private void makeRequestAndAssertNotOk(HttpUriRequest request) throws Exception {
-        try (CloseableHttpResponse response = client.execute(request)) {
-            assertThat(EntityUtils.toString(response.getEntity()), not(is(EXPECTED_RESPONSE_BODY)));
-        }
-    }
-
-    private static class CustomLocalTldDnsResolver implements DnsResolver {
-
-        private final String tldToSendToLocalhost;
-
-        public CustomLocalTldDnsResolver(String tldToSendToLocalhost) {
-            this.tldToSendToLocalhost = tldToSendToLocalhost;
-        }
-
-        @Override
-        public InetAddress[] resolve(String host) throws UnknownHostException {
-
-            if (host.endsWith("." + tldToSendToLocalhost)) {
-                return new InetAddress[] { InetAddress.getLocalHost() };
-            } else {
-                return new SystemDefaultDnsResolver().resolve(host);
-            }
-        }
-    }
+  }
 }

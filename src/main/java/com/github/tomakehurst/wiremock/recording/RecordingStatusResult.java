@@ -20,18 +20,18 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class RecordingStatusResult {
 
-    private final RecordingStatus status;
+  private final RecordingStatus status;
 
-    @JsonCreator
-    public RecordingStatusResult(@JsonProperty("status") String status) {
-        this(RecordingStatus.valueOf(status));
-    }
+  @JsonCreator
+  public RecordingStatusResult(@JsonProperty("status") String status) {
+    this(RecordingStatus.valueOf(status));
+  }
 
-    public RecordingStatusResult(RecordingStatus status) {
-        this.status = status;
-    }
+  public RecordingStatusResult(RecordingStatus status) {
+    this.status = status;
+  }
 
-    public RecordingStatus getStatus() {
-        return status;
-    }
+  public RecordingStatus getStatus() {
+    return status;
+  }
 }

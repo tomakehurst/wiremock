@@ -15,115 +15,113 @@
  */
 package com.github.tomakehurst.wiremock.common;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.List;
-
 import static java.util.Collections.singletonList;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 
 public class Errors {
 
-    private final List<Error> errors;
+  private final List<Error> errors;
 
-    public Errors(@JsonProperty("errors") List<Error> errors) {
-        this.errors = errors;
+  public Errors(@JsonProperty("errors") List<Error> errors) {
+    this.errors = errors;
+  }
+
+  public static Errors single(Integer code, String sourcePointer, String title) {
+    return new Errors(singletonList(new Error(code, new Error.Source(sourcePointer), title)));
+  }
+
+  public static Errors single(Integer code, String sourcePointer, String title, String detail) {
+    return new Errors(
+        singletonList(new Error(code, new Error.Source(sourcePointer), title, detail)));
+  }
+
+  public static Errors single(Integer code, String title) {
+    return new Errors(singletonList(new Error(code, title)));
+  }
+
+  public static Errors singleWithDetail(Integer code, String title, String detail) {
+    return new Errors(singletonList(new Error(code, null, title, detail)));
+  }
+
+  public static Errors notRecording() {
+    return single(30, "Not currently recording.");
+  }
+
+  public static Errors validation(String pointer, String message) {
+    return single(10, pointer, message);
+  }
+
+  public static Errors notPermitted(String reason) {
+    return single(50, reason);
+  }
+
+  public Error first() {
+    if (errors.isEmpty()) {
+      throw new IllegalStateException("No errors are present");
     }
 
-    public static Errors single(Integer code, String sourcePointer, String title) {
-        return new Errors(singletonList(new Error(code, new Error.Source(sourcePointer), title)));
+    return errors.get(0);
+  }
+
+  public List<Error> getErrors() {
+    return errors;
+  }
+
+  public static class Error {
+
+    private final Integer code;
+    private final Source source;
+    private final String title;
+    private final String detail;
+
+    public Error(
+        @JsonProperty("code") Integer code,
+        @JsonProperty("source") Source source,
+        @JsonProperty("title") String title,
+        @JsonProperty("detail") String detail) {
+      this.code = code;
+      this.source = source;
+      this.title = title;
+      this.detail = detail;
     }
 
-    public static Errors single(Integer code, String sourcePointer, String title, String detail) {
-        return new Errors(singletonList(new Error(code, new Error.Source(sourcePointer), title, detail)));
+    public Error(int code, Source source, String title) {
+      this(code, source, title, null);
     }
 
-    public static Errors single(Integer code, String title) {
-        return new Errors(singletonList(new Error(code, title)));
+    public Error(int code, String title) {
+      this(code, null, title, null);
     }
 
-    public static Errors singleWithDetail(Integer code, String title, String detail) {
-        return new Errors(singletonList(new Error(code, null, title, detail)));
+    public Integer getCode() {
+      return code;
     }
 
-    public static Errors notRecording() {
-        return single(30, "Not currently recording.");
+    public Source getSource() {
+      return source;
     }
 
-    public static Errors validation(String pointer, String message) {
-        return single(10, pointer, message);
+    public String getTitle() {
+      return title;
     }
 
-    public static Errors notPermitted(String reason) {
-        return single(50, reason);
+    public String getDetail() {
+      return detail;
     }
 
-    public Error first() {
-        if (errors.isEmpty()) {
-            throw new IllegalStateException("No errors are present");
-        }
+    public static class Source {
 
-        return errors.get(0);
+      private final String pointer;
+
+      public Source(@JsonProperty("pointer") String pointer) {
+        this.pointer = pointer;
+      }
+
+      public String getPointer() {
+        return pointer;
+      }
     }
-
-    public List<Error> getErrors() {
-        return errors;
-    }
-
-    public static class Error {
-
-        private final Integer code;
-        private final Source source;
-        private final String title;
-        private final String detail;
-
-        public Error(@JsonProperty("code") Integer code,
-                     @JsonProperty("source") Source source,
-                     @JsonProperty("title") String title,
-                     @JsonProperty("detail") String detail
-        ) {
-            this.code = code;
-            this.source = source;
-            this.title = title;
-            this.detail = detail;
-        }
-
-        public Error(int code, Source source, String title) {
-            this(code, source, title, null);
-        }
-
-        public Error(int code, String title) {
-            this(code, null, title, null);
-        }
-
-        public Integer getCode() {
-            return code;
-        }
-
-        public Source getSource() {
-            return source;
-        }
-
-        public String getTitle() {
-            return title;
-        }
-
-        public String getDetail() {
-            return detail;
-        }
-
-        public static class Source {
-
-            private final String pointer;
-
-            public Source(@JsonProperty("pointer") String pointer) {
-                this.pointer = pointer;
-            }
-
-            public String getPointer() {
-                return pointer;
-            }
-        }
-    }
-
-
+  }
 }

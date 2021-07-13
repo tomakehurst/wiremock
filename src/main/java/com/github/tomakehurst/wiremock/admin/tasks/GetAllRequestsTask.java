@@ -15,6 +15,9 @@
  */
 package com.github.tomakehurst.wiremock.admin.tasks;
 
+import static com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder.responseDefinition;
+import static java.net.HttpURLConnection.HTTP_OK;
+
 import com.github.tomakehurst.wiremock.admin.AdminTask;
 import com.github.tomakehurst.wiremock.admin.LimitAndSinceDatePaginator;
 import com.github.tomakehurst.wiremock.admin.model.GetServeEventsResult;
@@ -24,26 +27,20 @@ import com.github.tomakehurst.wiremock.core.Admin;
 import com.github.tomakehurst.wiremock.http.Request;
 import com.github.tomakehurst.wiremock.http.ResponseDefinition;
 
-import static com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder.responseDefinition;
-import static java.net.HttpURLConnection.HTTP_OK;
-
 public class GetAllRequestsTask implements AdminTask {
 
-    @Override
-    public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
-        GetServeEventsResult serveEventsResult = admin.getServeEvents();
-        GetServeEventsResult result = new GetServeEventsResult(
-            LimitAndSinceDatePaginator.fromRequest(
-                serveEventsResult.getRequests(),
-                request
-            ),
-            serveEventsResult.isRequestJournalDisabled()
-        );
+  @Override
+  public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
+    GetServeEventsResult serveEventsResult = admin.getServeEvents();
+    GetServeEventsResult result =
+        new GetServeEventsResult(
+            LimitAndSinceDatePaginator.fromRequest(serveEventsResult.getRequests(), request),
+            serveEventsResult.isRequestJournalDisabled());
 
-        return responseDefinition()
-            .withStatus(HTTP_OK)
-            .withBody(Json.write(result))
-            .withHeader("Content-Type", "application/json")
-            .build();
-    }
+    return responseDefinition()
+        .withStatus(HTTP_OK)
+        .withBody(Json.write(result))
+        .withHeader("Content-Type", "application/json")
+        .build();
+  }
 }

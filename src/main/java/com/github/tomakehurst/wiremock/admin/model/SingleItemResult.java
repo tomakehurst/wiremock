@@ -15,28 +15,28 @@
  */
 package com.github.tomakehurst.wiremock.admin.model;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonValue;
 
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
-
 @JsonInclude(NON_NULL)
 public class SingleItemResult<T> {
 
-    private final T item;
+  private final T item;
 
-    public SingleItemResult(T item) {
-        this.item = item;
-    }
+  public SingleItemResult(T item) {
+    this.item = item;
+  }
 
-    @JsonValue
-    public T getItem() {
-        return item;
-    }
+  @JsonValue
+  public T getItem() {
+    return item;
+  }
 
-    @JsonIgnore
-    public boolean isPresent() {
-        return item != null;
-    }
+  @JsonIgnore
+  public boolean isPresent() {
+    return item != null;
+  }
 }

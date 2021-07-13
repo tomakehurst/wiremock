@@ -16,59 +16,66 @@
 package com.github.tomakehurst.wiremock.matching;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.github.tomakehurst.wiremock.common.DateTimeTruncation;
 import com.github.tomakehurst.wiremock.common.DateTimeUnit;
-
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 
 public class EqualToDateTimePattern extends AbstractDateTimePattern {
 
-    public EqualToDateTimePattern(ZonedDateTime zonedDateTime) {
-        super(zonedDateTime);
-    }
+  public EqualToDateTimePattern(ZonedDateTime zonedDateTime) {
+    super(zonedDateTime);
+  }
 
-    public EqualToDateTimePattern(LocalDateTime localDateTime) {
-        super(localDateTime);
-    }
+  public EqualToDateTimePattern(LocalDateTime localDateTime) {
+    super(localDateTime);
+  }
 
-    public EqualToDateTimePattern(String dateTimeSpec) {
-        super(dateTimeSpec);
-    }
+  public EqualToDateTimePattern(String dateTimeSpec) {
+    super(dateTimeSpec);
+  }
 
-    public EqualToDateTimePattern(
-            @JsonProperty("equalToDateTime") String dateTimeSpec,
-            @JsonProperty("actualFormat") String actualDateFormat,
-            @JsonProperty("truncateExpected") String truncateExpected,
-            @JsonProperty("truncateActual") String truncateActual,
-            @JsonProperty("expectedOffset") Integer expectedOffsetAmount,
-            @JsonProperty("expectedOffsetUnit") DateTimeUnit expectedOffsetUnit
-    ) {
-        super(dateTimeSpec, actualDateFormat, truncateExpected, truncateActual, expectedOffsetAmount, expectedOffsetUnit);
-    }
+  public EqualToDateTimePattern(
+      @JsonProperty("equalToDateTime") String dateTimeSpec,
+      @JsonProperty("actualFormat") String actualDateFormat,
+      @JsonProperty("truncateExpected") String truncateExpected,
+      @JsonProperty("truncateActual") String truncateActual,
+      @JsonProperty("expectedOffset") Integer expectedOffsetAmount,
+      @JsonProperty("expectedOffsetUnit") DateTimeUnit expectedOffsetUnit) {
+    super(
+        dateTimeSpec,
+        actualDateFormat,
+        truncateExpected,
+        truncateActual,
+        expectedOffsetAmount,
+        expectedOffsetUnit);
+  }
 
-    @Override
-    protected MatchResult getMatchResult(ZonedDateTime zonedExpected, LocalDateTime localExpected, ZonedDateTime zonedActual, LocalDateTime localActual) {
+  @Override
+  protected MatchResult getMatchResult(
+      ZonedDateTime zonedExpected,
+      LocalDateTime localExpected,
+      ZonedDateTime zonedActual,
+      LocalDateTime localActual) {
 
-        return new AbstractDateTimeMatchResult(zonedExpected, localExpected, zonedActual, localActual) {
-            @Override
-            protected boolean matchZonedZoned() {
-                return zonedActual.isEqual(zonedExpected);
-            }
+    return new AbstractDateTimeMatchResult(zonedExpected, localExpected, zonedActual, localActual) {
+      @Override
+      protected boolean matchZonedZoned() {
+        return zonedActual.isEqual(zonedExpected);
+      }
 
-            @Override
-            protected boolean matchLocalLocal() {
-                return localActual.isEqual(localExpected);
-            }
+      @Override
+      protected boolean matchLocalLocal() {
+        return localActual.isEqual(localExpected);
+      }
 
-            @Override
-            protected boolean matchLocalZoned() {
-                return zonedActual.toLocalDateTime().isEqual(localExpected);
-            }
-        };
-    }
+      @Override
+      protected boolean matchLocalZoned() {
+        return zonedActual.toLocalDateTime().isEqual(localExpected);
+      }
+    };
+  }
 
-    public String getEqualToDateTime() {
-        return getValue();
-    }
+  public String getEqualToDateTime() {
+    return getValue();
+  }
 }

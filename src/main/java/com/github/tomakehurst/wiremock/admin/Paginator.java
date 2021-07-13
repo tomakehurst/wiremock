@@ -19,6 +19,7 @@ import java.util.List;
 
 public interface Paginator<T> {
 
-    List<T> select();
-    int getTotal();
+  List<T> select();
+
+  int getTotal();
 }

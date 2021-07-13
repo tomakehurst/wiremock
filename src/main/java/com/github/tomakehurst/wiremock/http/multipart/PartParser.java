@@ -15,90 +15,86 @@
  */
 package com.github.tomakehurst.wiremock.http.multipart;
 
-import com.github.tomakehurst.wiremock.common.Exceptions;
+import static com.github.tomakehurst.wiremock.common.Exceptions.throwUnchecked;
+import static com.github.tomakehurst.wiremock.http.multipart.FileItemPartAdapter.TO_PARTS;
+
 import com.github.tomakehurst.wiremock.http.HttpHeader;
 import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.http.Request;
 import com.google.common.collect.Lists;
-import org.apache.commons.fileupload.*;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
-
-import static com.github.tomakehurst.wiremock.common.Exceptions.throwUnchecked;
-import static com.github.tomakehurst.wiremock.http.multipart.FileItemPartAdapter.TO_PARTS;
+import org.apache.commons.fileupload.*;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 
 public class PartParser {
 
-    @SuppressWarnings("unchecked")
-    public static Collection<Request.Part> parseFrom(Request request) {
-        FileItemFactory fileItemFactory = new DiskFileItemFactory(
-                Integer.MAX_VALUE,
-                new File(System.getProperty("java.io.tmpdir"))
-        );
+  @SuppressWarnings("unchecked")
+  public static Collection<Request.Part> parseFrom(Request request) {
+    FileItemFactory fileItemFactory =
+        new DiskFileItemFactory(Integer.MAX_VALUE, new File(System.getProperty("java.io.tmpdir")));
 
-        HttpHeaders headers = request.getHeaders();
-        ByteArrayUploadContext uploadContext = new ByteArrayUploadContext(
-                request.getBody(),
-                headerValueOrNull("Content-Encoding", headers),
-                headers.getContentTypeHeader().firstValue()
-        );
+    HttpHeaders headers = request.getHeaders();
+    ByteArrayUploadContext uploadContext =
+        new ByteArrayUploadContext(
+            request.getBody(),
+            headerValueOrNull("Content-Encoding", headers),
+            headers.getContentTypeHeader().firstValue());
 
-        FileUpload upload = new FileUpload(fileItemFactory);
+    FileUpload upload = new FileUpload(fileItemFactory);
 
-        try {
-            List<FileItem> items = upload.parseRequest(uploadContext);
-            return Lists.transform(items, TO_PARTS);
-        } catch (FileUploadException e) {
-            return throwUnchecked(e, Collection.class);
-        }
+    try {
+      List<FileItem> items = upload.parseRequest(uploadContext);
+      return Lists.transform(items, TO_PARTS);
+    } catch (FileUploadException e) {
+      return throwUnchecked(e, Collection.class);
+    }
+  }
+
+  private static String headerValueOrNull(String key, HttpHeaders httpHeaders) {
+    HttpHeader header = httpHeaders.getHeader(key);
+    return header.isPresent() ? header.firstValue() : null;
+  }
+
+  public static class ByteArrayUploadContext implements UploadContext {
+
+    private final byte[] content;
+    private final String encoding;
+    private final String contentType;
+
+    public ByteArrayUploadContext(byte[] content, String encoding, String contentType) {
+      this.content = content;
+      this.encoding = encoding;
+      this.contentType = contentType;
     }
 
-    private static String headerValueOrNull(String key, HttpHeaders httpHeaders) {
-        HttpHeader header = httpHeaders.getHeader(key);
-        return header.isPresent() ? header.firstValue() : null;
+    @Override
+    public long contentLength() {
+      return content.length;
     }
 
-    public static class ByteArrayUploadContext implements UploadContext {
-
-        private final byte[] content;
-        private final String encoding;
-        private final String contentType;
-
-        public ByteArrayUploadContext(byte[] content, String encoding, String contentType) {
-            this.content = content;
-            this.encoding = encoding;
-            this.contentType = contentType;
-        }
-
-        @Override
-        public long contentLength() {
-            return content.length;
-        }
-
-        @Override
-        public String getCharacterEncoding() {
-            return encoding;
-        }
-
-        @Override
-        public String getContentType() {
-            return contentType;
-        }
-
-        @Override
-        public int getContentLength() {
-            return content.length;
-        }
-
-        @Override
-        public InputStream getInputStream() throws IOException {
-            return new ByteArrayInputStream(content);
-        }
+    @Override
+    public String getCharacterEncoding() {
+      return encoding;
     }
+
+    @Override
+    public String getContentType() {
+      return contentType;
+    }
+
+    @Override
+    public int getContentLength() {
+      return content.length;
+    }
+
+    @Override
+    public InputStream getInputStream() throws IOException {
+      return new ByteArrayInputStream(content);
+    }
+  }
 }

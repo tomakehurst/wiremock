@@ -15,20 +15,19 @@
  */
 package com.github.tomakehurst.wiremock.security;
 
-import com.github.tomakehurst.wiremock.http.HttpHeader;
-
-import java.util.List;
-
 import static java.util.Collections.emptyList;
+
+import com.github.tomakehurst.wiremock.http.HttpHeader;
+import java.util.List;
 
 public class NoClientAuthenticator implements ClientAuthenticator {
 
-    public static NoClientAuthenticator noClientAuthenticator() {
-        return new NoClientAuthenticator();
-    }
+  public static NoClientAuthenticator noClientAuthenticator() {
+    return new NoClientAuthenticator();
+  }
 
-    @Override
-    public List<HttpHeader> generateAuthHeaders() {
-        return emptyList();
-    }
+  @Override
+  public List<HttpHeader> generateAuthHeaders() {
+    return emptyList();
+  }
 }

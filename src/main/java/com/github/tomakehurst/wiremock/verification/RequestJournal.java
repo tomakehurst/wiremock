@@ -19,23 +19,26 @@ import com.github.tomakehurst.wiremock.matching.RequestPattern;
 import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import com.google.common.base.Optional;
-
 import java.util.List;
 import java.util.UUID;
 
 public interface RequestJournal {
 
-	int countRequestsMatching(RequestPattern requestPattern);
-    List<LoggedRequest> getRequestsMatching(RequestPattern requestPattern);
+  int countRequestsMatching(RequestPattern requestPattern);
 
-    List<ServeEvent> getAllServeEvents();
-    Optional<ServeEvent> getServeEvent(UUID id);
+  List<LoggedRequest> getRequestsMatching(RequestPattern requestPattern);
 
-	void reset();
+  List<ServeEvent> getAllServeEvents();
 
-    void requestReceived(ServeEvent serveEvent);
+  Optional<ServeEvent> getServeEvent(UUID id);
 
-    void removeEvent(UUID eventId);
-    List<ServeEvent> removeEventsMatching(RequestPattern requestPattern);
-    List<ServeEvent> removeServeEventsForStubsMatchingMetadata(StringValuePattern metadataPattern);
+  void reset();
+
+  void requestReceived(ServeEvent serveEvent);
+
+  void removeEvent(UUID eventId);
+
+  List<ServeEvent> removeEventsMatching(RequestPattern requestPattern);
+
+  List<ServeEvent> removeServeEventsForStubsMatchingMetadata(StringValuePattern metadataPattern);
 }

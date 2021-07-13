@@ -20,8 +20,11 @@ import com.github.tomakehurst.wiremock.matching.ValueMatcher;
 
 public class InlineCustomMatcherLine extends DiffLine<Request> {
 
-    public InlineCustomMatcherLine(ValueMatcher<Request> customMatcher, Request request) {
-        super("custom matcher", new CustomMatcherWrapper(customMatcher), new EmptyToStringRequestWrapper(request), "[custom matcher]");
-    }
-
+  public InlineCustomMatcherLine(ValueMatcher<Request> customMatcher, Request request) {
+    super(
+        "custom matcher",
+        new CustomMatcherWrapper(customMatcher),
+        new EmptyToStringRequestWrapper(request),
+        "[custom matcher]");
+  }
 }

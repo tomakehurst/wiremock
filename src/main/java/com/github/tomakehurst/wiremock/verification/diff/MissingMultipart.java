@@ -22,23 +22,23 @@ import com.github.tomakehurst.wiremock.http.Request;
 
 public class MissingMultipart implements Request.Part {
 
-    @Override
-    public String getName() {
-        return "[request is not multipart]";
-    }
+  @Override
+  public String getName() {
+    return "[request is not multipart]";
+  }
 
-    @Override
-    public HttpHeader getHeader(String name) {
-        return HttpHeader.absent(name);
-    }
+  @Override
+  public HttpHeader getHeader(String name) {
+    return HttpHeader.absent(name);
+  }
 
-    @Override
-    public HttpHeaders getHeaders() {
-        return new HttpHeaders();
-    }
+  @Override
+  public HttpHeaders getHeaders() {
+    return new HttpHeaders();
+  }
 
-    @Override
-    public Body getBody() {
-        return null;
-    }
+  @Override
+  public Body getBody() {
+    return null;
+  }
 }

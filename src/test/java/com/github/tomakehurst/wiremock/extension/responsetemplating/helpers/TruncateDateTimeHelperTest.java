@@ -15,36 +15,35 @@
  */
 package com.github.tomakehurst.wiremock.extension.responsetemplating.helpers;
 
-import org.hamcrest.Matchers;
-import org.junit.Before;
-import org.junit.Test;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 
 import java.io.IOException;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.Date;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import org.hamcrest.Matchers;
+import org.junit.Before;
+import org.junit.Test;
 
 public class TruncateDateTimeHelperTest extends HandlebarsHelperTestBase {
 
-    private TruncateDateTimeHelper helper;
+  private TruncateDateTimeHelper helper;
 
-    @Before
-    public void init() {
-        helper = new TruncateDateTimeHelper();
-    }
+  @Before
+  public void init() {
+    helper = new TruncateDateTimeHelper();
+  }
 
-    @Test
-    public void truncatesDateObject() throws IOException {
-        Date date = Date.from(ZonedDateTime.parse("2020-03-27T11:22:33Z").toInstant());
+  @Test
+  public void truncatesDateObject() throws IOException {
+    Date date = Date.from(ZonedDateTime.parse("2020-03-27T11:22:33Z").toInstant());
 
-        Object output = renderHelperValue(helper, date, "last day of month");
+    Object output = renderHelperValue(helper, date, "last day of month");
 
-        assertThat(output, Matchers.instanceOf(Date.class));
+    assertThat(output, Matchers.instanceOf(Date.class));
 
-        Date truncated = (Date) output;
-        assertThat(truncated.toInstant(), is(Instant.parse("2020-03-31T00:00:00Z")));
-    }
+    Date truncated = (Date) output;
+    assertThat(truncated.toInstant(), is(Instant.parse("2020-03-31T00:00:00Z")));
+  }
 }

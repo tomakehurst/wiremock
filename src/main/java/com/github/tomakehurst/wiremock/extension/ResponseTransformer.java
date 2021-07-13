@@ -21,7 +21,7 @@ import com.github.tomakehurst.wiremock.http.Response;
 
 public abstract class ResponseTransformer extends AbstractTransformer<Response> {
 
-    @Override
-    public abstract Response transform(Request request, Response response, FileSource files, Parameters parameters);
-
+  @Override
+  public abstract Response transform(
+      Request request, Response response, FileSource files, Parameters parameters);
 }

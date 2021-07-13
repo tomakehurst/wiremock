@@ -25,71 +25,67 @@ import com.github.tomakehurst.wiremock.verification.diff.Diff;
 
 public class NearMiss implements Comparable<NearMiss> {
 
-    private final LoggedRequest request;
-    private final StubMapping mapping;
-    private final RequestPattern requestPattern;
-    private final MatchResult matchResult;
-    private final String scenarioState;
+  private final LoggedRequest request;
+  private final StubMapping mapping;
+  private final RequestPattern requestPattern;
+  private final MatchResult matchResult;
+  private final String scenarioState;
 
-    @JsonCreator
-    public NearMiss(@JsonProperty("request") LoggedRequest request,
-                    @JsonProperty("stubMapping") StubMapping mapping,
-                    @JsonProperty("requestPattern") RequestPattern requestPattern,
-                    @JsonProperty("matchResult") MatchResult matchResult,
-                    @JsonProperty("scenarioState") String scenarioState
-    ) {
-        this.request = request;
-        this.mapping = mapping;
-        this.requestPattern = requestPattern;
-        this.matchResult = matchResult;
-        this.scenarioState = scenarioState;
+  @JsonCreator
+  public NearMiss(
+      @JsonProperty("request") LoggedRequest request,
+      @JsonProperty("stubMapping") StubMapping mapping,
+      @JsonProperty("requestPattern") RequestPattern requestPattern,
+      @JsonProperty("matchResult") MatchResult matchResult,
+      @JsonProperty("scenarioState") String scenarioState) {
+    this.request = request;
+    this.mapping = mapping;
+    this.requestPattern = requestPattern;
+    this.matchResult = matchResult;
+    this.scenarioState = scenarioState;
+  }
+
+  public NearMiss(
+      LoggedRequest request, StubMapping mapping, MatchResult matchResult, String scenarioState) {
+    this(request, mapping, null, matchResult, scenarioState);
+  }
+
+  public NearMiss(LoggedRequest request, RequestPattern requestPattern, MatchResult matchResult) {
+    this(request, null, requestPattern, matchResult, null);
+  }
+
+  public LoggedRequest getRequest() {
+    return request;
+  }
+
+  public StubMapping getStubMapping() {
+    return mapping;
+  }
+
+  public RequestPattern getRequestPattern() {
+    return requestPattern;
+  }
+
+  public MatchResult getMatchResult() {
+    return matchResult;
+  }
+
+  @Override
+  public int compareTo(NearMiss o) {
+    return o.getMatchResult().compareTo(matchResult);
+  }
+
+  @JsonIgnore
+  public Diff getDiff() {
+    if (requestPattern != null) {
+      return new Diff(requestPattern, request);
     }
 
-    public NearMiss(LoggedRequest request,
-                    StubMapping mapping,
-                    MatchResult matchResult,
-                    String scenarioState) {
-        this(request, mapping, null, matchResult, scenarioState);
-    }
+    return new Diff(getStubMapping(), request, scenarioState);
+  }
 
-    public NearMiss(LoggedRequest request,
-                    RequestPattern requestPattern,
-                    MatchResult matchResult) {
-        this(request, null, requestPattern, matchResult, null);
-    }
-
-    public LoggedRequest getRequest() {
-        return request;
-    }
-
-    public StubMapping getStubMapping() {
-        return mapping;
-    }
-
-    public RequestPattern getRequestPattern() {
-        return requestPattern;
-    }
-
-    public MatchResult getMatchResult() {
-        return matchResult;
-    }
-
-    @Override
-    public int compareTo(NearMiss o) {
-        return o.getMatchResult().compareTo(matchResult);
-    }
-
-    @JsonIgnore
-    public Diff getDiff() {
-        if (requestPattern != null) {
-            return new Diff(requestPattern, request);
-        }
-
-        return new Diff(getStubMapping(), request, scenarioState);
-    }
-
-    @Override
-    public String toString() {
-        return getDiff().toString();
-    }
+  @Override
+  public String toString() {
+    return getDiff().toString();
+  }
 }

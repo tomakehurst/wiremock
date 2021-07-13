@@ -19,13 +19,14 @@ import com.github.tomakehurst.wiremock.common.FileSource;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 
 /**
- * Base class for stub mapping transformer extensions. This allows transforming stub mappings recorded via the
- * snapshot and recording API endpoints.
+ * Base class for stub mapping transformer extensions. This allows transforming stub mappings
+ * recorded via the snapshot and recording API endpoints.
  */
 public abstract class StubMappingTransformer implements Extension {
-    public abstract StubMapping transform(StubMapping stubMapping, FileSource files, Parameters parameters);
+  public abstract StubMapping transform(
+      StubMapping stubMapping, FileSource files, Parameters parameters);
 
-    public boolean applyGlobally() {
-        return true;
-    }
+  public boolean applyGlobally() {
+    return true;
+  }
 }

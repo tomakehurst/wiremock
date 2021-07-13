@@ -15,51 +15,50 @@
  */
 package com.github.tomakehurst.wiremock.recording;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+
 import com.github.tomakehurst.wiremock.http.Request;
 import com.github.tomakehurst.wiremock.matching.*;
 import com.google.common.base.Function;
-
 import java.util.Map;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-
 /**
- * Creates a RequestPatternBuilder from a Request's URL, method, body (if present), and optionally headers from a whitelist.
+ * Creates a RequestPatternBuilder from a Request's URL, method, body (if present), and optionally
+ * headers from a whitelist.
  */
 public class RequestPatternTransformer implements Function<Request, RequestPatternBuilder> {
-    private final Map<String, CaptureHeadersSpec> headers;
-    private final RequestBodyPatternFactory bodyPatternFactory;
+  private final Map<String, CaptureHeadersSpec> headers;
+  private final RequestBodyPatternFactory bodyPatternFactory;
 
-    public RequestPatternTransformer(
-        Map<String, CaptureHeadersSpec> headers,
-        RequestBodyPatternFactory bodyPatternFactory) {
-        this.headers = headers;
-        this.bodyPatternFactory = bodyPatternFactory;
+  public RequestPatternTransformer(
+      Map<String, CaptureHeadersSpec> headers, RequestBodyPatternFactory bodyPatternFactory) {
+    this.headers = headers;
+    this.bodyPatternFactory = bodyPatternFactory;
+  }
+
+  /** Returns a RequestPatternBuilder matching a given Request */
+  @Override
+  public RequestPatternBuilder apply(Request request) {
+    final RequestPatternBuilder builder =
+        new RequestPatternBuilder(request.getMethod(), urlEqualTo(request.getUrl()));
+
+    if (headers != null && !headers.isEmpty()) {
+      for (Map.Entry<String, CaptureHeadersSpec> header : headers.entrySet()) {
+        String headerName = header.getKey();
+        if (request.containsHeader(headerName)) {
+          CaptureHeadersSpec spec = header.getValue();
+          StringValuePattern headerMatcher =
+              new EqualToPattern(request.getHeader(headerName), spec.getCaseInsensitive());
+          builder.withHeader(headerName, headerMatcher);
+        }
+      }
     }
 
-    /**
-     * Returns a RequestPatternBuilder matching a given Request
-     */
-    @Override
-    public RequestPatternBuilder apply(Request request) {
-        final RequestPatternBuilder builder = new RequestPatternBuilder(request.getMethod(), urlEqualTo(request.getUrl()));
-
-        if (headers != null && !headers.isEmpty()) {
-            for (Map.Entry<String, CaptureHeadersSpec> header : headers.entrySet()) {
-                String headerName = header.getKey();
-                if (request.containsHeader(headerName)) {
-                    CaptureHeadersSpec spec = header.getValue();
-                    StringValuePattern headerMatcher = new EqualToPattern(request.getHeader(headerName), spec.getCaseInsensitive());
-                    builder.withHeader(headerName, headerMatcher);
-                }
-            }
-        }
-
-        byte[] body = request.getBody();
-        if (bodyPatternFactory != null && body != null && body.length > 0) {
-            builder.withRequestBody(bodyPatternFactory.forRequest(request));
-        }
-
-        return builder;
+    byte[] body = request.getBody();
+    if (bodyPatternFactory != null && body != null && body.length > 0) {
+      builder.withRequestBody(bodyPatternFactory.forRequest(request));
     }
+
+    return builder;
+  }
 }

@@ -15,93 +15,91 @@
  */
 package com.github.tomakehurst.wiremock;
 
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.is;
+
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.testsupport.MappingJsonSamples;
 import com.github.tomakehurst.wiremock.testsupport.Network;
 import com.github.tomakehurst.wiremock.testsupport.WireMockResponse;
 import com.github.tomakehurst.wiremock.testsupport.WireMockTestClient;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-
 public class PortNumberTest {
 
-    private List<WireMockServer> createdServers;
+  private List<WireMockServer> createdServers;
 
-    @Before
-    public void setup() {
-        createdServers = new ArrayList<WireMockServer>();
+  @Before
+  public void setup() {
+    createdServers = new ArrayList<WireMockServer>();
+  }
+
+  @After
+  public void stopServers() {
+    for (WireMockServer wireMockServer : createdServers) {
+      if (wireMockServer.isRunning()) {
+        wireMockServer.stop();
+      }
     }
+  }
 
-    @After
-    public void stopServers() {
-        for (WireMockServer wireMockServer : createdServers) {
-            if(wireMockServer.isRunning()) {
-                wireMockServer.stop();
-            }
-        }
-    }
+  @Test
+  public void canRunOnAnotherPortThan8080() {
+    int port = Network.findFreePort();
+    WireMockServer wireMockServer = createServer(wireMockConfig().port(port));
+    wireMockServer.start();
+    WireMockTestClient wireMockClient = new WireMockTestClient(port);
 
-    @Test
-    public void canRunOnAnotherPortThan8080() {
-        int port = Network.findFreePort();
-        WireMockServer wireMockServer = createServer(wireMockConfig().port(port));
-        wireMockServer.start();
-        WireMockTestClient wireMockClient = new WireMockTestClient(port);
+    wireMockClient.addResponse(MappingJsonSamples.BASIC_MAPPING_REQUEST_WITH_RESPONSE_HEADER);
+    WireMockResponse response = wireMockClient.get("/a/registered/resource");
+    assertThat(response.statusCode(), is(401));
+  }
 
-        wireMockClient.addResponse(MappingJsonSamples.BASIC_MAPPING_REQUEST_WITH_RESPONSE_HEADER);
-        WireMockResponse response = wireMockClient.get("/a/registered/resource");
-        assertThat(response.statusCode(), is(401));
-    }
+  @Test
+  public void configuredPortIsReportedListeningPort() {
+    int port = Network.findFreePort();
+    int httpsPort = Network.findFreePort();
+    WireMockServer wireMockServer = createServer(wireMockConfig().port(port).httpsPort(httpsPort));
+    wireMockServer.start();
 
+    assertThat(wireMockServer.port(), is(port));
+    assertThat(wireMockServer.httpsPort(), is(httpsPort));
+  }
 
-    @Test
-    public void configuredPortIsReportedListeningPort() {
-        int port = Network.findFreePort();
-        int httpsPort = Network.findFreePort();
-        WireMockServer wireMockServer = createServer(wireMockConfig().port(port).httpsPort(httpsPort));
-        wireMockServer.start();
+  @Test(expected = IllegalStateException.class)
+  public void unstartedServerThrowsExceptionWhenAttemptingToRetrievePort() {
+    createServer(wireMockConfig().port(Network.findFreePort())).port();
+  }
 
-        assertThat(wireMockServer.port(), is(port));
-        assertThat(wireMockServer.httpsPort(), is(httpsPort));
-    }
+  @Test(expected = IllegalStateException.class)
+  public void unstartedServerThrowsExceptionWhenAttemptingToRetrieveHttpsPort() {
+    createServer(wireMockConfig().httpsPort(Network.findFreePort())).httpsPort();
+  }
 
-    @Test(expected = IllegalStateException.class)
-    public void unstartedServerThrowsExceptionWhenAttemptingToRetrievePort() {
-        createServer(wireMockConfig().port(Network.findFreePort())).port();
-    }
+  @Test(expected = IllegalStateException.class)
+  public void serverWithoutHttpsThrowsExceptionWhenAttemptingToRetrieveHttpsPort() {
+    WireMockServer wireMockServer = createServer(wireMockConfig().port(Network.findFreePort()));
+    wireMockServer.start();
+    wireMockServer.httpsPort();
+  }
 
-    @Test(expected = IllegalStateException.class)
-    public void unstartedServerThrowsExceptionWhenAttemptingToRetrieveHttpsPort() {
-        createServer(wireMockConfig().httpsPort(Network.findFreePort())).httpsPort();
-    }
+  @Test
+  public void configuringPortZeroPicksArbitraryPort() {
+    WireMockServer wireMockServer = createServer(wireMockConfig().port(0).httpsPort(0));
+    wireMockServer.start();
+    assertThat(wireMockServer.port(), greaterThan(0));
+    assertThat(wireMockServer.httpsPort(), greaterThan(0));
+  }
 
-    @Test(expected = IllegalStateException.class)
-    public void serverWithoutHttpsThrowsExceptionWhenAttemptingToRetrieveHttpsPort() {
-        WireMockServer wireMockServer = createServer(wireMockConfig().port(Network.findFreePort()));
-        wireMockServer.start();
-        wireMockServer.httpsPort();
-    }
-
-    @Test
-    public void configuringPortZeroPicksArbitraryPort() {
-        WireMockServer wireMockServer = createServer(wireMockConfig().port(0).httpsPort(0));
-        wireMockServer.start();
-        assertThat(wireMockServer.port(), greaterThan(0));
-        assertThat(wireMockServer.httpsPort(), greaterThan(0));
-    }
-
-    private WireMockServer createServer(WireMockConfiguration configuration) {
-        final WireMockServer wireMockServer = new WireMockServer(configuration);
-        createdServers.add(wireMockServer);
-        return wireMockServer;
-    }
+  private WireMockServer createServer(WireMockConfiguration configuration) {
+    final WireMockServer wireMockServer = new WireMockServer(configuration);
+    createdServers.add(wireMockServer);
+    return wireMockServer;
+  }
 }

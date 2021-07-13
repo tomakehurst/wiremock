@@ -26,10 +26,10 @@ import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 
 public class FindNearMissesForRequestTask implements AdminTask {
 
-    @Override
-    public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
-        LoggedRequest loggedRequest = Json.read(request.getBodyAsString(), LoggedRequest.class);
-        FindNearMissesResult nearMissesResult = admin.findTopNearMissesFor(loggedRequest);
-        return ResponseDefinition.okForJson(nearMissesResult);
-    }
+  @Override
+  public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
+    LoggedRequest loggedRequest = Json.read(request.getBodyAsString(), LoggedRequest.class);
+    FindNearMissesResult nearMissesResult = admin.findTopNearMissesFor(loggedRequest);
+    return ResponseDefinition.okForJson(nearMissesResult);
+  }
 }

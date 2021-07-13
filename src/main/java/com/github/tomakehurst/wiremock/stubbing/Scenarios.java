@@ -15,103 +15,102 @@
  */
 package com.github.tomakehurst.wiremock.stubbing;
 
+import static com.google.common.base.MoreObjects.firstNonNull;
+
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
-
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
-import static com.google.common.collect.FluentIterable.from;
-
 public class Scenarios {
 
-    private final ConcurrentHashMap<String, Scenario> scenarioMap = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<String, Scenario> scenarioMap = new ConcurrentHashMap<>();
 
-    public Scenario getByName(String name) {
-        return scenarioMap.get(name);
+  public Scenario getByName(String name) {
+    return scenarioMap.get(name);
+  }
+
+  public List<Scenario> getAll() {
+    return ImmutableList.copyOf(scenarioMap.values());
+  }
+
+  public void onStubMappingAdded(StubMapping mapping) {
+    if (mapping.isInScenario()) {
+      String scenarioName = mapping.getScenarioName();
+      Scenario scenario =
+          firstNonNull(scenarioMap.get(scenarioName), Scenario.inStartedState(scenarioName))
+              .withStubMapping(mapping);
+      scenarioMap.put(scenarioName, scenario);
+    }
+  }
+
+  public void onStubMappingUpdated(StubMapping oldMapping, StubMapping newMapping) {
+    if (oldMapping.isInScenario()
+        && !newMapping.getScenarioName().equals(oldMapping.getScenarioName())) {
+      Scenario scenarioForOldMapping =
+          scenarioMap.get(oldMapping.getScenarioName()).withoutStubMapping(oldMapping);
+
+      if (scenarioForOldMapping.getMappings().isEmpty()) {
+        scenarioMap.remove(scenarioForOldMapping.getName());
+      } else {
+        scenarioMap.put(oldMapping.getScenarioName(), scenarioForOldMapping);
+      }
     }
 
-    public List<Scenario> getAll() {
-        return ImmutableList.copyOf(scenarioMap.values());
+    if (newMapping.isInScenario()) {
+      String scenarioName = newMapping.getScenarioName();
+      Scenario scenario =
+          firstNonNull(scenarioMap.get(scenarioName), Scenario.inStartedState(scenarioName))
+              .withStubMapping(newMapping);
+      scenarioMap.put(scenarioName, scenario);
     }
+  }
 
-    public void onStubMappingAdded(StubMapping mapping) {
-        if (mapping.isInScenario()) {
-            String scenarioName = mapping.getScenarioName();
-            Scenario scenario =
-                firstNonNull(scenarioMap.get(scenarioName), Scenario.inStartedState(scenarioName))
-                .withStubMapping(mapping);
-            scenarioMap.put(scenarioName, scenario);
-        }
+  public void onStubMappingRemoved(StubMapping mapping) {
+    if (mapping.isInScenario()) {
+      final String scenarioName = mapping.getScenarioName();
+      Scenario scenario = scenarioMap.get(scenarioName).withoutStubMapping(mapping);
+
+      if (scenario.getMappings().isEmpty()) {
+        scenarioMap.remove(scenarioName);
+      } else {
+        scenarioMap.put(scenarioName, scenario);
+      }
     }
+  }
 
-    public void onStubMappingUpdated(StubMapping oldMapping, StubMapping newMapping) {
-        if (oldMapping.isInScenario() && !newMapping.getScenarioName().equals(oldMapping.getScenarioName())) {
-            Scenario scenarioForOldMapping =
-                scenarioMap.get(oldMapping.getScenarioName())
-                    .withoutStubMapping(oldMapping);
-
-            if (scenarioForOldMapping.getMappings().isEmpty()) {
-                scenarioMap.remove(scenarioForOldMapping.getName());
-            } else {
-                scenarioMap.put(oldMapping.getScenarioName(), scenarioForOldMapping);
-            }
-        }
-
-        if (newMapping.isInScenario()) {
-            String scenarioName = newMapping.getScenarioName();
-            Scenario scenario =
-                firstNonNull(scenarioMap.get(scenarioName), Scenario.inStartedState(scenarioName))
-                .withStubMapping(newMapping);
-            scenarioMap.put(scenarioName, scenario);
-        }
+  public void onStubServed(StubMapping mapping) {
+    if (mapping.isInScenario()) {
+      final String scenarioName = mapping.getScenarioName();
+      Scenario scenario = scenarioMap.get(scenarioName);
+      if (mapping.modifiesScenarioState()
+          && (mapping.getRequiredScenarioState() == null
+              || scenario.getState().equals(mapping.getRequiredScenarioState()))) {
+        Scenario newScenario = scenario.setState(mapping.getNewScenarioState());
+        scenarioMap.put(scenarioName, newScenario);
+      }
     }
+  }
 
-    public void onStubMappingRemoved(StubMapping mapping) {
-        if (mapping.isInScenario()) {
-            final String scenarioName = mapping.getScenarioName();
-            Scenario scenario =
-                scenarioMap.get(scenarioName)
-                .withoutStubMapping(mapping);
-
-            if (scenario.getMappings().isEmpty()) {
-                scenarioMap.remove(scenarioName);
-            } else {
-                scenarioMap.put(scenarioName, scenario);
-            }
-        }
-    }
-
-    public void onStubServed(StubMapping mapping) {
-        if (mapping.isInScenario()) {
-            final String scenarioName = mapping.getScenarioName();
-            Scenario scenario = scenarioMap.get(scenarioName);
-            if (mapping.modifiesScenarioState() &&
-                (mapping.getRequiredScenarioState() == null || scenario.getState().equals(mapping.getRequiredScenarioState()))) {
-                Scenario newScenario = scenario.setState(mapping.getNewScenarioState());
-                scenarioMap.put(scenarioName, newScenario);
-            }
-        }
-    }
-
-    public void reset() {
-        scenarioMap.putAll(Maps.transformValues(scenarioMap, new Function<Scenario, Scenario>() {
-            @Override
-            public Scenario apply(Scenario input) {
+  public void reset() {
+    scenarioMap.putAll(
+        Maps.transformValues(
+            scenarioMap,
+            new Function<Scenario, Scenario>() {
+              @Override
+              public Scenario apply(Scenario input) {
                 return input.reset();
-            }
-        }));
-    }
+              }
+            }));
+  }
 
-    public void clear() {
-        scenarioMap.clear();
-    }
+  public void clear() {
+    scenarioMap.clear();
+  }
 
-    public boolean mappingMatchesScenarioState(StubMapping mapping) {
-        String currentScenarioState = getByName(mapping.getScenarioName()).getState();
-        return mapping.getRequiredScenarioState().equals(currentScenarioState);
-    }
-
+  public boolean mappingMatchesScenarioState(StubMapping mapping) {
+    String currentScenarioState = getByName(mapping.getScenarioName()).getState();
+    return mapping.getRequiredScenarioState().equals(currentScenarioState);
+  }
 }

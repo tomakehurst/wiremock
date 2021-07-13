@@ -21,29 +21,29 @@ import com.github.tomakehurst.wiremock.common.Json;
 
 public class VerificationResult extends JournalBasedResult {
 
-	private final Integer count;
+  private final Integer count;
 
-    @JsonCreator
-    public VerificationResult(@JsonProperty("count") Integer count,
-                              @JsonProperty("requestJournalDisabled") boolean requestJournalDisabled) {
-        super(requestJournalDisabled);
-        this.count = count;
-    }
+  @JsonCreator
+  public VerificationResult(
+      @JsonProperty("count") Integer count,
+      @JsonProperty("requestJournalDisabled") boolean requestJournalDisabled) {
+    super(requestJournalDisabled);
+    this.count = count;
+  }
 
-    public static VerificationResult from(String json) {
-		return Json.read(json, VerificationResult.class);
-	}
+  public static VerificationResult from(String json) {
+    return Json.read(json, VerificationResult.class);
+  }
 
-    public static VerificationResult withCount(int count) {
-        return new VerificationResult(count, false);
-    }
+  public static VerificationResult withCount(int count) {
+    return new VerificationResult(count, false);
+  }
 
-    public static VerificationResult withRequestJournalDisabled() {
-        return new VerificationResult(-1, true);
-    }
+  public static VerificationResult withRequestJournalDisabled() {
+    return new VerificationResult(-1, true);
+  }
 
-    public int getCount() {
-		return count;
-	}
-
+  public int getCount() {
+    return count;
+  }
 }

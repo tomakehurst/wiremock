@@ -20,21 +20,22 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ChunkedDribbleDelay {
 
-    private final Integer numberOfChunks;
-    private final Integer totalDuration;
+  private final Integer numberOfChunks;
+  private final Integer totalDuration;
 
-    @JsonCreator
-    public ChunkedDribbleDelay(@JsonProperty("numberOfChunks") Integer numberOfChunks,
-                               @JsonProperty("totalDuration") Integer totalDuration) {
-        this.numberOfChunks = numberOfChunks;
-        this.totalDuration = totalDuration;
-    }
+  @JsonCreator
+  public ChunkedDribbleDelay(
+      @JsonProperty("numberOfChunks") Integer numberOfChunks,
+      @JsonProperty("totalDuration") Integer totalDuration) {
+    this.numberOfChunks = numberOfChunks;
+    this.totalDuration = totalDuration;
+  }
 
-    public Integer getNumberOfChunks() {
-        return numberOfChunks;
-    }
+  public Integer getNumberOfChunks() {
+    return numberOfChunks;
+  }
 
-    public Integer getTotalDuration() {
-        return totalDuration;
-    }
+  public Integer getTotalDuration() {
+    return totalDuration;
+  }
 }

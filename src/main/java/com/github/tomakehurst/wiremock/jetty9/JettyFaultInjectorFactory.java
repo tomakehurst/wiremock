@@ -31,22 +31,20 @@
 
 package com.github.tomakehurst.wiremock.jetty9;
 
+import com.github.tomakehurst.wiremock.core.FaultInjector;
+import com.github.tomakehurst.wiremock.servlet.FaultInjectorFactory;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.github.tomakehurst.wiremock.core.FaultInjector;
-import com.github.tomakehurst.wiremock.servlet.FaultInjectorFactory;
-
 public class JettyFaultInjectorFactory implements FaultInjectorFactory {
 
-    @Override
-    public FaultInjector buildFaultInjector(HttpServletRequest httpServletRequest,
-            HttpServletResponse httpServletResponse) {
-        if (httpServletRequest.getScheme().equals("https")) {
-            return new JettyHttpsFaultInjector(httpServletResponse);
-        }
-
-        return new JettyFaultInjector(httpServletResponse);
+  @Override
+  public FaultInjector buildFaultInjector(
+      HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+    if (httpServletRequest.getScheme().equals("https")) {
+      return new JettyHttpsFaultInjector(httpServletResponse);
     }
 
+    return new JettyFaultInjector(httpServletResponse);
+  }
 }

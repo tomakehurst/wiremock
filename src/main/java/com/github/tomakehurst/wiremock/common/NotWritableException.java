@@ -17,7 +17,7 @@ package com.github.tomakehurst.wiremock.common;
 
 public class NotWritableException extends RuntimeException {
 
-    public NotWritableException(String message) {
-        super(message);
-    }
+  public NotWritableException(String message) {
+    super(message);
+  }
 }

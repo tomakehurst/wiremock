@@ -20,13 +20,13 @@ import com.github.tomakehurst.wiremock.global.GlobalSettings;
 
 public class GetGlobalSettingsResult {
 
-    private final GlobalSettings settings;
+  private final GlobalSettings settings;
 
-    public GetGlobalSettingsResult(@JsonProperty("settings") GlobalSettings settings) {
-        this.settings = settings;
-    }
+  public GetGlobalSettingsResult(@JsonProperty("settings") GlobalSettings settings) {
+    this.settings = settings;
+  }
 
-    public GlobalSettings getSettings() {
-        return settings;
-    }
+  public GlobalSettings getSettings() {
+    return settings;
+  }
 }

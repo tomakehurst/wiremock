@@ -15,6 +15,14 @@
  */
 package com.github.tomakehurst.wiremock;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.testsupport.MultipartBody.part;
+import static java.util.Collections.singletonList;
+import static org.apache.http.entity.ContentType.MULTIPART_FORM_DATA;
+import static org.apache.http.entity.ContentType.TEXT_PLAIN;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+
 import com.github.tomakehurst.wiremock.http.HttpClientFactory;
 import com.github.tomakehurst.wiremock.testsupport.WireMockResponse;
 import org.apache.http.HttpResponse;
@@ -27,98 +35,87 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.util.EntityUtils;
 import org.junit.Test;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static com.github.tomakehurst.wiremock.testsupport.MultipartBody.part;
-import static java.util.Collections.singletonList;
-import static org.apache.http.entity.ContentType.MULTIPART_FORM_DATA;
-import static org.apache.http.entity.ContentType.TEXT_PLAIN;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-
 public class MultipartBodyMatchingAcceptanceTest extends AcceptanceTestBase {
 
-    HttpClient httpClient = HttpClientFactory.createClient();
+  HttpClient httpClient = HttpClientFactory.createClient();
 
-    @Test
-    public void acceptsAMultipartRequestContainingATextAndAFilePart() throws Exception {
-        stubFor(post("/multipart")
-            .withMultipartRequestBody(aMultipart()
-                .withName("text")
-                .withBody(containing("hello")))
-            .withMultipartRequestBody(aMultipart()
-                .withName("file")
-                .withBody(binaryEqualTo("ABCD".getBytes())))
-            .willReturn(ok())
-        );
+  @Test
+  public void acceptsAMultipartRequestContainingATextAndAFilePart() throws Exception {
+    stubFor(
+        post("/multipart")
+            .withMultipartRequestBody(aMultipart().withName("text").withBody(containing("hello")))
+            .withMultipartRequestBody(
+                aMultipart().withName("file").withBody(binaryEqualTo("ABCD".getBytes())))
+            .willReturn(ok()));
 
-        HttpUriRequest request = RequestBuilder
-            .post(wireMockServer.baseUrl() + "/multipart")
-            .setEntity(MultipartEntityBuilder.create()
-                .addTextBody("text", "hello")
-                .addBinaryBody("file", "ABCD".getBytes())
-                .build()
-            )
+    HttpUriRequest request =
+        RequestBuilder.post(wireMockServer.baseUrl() + "/multipart")
+            .setEntity(
+                MultipartEntityBuilder.create()
+                    .addTextBody("text", "hello")
+                    .addBinaryBody("file", "ABCD".getBytes())
+                    .build())
             .build();
 
-        HttpResponse response = httpClient.execute(request);
+    HttpResponse response = httpClient.execute(request);
 
-        assertThat(
-                EntityUtils.toString(response.getEntity()),
-                response.getStatusLine().getStatusCode(), is(200));
-    }
+    assertThat(
+        EntityUtils.toString(response.getEntity()),
+        response.getStatusLine().getStatusCode(),
+        is(200));
+  }
 
-    @Test
-    public void handlesAbsenceOfPartsInAMultipartRequest() throws Exception {
-        stubFor(post("/empty-multipart")
-            .withMultipartRequestBody(aMultipart()
-                .withName("bits")
-                .withBody(matching(".*")))
-            .willReturn(ok())
-        );
+  @Test
+  public void handlesAbsenceOfPartsInAMultipartRequest() throws Exception {
+    stubFor(
+        post("/empty-multipart")
+            .withMultipartRequestBody(aMultipart().withName("bits").withBody(matching(".*")))
+            .willReturn(ok()));
 
-        HttpUriRequest request = RequestBuilder
-            .post(wireMockServer.baseUrl() + "/empty-multipart")
-            .setHeader("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW")
+    HttpUriRequest request =
+        RequestBuilder.post(wireMockServer.baseUrl() + "/empty-multipart")
+            .setHeader(
+                "Content-Type",
+                "multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW")
             .setEntity(new StringEntity("", MULTIPART_FORM_DATA))
             .build();
 
-        HttpResponse response = httpClient.execute(request);
+    HttpResponse response = httpClient.execute(request);
 
-        assertThat(response.getStatusLine().getStatusCode(), is(404));
-    }
+    assertThat(response.getStatusLine().getStatusCode(), is(404));
+  }
 
-    @Test
-    public void doesNotFailWithMultipartMixedRequest() throws Exception {
-        stubFor(post("/multipart-mixed")
-                .willReturn(ok())
-        );
+  @Test
+  public void doesNotFailWithMultipartMixedRequest() throws Exception {
+    stubFor(post("/multipart-mixed").willReturn(ok()));
 
-        HttpUriRequest request = RequestBuilder
-                .post(wireMockServer.baseUrl() + "/multipart-mixed")
-                .setHeader("Content-Type", "multipart/mixed; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW")
-                .setEntity(new StringEntity("", ContentType.create("multipart/mixed")))
-                .build();
+    HttpUriRequest request =
+        RequestBuilder.post(wireMockServer.baseUrl() + "/multipart-mixed")
+            .setHeader(
+                "Content-Type", "multipart/mixed; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW")
+            .setEntity(new StringEntity("", ContentType.create("multipart/mixed")))
+            .build();
 
-        HttpResponse response = httpClient.execute(request);
+    HttpResponse response = httpClient.execute(request);
 
-        assertThat(response.getStatusLine().getStatusCode(), is(200));
-    }
+    assertThat(response.getStatusLine().getStatusCode(), is(200));
+  }
 
-    // https://github.com/tomakehurst/wiremock/issues/1179
-    @Test
-    public void multipartBodiesCanBeMatchedWhenStubsWithOtherBodyMatchTypesArePresent() {
-        stubFor(post("/multipart")
-                .withMultipartRequestBody(
-                        aMultipart()
-                                .withHeader("Content-Disposition", containing("wiremocktest")))
-                .willReturn(ok()));
+  // https://github.com/tomakehurst/wiremock/issues/1179
+  @Test
+  public void multipartBodiesCanBeMatchedWhenStubsWithOtherBodyMatchTypesArePresent() {
+    stubFor(
+        post("/multipart")
+            .withMultipartRequestBody(
+                aMultipart().withHeader("Content-Disposition", containing("wiremocktest")))
+            .willReturn(ok()));
 
-        stubFor(post("/json")
-                .withRequestBody(equalToJson("{ \"stuff\": 123 }"))
-                .willReturn(ok()));
+    stubFor(post("/json").withRequestBody(equalToJson("{ \"stuff\": 123 }")).willReturn(ok()));
 
-        WireMockResponse response = testClient.postWithMultiparts("/multipart", singletonList(part("wiremocktest", "Whatever", TEXT_PLAIN)));
+    WireMockResponse response =
+        testClient.postWithMultiparts(
+            "/multipart", singletonList(part("wiremocktest", "Whatever", TEXT_PLAIN)));
 
-        assertThat(response.statusCode(), is(200));
-    }
+    assertThat(response.statusCode(), is(200));
+  }
 }

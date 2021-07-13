@@ -15,6 +15,13 @@
  */
 package com.github.tomakehurst.wiremock;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static com.github.tomakehurst.wiremock.http.HttpHeader.httpHeader;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.endsWith;
+import static org.hamcrest.Matchers.is;
+
 import com.github.tomakehurst.wiremock.common.FileSource;
 import com.github.tomakehurst.wiremock.extension.Extension;
 import com.github.tomakehurst.wiremock.extension.Parameters;
@@ -22,149 +29,163 @@ import com.github.tomakehurst.wiremock.extension.ResponseTransformer;
 import com.github.tomakehurst.wiremock.http.Request;
 import com.github.tomakehurst.wiremock.http.Response;
 import com.github.tomakehurst.wiremock.testsupport.WireMockTestClient;
-import org.junit.Test;
-
 import java.io.File;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static com.github.tomakehurst.wiremock.http.HttpHeader.httpHeader;
-import static org.hamcrest.Matchers.endsWith;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import org.junit.Test;
 
 public class ResponseTransformerAcceptanceTest {
 
-    WireMockServer wm;
-    WireMockTestClient client;
+  WireMockServer wm;
+  WireMockTestClient client;
 
-    @Test
-    public void transformsStubResponse() {
-        startWithExtensions(StubResponseTransformer.class);
+  @Test
+  public void transformsStubResponse() {
+    startWithExtensions(StubResponseTransformer.class);
 
-        wm.stubFor(get(urlEqualTo("/response-transform")).willReturn(aResponse().withBody("Original body")));
+    wm.stubFor(
+        get(urlEqualTo("/response-transform")).willReturn(aResponse().withBody("Original body")));
 
-        assertThat(client.get("/response-transform").content(), is("Modified body"));
-    }
+    assertThat(client.get("/response-transform").content(), is("Modified body"));
+  }
 
-    @Test
-    public void acceptsTransformerParameters() {
-        startWithExtensions(StubResponseTransformerWithParams.class);
+  @Test
+  public void acceptsTransformerParameters() {
+    startWithExtensions(StubResponseTransformerWithParams.class);
 
-        wm.stubFor(get(urlEqualTo("/response-transform-with-params")).willReturn(
+    wm.stubFor(
+        get(urlEqualTo("/response-transform-with-params"))
+            .willReturn(
                 aResponse()
-                        .withTransformerParameter("name", "John")
-                        .withTransformerParameter("number", 66)
-                        .withTransformerParameter("flag", true)
-                        .withBody("Original body")));
+                    .withTransformerParameter("name", "John")
+                    .withTransformerParameter("number", 66)
+                    .withTransformerParameter("flag", true)
+                    .withBody("Original body")));
 
-        assertThat(client.get("/response-transform-with-params").content(), is("John, 66, true"));
+    assertThat(client.get("/response-transform-with-params").content(), is("John, 66, true"));
+  }
+
+  @Test
+  public void globalTransformAppliedWithLocalParameters() {
+    startWithExtensions(GlobalResponseTransformer.class);
+
+    wm.stubFor(get(urlEqualTo("/global-response-transform")).willReturn(aResponse()));
+
+    assertThat(client.get("/global-response-transform").firstHeader("X-Extra"), is("extra val"));
+  }
+
+  @Test
+  public void filesRootIsCorrectlyPassedToTransformer() {
+    startWithExtensions(FilesUsingResponseTransformer.class);
+
+    wm.stubFor(get(urlEqualTo("/response-transform-with-files")).willReturn(ok()));
+
+    assertThat(
+        client.get("/response-transform-with-files").content(),
+        endsWith(
+            "src"
+                + File.separator
+                + "test"
+                + File.separator
+                + "resources"
+                + File.separator
+                + "__files"
+                + File.separator
+                + "plain-example.txt"));
+  }
+
+  @SuppressWarnings("unchecked")
+  private void startWithExtensions(Class<? extends Extension> extensionClasses) {
+    wm = new WireMockServer(wireMockConfig().dynamicPort().extensions(extensionClasses));
+    wm.start();
+    client = new WireMockTestClient(wm.port());
+  }
+
+  public static class StubResponseTransformer extends ResponseTransformer {
+
+    @Override
+    public Response transform(
+        Request request, Response response, FileSource files, Parameters parameters) {
+      return Response.Builder.like(response).but().body("Modified body").build();
     }
 
-    @Test
-    public void globalTransformAppliedWithLocalParameters() {
-        startWithExtensions(GlobalResponseTransformer.class);
-
-        wm.stubFor(get(urlEqualTo("/global-response-transform")).willReturn(aResponse()));
-
-        assertThat(client.get("/global-response-transform").firstHeader("X-Extra"), is("extra val"));
+    @Override
+    public boolean applyGlobally() {
+      return true;
     }
 
-    @Test
-    public void filesRootIsCorrectlyPassedToTransformer() {
-        startWithExtensions(FilesUsingResponseTransformer.class);
+    @Override
+    public String getName() {
+      return "stub-transformer";
+    }
+  }
 
-        wm.stubFor(get(urlEqualTo("/response-transform-with-files")).willReturn(ok()));
+  public static class StubResponseTransformerWithParams extends ResponseTransformer {
 
-        assertThat(client.get("/response-transform-with-files").content(), endsWith("src" + File.separator + "test" + File.separator + "resources" + File.separator + "__files"  + File.separator + "plain-example.txt"));
+    @Override
+    public Response transform(
+        Request request, Response response, FileSource files, Parameters parameters) {
+      return Response.Builder.like(response)
+          .but()
+          .body(
+              parameters.getString("name")
+                  + ", "
+                  + parameters.getInt("number")
+                  + ", "
+                  + parameters.getBoolean("flag"))
+          .build();
     }
 
-    @SuppressWarnings("unchecked")
-    private void startWithExtensions(Class<? extends Extension> extensionClasses) {
-        wm = new WireMockServer(wireMockConfig().dynamicPort().extensions(extensionClasses));
-        wm.start();
-        client = new WireMockTestClient(wm.port());
+    @Override
+    public boolean applyGlobally() {
+      return true;
     }
 
-    public static class StubResponseTransformer extends ResponseTransformer {
+    @Override
+    public String getName() {
+      return "stub-transformer-with-params";
+    }
+  }
 
-        @Override
-        public Response transform(Request request, Response response, FileSource files, Parameters parameters) {
-            return Response.Builder.like(response)
-                    .but().body("Modified body")
-                    .build();
-        }
+  public static class GlobalResponseTransformer extends ResponseTransformer {
 
-        @Override
-        public boolean applyGlobally() {
-            return true;
-        }
-
-        @Override
-        public String getName() {
-            return "stub-transformer";
-        }
+    @Override
+    public Response transform(
+        Request request, Response response, FileSource files, Parameters parameters) {
+      return Response.Builder.like(response)
+          .but()
+          .headers(response.getHeaders().plus(httpHeader("X-Extra", "extra val")))
+          .build();
     }
 
-    public static class StubResponseTransformerWithParams extends ResponseTransformer {
-
-        @Override
-        public Response transform(Request request, Response response, FileSource files, Parameters parameters) {
-            return Response.Builder.like(response)
-                    .but().body(parameters.getString("name") + ", "
-                            + parameters.getInt("number") + ", "
-                            + parameters.getBoolean("flag"))
-                    .build();
-        }
-
-        @Override
-        public boolean applyGlobally() {
-            return true;
-        }
-
-        @Override
-        public String getName() {
-            return "stub-transformer-with-params";
-        }
+    @Override
+    public String getName() {
+      return "global-response-transformer";
     }
 
-    public static class GlobalResponseTransformer extends ResponseTransformer {
+    @Override
+    public boolean applyGlobally() {
+      return true;
+    }
+  }
 
-        @Override
-        public Response transform(Request request, Response response, FileSource files, Parameters parameters) {
-            return Response.Builder.like(response).but()
-                    .headers(response.getHeaders().plus(httpHeader("X-Extra", "extra val")))
-                    .build();
-        }
+  public static class FilesUsingResponseTransformer extends ResponseTransformer {
 
-        @Override
-        public String getName() {
-            return "global-response-transformer";
-        }
-
-        @Override
-        public boolean applyGlobally() {
-            return true;
-        }
+    @Override
+    public Response transform(
+        Request request, Response response, FileSource files, Parameters parameters) {
+      return Response.Builder.like(response)
+          .but()
+          .body(files.getTextFileNamed("plain-example.txt").getPath())
+          .build();
     }
 
-    public static class FilesUsingResponseTransformer extends ResponseTransformer {
-
-        @Override
-        public Response transform(Request request, Response response, FileSource files, Parameters parameters) {
-            return Response.Builder.like(response).but()
-                .body(files.getTextFileNamed("plain-example.txt").getPath())
-                .build();
-        }
-
-        @Override
-        public String getName() {
-            return "files-using-response-transformer";
-        }
-
-        @Override
-        public boolean applyGlobally() {
-            return true;
-        }
+    @Override
+    public String getName() {
+      return "files-using-response-transformer";
     }
+
+    @Override
+    public boolean applyGlobally() {
+      return true;
+    }
+  }
 }

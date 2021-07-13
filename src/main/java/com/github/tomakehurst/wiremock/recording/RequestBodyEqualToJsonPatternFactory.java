@@ -22,27 +22,27 @@ import com.github.tomakehurst.wiremock.matching.EqualToJsonPattern;
 
 public class RequestBodyEqualToJsonPatternFactory implements RequestBodyPatternFactory {
 
-    private final Boolean ignoreArrayOrder;
-    private final Boolean ignoreExtraElements;
+  private final Boolean ignoreArrayOrder;
+  private final Boolean ignoreExtraElements;
 
-    @JsonCreator
-    public RequestBodyEqualToJsonPatternFactory(
-        @JsonProperty("ignoreArrayOrder") Boolean ignoreArrayOrder,
-        @JsonProperty("ignoreExtraElements") Boolean ignoreExtraElements) {
-        this.ignoreArrayOrder = ignoreArrayOrder;
-        this.ignoreExtraElements = ignoreExtraElements;
-    }
+  @JsonCreator
+  public RequestBodyEqualToJsonPatternFactory(
+      @JsonProperty("ignoreArrayOrder") Boolean ignoreArrayOrder,
+      @JsonProperty("ignoreExtraElements") Boolean ignoreExtraElements) {
+    this.ignoreArrayOrder = ignoreArrayOrder;
+    this.ignoreExtraElements = ignoreExtraElements;
+  }
 
-    public Boolean isIgnoreArrayOrder() {
-        return ignoreArrayOrder;
-    }
+  public Boolean isIgnoreArrayOrder() {
+    return ignoreArrayOrder;
+  }
 
-    public Boolean isIgnoreExtraElements() {
-        return ignoreExtraElements;
-    }
+  public Boolean isIgnoreExtraElements() {
+    return ignoreExtraElements;
+  }
 
-    @Override
-    public EqualToJsonPattern forRequest(Request request) {
-        return new EqualToJsonPattern(request.getBodyAsString(), ignoreArrayOrder, ignoreExtraElements);
-    }
+  @Override
+  public EqualToJsonPattern forRequest(Request request) {
+    return new EqualToJsonPattern(request.getBodyAsString(), ignoreArrayOrder, ignoreExtraElements);
+  }
 }

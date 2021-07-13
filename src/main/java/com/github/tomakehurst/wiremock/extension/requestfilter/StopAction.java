@@ -19,13 +19,13 @@ import com.github.tomakehurst.wiremock.http.ResponseDefinition;
 
 public class StopAction extends RequestFilterAction {
 
-    private final ResponseDefinition responseDefinition;
+  private final ResponseDefinition responseDefinition;
 
-    StopAction(ResponseDefinition responseDefinition) {
-        this.responseDefinition = responseDefinition;
-    }
+  StopAction(ResponseDefinition responseDefinition) {
+    this.responseDefinition = responseDefinition;
+  }
 
-    public ResponseDefinition getResponseDefinition() {
-        return responseDefinition;
-    }
+  public ResponseDefinition getResponseDefinition() {
+    return responseDefinition;
+  }
 }

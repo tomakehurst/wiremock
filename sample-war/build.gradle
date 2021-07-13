@@ -8,12 +8,12 @@ group = 'com.github.tomakehurst'
 version = 1
 
 repositories {
-	mavenCentral()
-	mavenLocal()
+  mavenCentral()
+  mavenLocal()
 }
 
 dependencies {
-	compile "javax.servlet:servlet-api:2.4"
-	compile "log4j:log4j:1.2.16"
-	compile "com.github.tomakehurst:wiremock:2.1.6"
+  compile "javax.servlet:servlet-api:2.4"
+  compile "log4j:log4j:1.2.16"
+  compile "com.github.tomakehurst:wiremock:2.1.6"
 }

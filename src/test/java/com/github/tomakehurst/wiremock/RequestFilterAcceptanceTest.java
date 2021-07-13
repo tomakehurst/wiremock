@@ -15,290 +15,291 @@
  */
 package com.github.tomakehurst.wiremock;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static com.github.tomakehurst.wiremock.testsupport.TestHttpHeader.withHeader;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+
 import com.github.tomakehurst.wiremock.extension.requestfilter.*;
 import com.github.tomakehurst.wiremock.http.HttpHeader;
 import com.github.tomakehurst.wiremock.http.Request;
 import com.github.tomakehurst.wiremock.http.ResponseDefinition;
 import com.github.tomakehurst.wiremock.testsupport.WireMockResponse;
 import com.github.tomakehurst.wiremock.testsupport.WireMockTestClient;
+import java.util.Collections;
+import java.util.List;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.net.URI;
-import java.util.Collections;
-import java.util.List;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static com.github.tomakehurst.wiremock.testsupport.TestHttpHeader.withHeader;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-
 public class RequestFilterAcceptanceTest {
 
-    private WireMockServer wm;
-    private WireMockTestClient client;
-    private String url;
+  private WireMockServer wm;
+  private WireMockTestClient client;
+  private String url;
 
-    @Test
-    public void filterCanContinueWithModifiedRequest() {
-        initialise(new RequestHeaderModifyingFilter());
+  @Test
+  public void filterCanContinueWithModifiedRequest() {
+    initialise(new RequestHeaderModifyingFilter());
 
-        wm.stubFor(get(url)
-                .withHeader("X-Modify-Me", equalTo("modified"))
-                .willReturn(ok()));
+    wm.stubFor(get(url).withHeader("X-Modify-Me", equalTo("modified")).willReturn(ok()));
 
-        WireMockResponse response = client.get(url, withHeader("X-Modify-Me", "original"));
-        assertThat(response.statusCode(), is(200));
+    WireMockResponse response = client.get(url, withHeader("X-Modify-Me", "original"));
+    assertThat(response.statusCode(), is(200));
+  }
+
+  @Test
+  public void filterCanStopWithResponse() {
+    initialise(new StubAuthenticatingFilter());
+
+    wm.stubFor(get(url).willReturn(ok()));
+
+    WireMockResponse good = client.get(url, withHeader("Authorization", "Token 123"));
+    assertThat(good.statusCode(), is(200));
+
+    WireMockResponse bad = client.get(url);
+    assertThat(bad.statusCode(), is(401));
+  }
+
+  @Test
+  public void filtersAreChained() {
+    initialise(
+        new RequestHeaderAppendingFilter("A"),
+        new RequestHeaderAppendingFilter("B"),
+        new RequestHeaderAppendingFilter("C"));
+
+    wm.stubFor(get(url).withHeader("X-Modify-Me", matching("_[ABC]{3}")).willReturn(ok()));
+
+    WireMockResponse response = client.get(url, withHeader("X-Modify-Me", "_"));
+    assertThat(response.statusCode(), is(200));
+  }
+
+  @Test
+  public void filterCanBeAppliedToAdmin() {
+    initialise(new AdminAuthenticatingFilter());
+
+    wm.stubFor(get(url).willReturn(ok()));
+
+    String adminUrl = "/__admin/mappings";
+    WireMockResponse good = client.get(adminUrl, withHeader("Authorization", "Token 123"));
+    assertThat(good.statusCode(), is(200));
+
+    WireMockResponse bad = client.get(adminUrl);
+    assertThat(bad.statusCode(), is(401));
+
+    // Stubs are unaffected
+    WireMockResponse stub = client.get(url);
+    assertThat(stub.statusCode(), is(200));
+  }
+
+  @Test
+  public void filterCanBeAppliedToStubs() {
+    initialise(new StubAuthenticatingFilter());
+
+    wm.stubFor(get(url).willReturn(ok()));
+
+    String adminUrl = "/__admin/mappings";
+    WireMockResponse good = client.get(url, withHeader("Authorization", "Token 123"));
+    assertThat(good.statusCode(), is(200));
+
+    WireMockResponse bad = client.get(url);
+    assertThat(bad.statusCode(), is(401));
+
+    // Admin routes are unaffected
+    WireMockResponse stub = client.get(adminUrl);
+    assertThat(stub.statusCode(), is(200));
+  }
+
+  @Test
+  public void filterCanBeAppliedToStubsAndAdmin() {
+    initialise(new BothAuthenticatingFilter());
+
+    wm.stubFor(get(url).willReturn(ok()));
+
+    String adminUrl = "/__admin/mappings";
+
+    WireMockResponse stub = client.get(url);
+    assertThat(stub.statusCode(), is(401));
+
+    WireMockResponse admin = client.get(adminUrl);
+    assertThat(admin.statusCode(), is(401));
+  }
+
+  @Test
+  public void wrappedRequestsAreUsedWhenProxying() {
+    WireMockServer proxyTarget = new WireMockServer(wireMockConfig().dynamicPort());
+    proxyTarget.start();
+    initialise(new PathModifyingStubFilter());
+
+    wm.stubFor(
+        get(anyUrl())
+            .willReturn(aResponse().proxiedFrom("http://localhost:" + proxyTarget.port())));
+    proxyTarget.stubFor(get("/prefix/subpath/item").willReturn(ok("From the proxy")));
+
+    assertThat(client.get("/subpath/item").content(), is("From the proxy"));
+
+    proxyTarget.stop();
+  }
+
+  @Before
+  public void init() {
+    url = "/" + RandomStringUtils.randomAlphabetic(5);
+  }
+
+  @After
+  public void stopServer() {
+    wm.stop();
+  }
+
+  private void initialise(RequestFilter... filters) {
+    wm = new WireMockServer(wireMockConfig().dynamicPort().extensions(filters));
+    wm.start();
+    client = new WireMockTestClient(wm.port());
+  }
+
+  public static class RequestHeaderModifyingFilter extends StubRequestFilter {
+
+    @Override
+    public RequestFilterAction filter(Request request) {
+      Request newRequest =
+          new RequestWrapper(request) {
+            @Override
+            public HttpHeader header(String key) {
+              if (key.equals("X-Modify-Me")) {
+                return new HttpHeader("X-Modify-Me", "modified");
+              }
+
+              return super.header(key);
+            }
+          };
+
+      return RequestFilterAction.continueWith(newRequest);
     }
 
-    @Test
-    public void filterCanStopWithResponse() {
-        initialise(new StubAuthenticatingFilter());
+    @Override
+    public String getName() {
+      return "request-header-modifier";
+    }
+  }
 
-        wm.stubFor(get(url).willReturn(ok()));
+  public static class StubAuthenticatingFilter extends StubRequestFilter {
 
-        WireMockResponse good = client.get(url, withHeader("Authorization", "Token 123"));
-        assertThat(good.statusCode(), is(200));
+    @Override
+    public RequestFilterAction filter(Request request) {
+      HttpHeader authHeader = request.header("Authorization");
+      if (!authHeader.isPresent() || !authHeader.firstValue().equals("Token 123")) {
+        return RequestFilterAction.stopWith(ResponseDefinition.notAuthorised());
+      }
 
-        WireMockResponse bad = client.get(url);
-        assertThat(bad.statusCode(), is(401));
+      return RequestFilterAction.continueWith(request);
     }
 
-    @Test
-    public void filtersAreChained() {
-        initialise(
-                new RequestHeaderAppendingFilter("A"),
-                new RequestHeaderAppendingFilter("B"),
-                new RequestHeaderAppendingFilter("C")
-        );
+    @Override
+    public String getName() {
+      return "stub-authenticator";
+    }
+  }
 
-        wm.stubFor(get(url)
-                .withHeader("X-Modify-Me", matching("_[ABC]{3}"))
-                .willReturn(ok()));
+  public static class RequestHeaderAppendingFilter extends StubRequestFilter {
 
-        WireMockResponse response = client.get(url, withHeader("X-Modify-Me", "_"));
-        assertThat(response.statusCode(), is(200));
+    private final String value;
+
+    public RequestHeaderAppendingFilter(String value) {
+      this.value = value;
     }
 
-    @Test
-    public void filterCanBeAppliedToAdmin() {
-        initialise(new AdminAuthenticatingFilter());
-
-        wm.stubFor(get(url).willReturn(ok()));
-
-        String adminUrl = "/__admin/mappings";
-        WireMockResponse good = client.get(adminUrl, withHeader("Authorization", "Token 123"));
-        assertThat(good.statusCode(), is(200));
-
-        WireMockResponse bad = client.get(adminUrl);
-        assertThat(bad.statusCode(), is(401));
-
-        // Stubs are unaffected
-        WireMockResponse stub = client.get(url);
-        assertThat(stub.statusCode(), is(200));
-    }
-
-    @Test
-    public void filterCanBeAppliedToStubs() {
-        initialise(new StubAuthenticatingFilter());
-
-        wm.stubFor(get(url).willReturn(ok()));
-
-        String adminUrl = "/__admin/mappings";
-        WireMockResponse good = client.get(url, withHeader("Authorization", "Token 123"));
-        assertThat(good.statusCode(), is(200));
-
-        WireMockResponse bad = client.get(url);
-        assertThat(bad.statusCode(), is(401));
-
-        // Admin routes are unaffected
-        WireMockResponse stub = client.get(adminUrl);
-        assertThat(stub.statusCode(), is(200));
-    }
-
-    @Test
-    public void filterCanBeAppliedToStubsAndAdmin() {
-        initialise(new BothAuthenticatingFilter());
-
-        wm.stubFor(get(url).willReturn(ok()));
-
-        String adminUrl = "/__admin/mappings";
-
-        WireMockResponse stub = client.get(url);
-        assertThat(stub.statusCode(), is(401));
-
-        WireMockResponse admin = client.get(adminUrl);
-        assertThat(admin.statusCode(), is(401));
-    }
-
-    @Test
-    public void wrappedRequestsAreUsedWhenProxying() {
-        WireMockServer proxyTarget = new WireMockServer(wireMockConfig().dynamicPort());
-        proxyTarget.start();
-        initialise(new PathModifyingStubFilter());
-
-        wm.stubFor(get(anyUrl()).willReturn(aResponse().proxiedFrom("http://localhost:" + proxyTarget.port())));
-        proxyTarget.stubFor(get("/prefix/subpath/item").willReturn(ok("From the proxy")));
-
-        assertThat(client.get("/subpath/item").content(), is("From the proxy"));
-
-        proxyTarget.stop();
-    }
-
-    @Before
-    public void init() {
-        url = "/" + RandomStringUtils.randomAlphabetic(5);
-    }
-
-    @After
-    public void stopServer() {
-        wm.stop();
-    }
-
-    private void initialise(RequestFilter... filters) {
-        wm = new WireMockServer(wireMockConfig().dynamicPort().extensions(filters));
-        wm.start();
-        client = new WireMockTestClient(wm.port());
-    }
-
-    public static class RequestHeaderModifyingFilter extends StubRequestFilter {
-
-        @Override
-        public RequestFilterAction filter(Request request) {
-            Request newRequest = new RequestWrapper(request) {
-                @Override
-                public HttpHeader header(String key) {
-                    if (key.equals("X-Modify-Me")) {
-                        return new HttpHeader("X-Modify-Me", "modified");
+    @Override
+    public RequestFilterAction filter(Request request) {
+      Request newRequest =
+          RequestWrapper.create()
+              .transformHeader(
+                  "X-Modify-Me",
+                  new FieldTransformer<List<String>>() {
+                    @Override
+                    public List<String> transform(List<String> existingValue) {
+                      return Collections.singletonList(existingValue.get(0) + value);
                     }
+                  })
+              .wrap(request);
 
-                    return super.header(key);
-                }
-            };
-
-            return RequestFilterAction.continueWith(newRequest);
-        }
-
-        @Override
-        public String getName() {
-            return "request-header-modifier";
-        }
+      return RequestFilterAction.continueWith(newRequest);
     }
 
-    public static class StubAuthenticatingFilter extends StubRequestFilter {
+    @Override
+    public String getName() {
+      return "request-header-appender-" + value;
+    }
+  }
 
-        @Override
-        public RequestFilterAction filter(Request request) {
-            HttpHeader authHeader = request.header("Authorization");
-            if (!authHeader.isPresent() || !authHeader.firstValue().equals("Token 123")) {
-                return RequestFilterAction.stopWith(ResponseDefinition.notAuthorised());
-            }
+  public static class AdminAuthenticatingFilter extends AdminRequestFilter {
 
-            return RequestFilterAction.continueWith(request);
-        }
+    @Override
+    public RequestFilterAction filter(Request request) {
+      HttpHeader authHeader = request.header("Authorization");
+      if (!authHeader.isPresent() || !authHeader.firstValue().equals("Token 123")) {
+        return RequestFilterAction.stopWith(ResponseDefinition.notAuthorised());
+      }
 
-        @Override
-        public String getName() {
-            return "stub-authenticator";
-        }
+      return RequestFilterAction.continueWith(request);
     }
 
-    public static class RequestHeaderAppendingFilter extends StubRequestFilter {
+    @Override
+    public String getName() {
+      return "admin-authenticator";
+    }
+  }
 
-        private final String value;
+  public static class BothAuthenticatingFilter implements RequestFilter {
 
-        public RequestHeaderAppendingFilter(String value) {
-            this.value = value;
-        }
+    @Override
+    public RequestFilterAction filter(Request request) {
+      HttpHeader authHeader = request.header("Authorization");
+      if (!authHeader.isPresent() || !authHeader.firstValue().equals("Token 123")) {
+        return RequestFilterAction.stopWith(ResponseDefinition.notAuthorised());
+      }
 
-        @Override
-        public RequestFilterAction filter(Request request) {
-            Request newRequest = RequestWrapper.create()
-                    .transformHeader("X-Modify-Me", new FieldTransformer<List<String>>() {
-                        @Override
-                        public List<String> transform(List<String> existingValue) {
-                            return Collections.singletonList(existingValue.get(0) + value);
-                        }
-                    })
-                    .wrap(request);
-
-            return RequestFilterAction.continueWith(newRequest);
-        }
-
-        @Override
-        public String getName() {
-            return "request-header-appender-" + value;
-        }
+      return RequestFilterAction.continueWith(request);
     }
 
-    public static class AdminAuthenticatingFilter extends AdminRequestFilter {
-
-        @Override
-        public RequestFilterAction filter(Request request) {
-            HttpHeader authHeader = request.header("Authorization");
-            if (!authHeader.isPresent() || !authHeader.firstValue().equals("Token 123")) {
-                return RequestFilterAction.stopWith(ResponseDefinition.notAuthorised());
-            }
-
-            return RequestFilterAction.continueWith(request);
-        }
-
-        @Override
-        public String getName() {
-            return "admin-authenticator";
-        }
+    @Override
+    public boolean applyToAdmin() {
+      return true;
     }
 
-    public static class BothAuthenticatingFilter implements RequestFilter {
-
-        @Override
-        public RequestFilterAction filter(Request request) {
-            HttpHeader authHeader = request.header("Authorization");
-            if (!authHeader.isPresent() || !authHeader.firstValue().equals("Token 123")) {
-                return RequestFilterAction.stopWith(ResponseDefinition.notAuthorised());
-            }
-
-            return RequestFilterAction.continueWith(request);
-        }
-
-        @Override
-        public boolean applyToAdmin() {
-            return true;
-        }
-
-        @Override
-        public boolean applyToStubs() {
-            return true;
-        }
-
-        @Override
-        public String getName() {
-            return "both-authenticator";
-        }
+    @Override
+    public boolean applyToStubs() {
+      return true;
     }
 
-    public static class PathModifyingStubFilter extends StubRequestFilter {
+    @Override
+    public String getName() {
+      return "both-authenticator";
+    }
+  }
 
-        @Override
-        public RequestFilterAction filter(Request request) {
-            Request wrappedRequest = RequestWrapper.create().transformAbsoluteUrl(new FieldTransformer<String>() {
-                @Override
-                public String transform(String url) {
-                    return url.replace("/subpath", "/prefix/subpath");
-                }
-            })
-            .wrap(request);
+  public static class PathModifyingStubFilter extends StubRequestFilter {
 
-            return RequestFilterAction.continueWith(wrappedRequest);
-        }
+    @Override
+    public RequestFilterAction filter(Request request) {
+      Request wrappedRequest =
+          RequestWrapper.create()
+              .transformAbsoluteUrl(
+                  new FieldTransformer<String>() {
+                    @Override
+                    public String transform(String url) {
+                      return url.replace("/subpath", "/prefix/subpath");
+                    }
+                  })
+              .wrap(request);
 
-        @Override
-        public String getName() {
-            return "path-mod-filter";
-        }
+      return RequestFilterAction.continueWith(wrappedRequest);
     }
 
+    @Override
+    public String getName() {
+      return "path-mod-filter";
+    }
+  }
 }

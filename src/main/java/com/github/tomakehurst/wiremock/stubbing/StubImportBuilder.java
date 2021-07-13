@@ -16,52 +16,49 @@
 package com.github.tomakehurst.wiremock.stubbing;
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class StubImportBuilder {
 
-    private List<StubMapping> mappings = new ArrayList<>();
-    private StubImport.Options.DuplicatePolicy duplicatePolicy = StubImport.Options.DuplicatePolicy.OVERWRITE;
-    private Boolean deleteAllNotInImport = false;
+  private List<StubMapping> mappings = new ArrayList<>();
+  private StubImport.Options.DuplicatePolicy duplicatePolicy =
+      StubImport.Options.DuplicatePolicy.OVERWRITE;
+  private Boolean deleteAllNotInImport = false;
 
-    StubImportBuilder() {
-    }
+  StubImportBuilder() {}
 
-    public StubImportBuilder stub(MappingBuilder stubMappingBuilder) {
-        mappings.add(stubMappingBuilder.build());
-        return this;
-    }
+  public StubImportBuilder stub(MappingBuilder stubMappingBuilder) {
+    mappings.add(stubMappingBuilder.build());
+    return this;
+  }
 
-    public StubImportBuilder stub(StubMapping stubMapping) {
-        mappings.add(stubMapping);
-        return this;
-    }
+  public StubImportBuilder stub(StubMapping stubMapping) {
+    mappings.add(stubMapping);
+    return this;
+  }
 
-    public StubImportBuilder ignoreExisting() {
-        duplicatePolicy = StubImport.Options.DuplicatePolicy.IGNORE;
-        return this;
-    }
+  public StubImportBuilder ignoreExisting() {
+    duplicatePolicy = StubImport.Options.DuplicatePolicy.IGNORE;
+    return this;
+  }
 
-    public StubImportBuilder overwriteExisting() {
-        duplicatePolicy = StubImport.Options.DuplicatePolicy.OVERWRITE;
-        return this;
-    }
+  public StubImportBuilder overwriteExisting() {
+    duplicatePolicy = StubImport.Options.DuplicatePolicy.OVERWRITE;
+    return this;
+  }
 
-    public StubImportBuilder deleteAllExistingStubsNotInImport() {
-        deleteAllNotInImport = true;
-        return this;
-    }
+  public StubImportBuilder deleteAllExistingStubsNotInImport() {
+    deleteAllNotInImport = true;
+    return this;
+  }
 
-    public StubImportBuilder doNotDeleteExistingStubs() {
-        deleteAllNotInImport = false;
-        return this;
-    }
+  public StubImportBuilder doNotDeleteExistingStubs() {
+    deleteAllNotInImport = false;
+    return this;
+  }
 
-    public StubImport build() {
-        return new StubImport(mappings, new StubImport.Options(duplicatePolicy, deleteAllNotInImport));
-    }
-
-
+  public StubImport build() {
+    return new StubImport(mappings, new StubImport.Options(duplicatePolicy, deleteAllNotInImport));
+  }
 }

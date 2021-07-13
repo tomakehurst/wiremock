@@ -17,18 +17,15 @@ package com.github.tomakehurst.wiremock.common.xml;
 
 import com.github.tomakehurst.wiremock.common.Errors;
 import com.github.tomakehurst.wiremock.common.InvalidInputException;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
-
 import javax.xml.xpath.XPathExpressionException;
 
 public class XPathException extends InvalidInputException {
 
-    protected XPathException(Throwable cause, Errors errors) {
-        super(cause, errors);
-    }
+  protected XPathException(Throwable cause, Errors errors) {
+    super(cause, errors);
+  }
 
-    public static XPathException fromXPathException(XPathExpressionException e) {
-        return new XPathException(e, Errors.single(51, e.getMessage()));
-    }
+  public static XPathException fromXPathException(XPathExpressionException e) {
+    return new XPathException(e, Errors.single(51, e.getMessage()));
+  }
 }

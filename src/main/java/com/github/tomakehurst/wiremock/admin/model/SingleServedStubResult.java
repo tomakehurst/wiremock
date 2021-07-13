@@ -21,12 +21,12 @@ import com.google.common.base.Optional;
 
 public class SingleServedStubResult extends SingleItemResult<ServeEvent> {
 
-    @JsonCreator
-    public SingleServedStubResult(ServeEvent item) {
-        super(item);
-    }
+  @JsonCreator
+  public SingleServedStubResult(ServeEvent item) {
+    super(item);
+  }
 
-    public static SingleServedStubResult fromOptional(Optional<ServeEvent> servedStub) {
-        return new SingleServedStubResult(servedStub.orNull());
-    }
+  public static SingleServedStubResult fromOptional(Optional<ServeEvent> servedStub) {
+    return new SingleServedStubResult(servedStub.orNull());
+  }
 }

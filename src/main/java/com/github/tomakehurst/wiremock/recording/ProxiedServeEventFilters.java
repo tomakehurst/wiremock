@@ -15,83 +15,73 @@
  */
 package com.github.tomakehurst.wiremock.recording;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.github.tomakehurst.wiremock.matching.RequestPattern;
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import com.google.common.base.Predicate;
-
 import java.util.List;
 import java.util.UUID;
 
-/**
- * A predicate to filter proxied ServeEvents against RequestPattern filters and IDs
- */
+/** A predicate to filter proxied ServeEvents against RequestPattern filters and IDs */
 public class ProxiedServeEventFilters implements Predicate<ServeEvent> {
 
-    @JsonUnwrapped
-    private RequestPattern filters;
+  @JsonUnwrapped private RequestPattern filters;
 
-    @JsonUnwrapped
-    private List<UUID> ids;
+  @JsonUnwrapped private List<UUID> ids;
 
-    @JsonUnwrapped
-    private boolean allowNonProxied;
+  @JsonUnwrapped private boolean allowNonProxied;
 
-    public static final ProxiedServeEventFilters ALLOW_ALL = new ProxiedServeEventFilters(null, null, false);
+  public static final ProxiedServeEventFilters ALLOW_ALL =
+      new ProxiedServeEventFilters(null, null, false);
 
-    // For Jackson. This class needs to be mutable as @JsonUnwrapped doesn't yet do constructor based serialisation
-    public ProxiedServeEventFilters() {
+  // For Jackson. This class needs to be mutable as @JsonUnwrapped doesn't yet do constructor based
+  // serialisation
+  public ProxiedServeEventFilters() {}
+
+  public ProxiedServeEventFilters(RequestPattern filters, List<UUID> ids, boolean allowNonProxied) {
+    this.filters = filters;
+    this.ids = ids;
+    this.allowNonProxied = allowNonProxied;
+  }
+
+  public RequestPattern getFilters() {
+    return filters;
+  }
+
+  public void setFilters(RequestPattern filters) {
+    this.filters = filters;
+  }
+
+  public List<UUID> getIds() {
+    return ids;
+  }
+
+  public void setIds(List<UUID> ids) {
+    this.ids = ids;
+  }
+
+  public boolean isAllowNonProxied() {
+    return allowNonProxied;
+  }
+
+  public void setAllowNonProxied(boolean allowNonProxied) {
+    this.allowNonProxied = allowNonProxied;
+  }
+
+  @Override
+  public boolean apply(ServeEvent serveEvent) {
+    if (!serveEvent.getResponseDefinition().isProxyResponse() && !allowNonProxied) {
+      return false;
     }
 
-    public ProxiedServeEventFilters(
-        RequestPattern filters,
-        List<UUID> ids,
-        boolean allowNonProxied
-    ) {
-        this.filters = filters;
-        this.ids = ids;
-        this.allowNonProxied = allowNonProxied;
+    if (filters != null && !filters.match(serveEvent.getRequest()).isExactMatch()) {
+      return false;
     }
 
-    public RequestPattern getFilters() {
-        return filters;
+    if (ids != null && !ids.contains(serveEvent.getId())) {
+      return false;
     }
 
-    public void setFilters(RequestPattern filters) {
-        this.filters = filters;
-    }
-
-    public List<UUID> getIds() {
-        return ids;
-    }
-
-    public void setIds(List<UUID> ids) {
-        this.ids = ids;
-    }
-
-    public boolean isAllowNonProxied() {
-        return allowNonProxied;
-    }
-
-    public void setAllowNonProxied(boolean allowNonProxied) {
-        this.allowNonProxied = allowNonProxied;
-    }
-
-    @Override
-    public boolean apply(ServeEvent serveEvent) {
-        if (!serveEvent.getResponseDefinition().isProxyResponse() && !allowNonProxied) {
-            return false;
-        }
-
-        if (filters != null && !filters.match(serveEvent.getRequest()).isExactMatch()) {
-            return false;
-        }
-
-        if (ids != null && !ids.contains(serveEvent.getId())) {
-            return false;
-        }
-
-        return true;
-    }
+    return true;
+  }
 }

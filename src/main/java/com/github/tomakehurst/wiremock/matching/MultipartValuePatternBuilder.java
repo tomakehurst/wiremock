@@ -30,56 +30,51 @@
  */
 package com.github.tomakehurst.wiremock.matching;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.containing;
+import static com.google.common.collect.Maps.newLinkedHashMap;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.containing;
-import static com.google.common.collect.Maps.newLinkedHashMap;
-
 public class MultipartValuePatternBuilder {
 
-    private String name = null;
-    private Map<String, MultiValuePattern> headerPatterns = newLinkedHashMap();
-    private List<ContentPattern<?>> bodyPatterns = new LinkedList<>();
-    private MultipartValuePattern.MatchingType matchingType = MultipartValuePattern.MatchingType.ANY;
+  private String name = null;
+  private Map<String, MultiValuePattern> headerPatterns = newLinkedHashMap();
+  private List<ContentPattern<?>> bodyPatterns = new LinkedList<>();
+  private MultipartValuePattern.MatchingType matchingType = MultipartValuePattern.MatchingType.ANY;
 
-    public MultipartValuePatternBuilder() {
-    }
+  public MultipartValuePatternBuilder() {}
 
-    public MultipartValuePatternBuilder(String name) {
-        withName(name);
-    }
+  public MultipartValuePatternBuilder(String name) {
+    withName(name);
+  }
 
-    public MultipartValuePatternBuilder matchingType(MultipartValuePattern.MatchingType type) {
-        matchingType = type;
-        return this;
-    }
+  public MultipartValuePatternBuilder matchingType(MultipartValuePattern.MatchingType type) {
+    matchingType = type;
+    return this;
+  }
 
-    public MultipartValuePatternBuilder withName(String name) {
-        this.name = name;
-        return withHeader("Content-Disposition", containing("name=\"" + name + "\""));
-    }
+  public MultipartValuePatternBuilder withName(String name) {
+    this.name = name;
+    return withHeader("Content-Disposition", containing("name=\"" + name + "\""));
+  }
 
-    public MultipartValuePatternBuilder withHeader(String name, StringValuePattern headerPattern) {
-        headerPatterns.put(name, MultiValuePattern.of(headerPattern));
-        return this;
-    }
+  public MultipartValuePatternBuilder withHeader(String name, StringValuePattern headerPattern) {
+    headerPatterns.put(name, MultiValuePattern.of(headerPattern));
+    return this;
+  }
 
-    public MultipartValuePatternBuilder withBody(ContentPattern<?> bodyPattern) {
-        bodyPatterns.add(bodyPattern);
-        return this;
-    }
+  public MultipartValuePatternBuilder withBody(ContentPattern<?> bodyPattern) {
+    bodyPatterns.add(bodyPattern);
+    return this;
+  }
 
-    public MultipartValuePattern build() {
-        return headerPatterns.isEmpty() && bodyPatterns.isEmpty() ? null :
-                headerPatterns.isEmpty() ?
-                    new MultipartValuePattern(name, matchingType, null, bodyPatterns) :
-                    new MultipartValuePattern(
-                        name,
-                        matchingType,
-                        headerPatterns,
-                        bodyPatterns
-                    );
-    }
+  public MultipartValuePattern build() {
+    return headerPatterns.isEmpty() && bodyPatterns.isEmpty()
+        ? null
+        : headerPatterns.isEmpty()
+            ? new MultipartValuePattern(name, matchingType, null, bodyPatterns)
+            : new MultipartValuePattern(name, matchingType, headerPatterns, bodyPatterns);
+  }
 }

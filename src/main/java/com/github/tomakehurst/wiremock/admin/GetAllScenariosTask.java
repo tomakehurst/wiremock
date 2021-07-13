@@ -22,8 +22,8 @@ import com.github.tomakehurst.wiremock.http.ResponseDefinition;
 
 public class GetAllScenariosTask implements AdminTask {
 
-    @Override
-    public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
-        return ResponseDefinition.okForJson(admin.getAllScenarios());
-    }
+  @Override
+  public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
+    return ResponseDefinition.okForJson(admin.getAllScenarios());
+  }
 }

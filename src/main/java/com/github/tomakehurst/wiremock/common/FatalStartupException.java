@@ -17,8 +17,7 @@ package com.github.tomakehurst.wiremock.common;
 
 public class FatalStartupException extends RuntimeException {
 
-    public FatalStartupException(Throwable cause) {
-        super(cause);
-    }
-
+  public FatalStartupException(Throwable cause) {
+    super(cause);
+  }
 }

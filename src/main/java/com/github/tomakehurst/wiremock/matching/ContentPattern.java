@@ -22,21 +22,22 @@ import com.google.common.base.Preconditions;
 @JsonDeserialize(using = ContentPatternDeserialiser.class)
 public abstract class ContentPattern<T> implements NamedValueMatcher<T> {
 
-    protected final T expectedValue;
+  protected final T expectedValue;
 
-    public ContentPattern(T expectedValue) {
-        if (!isNullValuePermitted()) {
-            Preconditions.checkNotNull(expectedValue, "'" + getName() + "' expected value cannot be null");
-        }
-        this.expectedValue = expectedValue;
+  public ContentPattern(T expectedValue) {
+    if (!isNullValuePermitted()) {
+      Preconditions.checkNotNull(
+          expectedValue, "'" + getName() + "' expected value cannot be null");
     }
+    this.expectedValue = expectedValue;
+  }
 
-    @JsonIgnore
-    public T getValue() {
-        return expectedValue;
-    }
+  @JsonIgnore
+  public T getValue() {
+    return expectedValue;
+  }
 
-    protected boolean isNullValuePermitted() {
-        return false;
-    }
+  protected boolean isNullValuePermitted() {
+    return false;
+  }
 }

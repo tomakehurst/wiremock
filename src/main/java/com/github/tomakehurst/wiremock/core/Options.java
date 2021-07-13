@@ -31,52 +31,81 @@ import com.github.tomakehurst.wiremock.security.Authenticator;
 import com.github.tomakehurst.wiremock.standalone.MappingsLoader;
 import com.github.tomakehurst.wiremock.verification.notmatched.NotMatchedRenderer;
 import com.google.common.base.Optional;
-
 import java.util.List;
 import java.util.Map;
 
 public interface Options {
 
-    enum ChunkedEncodingPolicy { ALWAYS, NEVER, BODY_FILE }
+  enum ChunkedEncodingPolicy {
+    ALWAYS,
+    NEVER,
+    BODY_FILE
+  }
 
-    int DEFAULT_PORT = 8080;
-    int DYNAMIC_PORT = 0;
-    int DEFAULT_CONTAINER_THREADS = 25;
-    String DEFAULT_BIND_ADDRESS = "0.0.0.0";
+  int DEFAULT_PORT = 8080;
+  int DYNAMIC_PORT = 0;
+  int DEFAULT_CONTAINER_THREADS = 25;
+  String DEFAULT_BIND_ADDRESS = "0.0.0.0";
 
-    int portNumber();
-    boolean getHttpDisabled();
-    HttpsSettings httpsSettings();
-    JettySettings jettySettings();
-    int containerThreads();
+  int portNumber();
 
-    /**
-     * @deprecated use {@link BrowserProxySettings#enabled()}
-     */
-    @Deprecated
-    boolean browserProxyingEnabled();
-    BrowserProxySettings browserProxySettings();
-    ProxySettings proxyVia();
-    FileSource filesRoot();
-    MappingsLoader mappingsLoader();
-    MappingsSaver mappingsSaver();
-    Notifier notifier();
-    boolean requestJournalDisabled();
-    Optional<Integer> maxRequestJournalEntries();
-    String bindAddress();
-    List<CaseInsensitiveKey> matchingHeaders();
-    boolean shouldPreserveHostHeader();
-    String proxyHostHeader();
-    HttpServerFactory httpServerFactory();
-    ThreadPoolFactory threadPoolFactory();
-    <T extends Extension> Map<String, T> extensionsOfType(Class<T> extensionType);
-    WiremockNetworkTrafficListener networkTrafficListener();
-    Authenticator getAdminAuthenticator();
-    boolean getHttpsRequiredForAdminApi();
-    NotMatchedRenderer getNotMatchedRenderer();
-    AsynchronousResponseSettings getAsynchronousResponseSettings();
-    ChunkedEncodingPolicy getChunkedEncodingPolicy();
-    boolean getGzipDisabled();
-    boolean getStubRequestLoggingDisabled();
-    boolean getStubCorsEnabled();
+  boolean getHttpDisabled();
+
+  HttpsSettings httpsSettings();
+
+  JettySettings jettySettings();
+
+  int containerThreads();
+
+  /** @deprecated use {@link BrowserProxySettings#enabled()} */
+  @Deprecated
+  boolean browserProxyingEnabled();
+
+  BrowserProxySettings browserProxySettings();
+
+  ProxySettings proxyVia();
+
+  FileSource filesRoot();
+
+  MappingsLoader mappingsLoader();
+
+  MappingsSaver mappingsSaver();
+
+  Notifier notifier();
+
+  boolean requestJournalDisabled();
+
+  Optional<Integer> maxRequestJournalEntries();
+
+  String bindAddress();
+
+  List<CaseInsensitiveKey> matchingHeaders();
+
+  boolean shouldPreserveHostHeader();
+
+  String proxyHostHeader();
+
+  HttpServerFactory httpServerFactory();
+
+  ThreadPoolFactory threadPoolFactory();
+
+  <T extends Extension> Map<String, T> extensionsOfType(Class<T> extensionType);
+
+  WiremockNetworkTrafficListener networkTrafficListener();
+
+  Authenticator getAdminAuthenticator();
+
+  boolean getHttpsRequiredForAdminApi();
+
+  NotMatchedRenderer getNotMatchedRenderer();
+
+  AsynchronousResponseSettings getAsynchronousResponseSettings();
+
+  ChunkedEncodingPolicy getChunkedEncodingPolicy();
+
+  boolean getGzipDisabled();
+
+  boolean getStubRequestLoggingDisabled();
+
+  boolean getStubCorsEnabled();
 }

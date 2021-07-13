@@ -15,47 +15,43 @@
  */
 package com.github.tomakehurst.wiremock.extension.responsetemplating.helpers;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
+
 import com.github.jknack.handlebars.Options;
 import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
 import com.github.tomakehurst.wiremock.common.LocalNotifier;
 import com.google.common.collect.ImmutableMap;
-import org.junit.Before;
-import org.junit.Test;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-
-import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
-import static org.hamcrest.MatcherAssert.assertThat;
+import org.junit.Before;
+import org.junit.Test;
 
 public class HostnameHelperTest {
 
-    private HostnameHelper helper;
-    private String hostname;
+  private HostnameHelper helper;
+  private String hostname;
 
-    @Before
-    public void init() throws UnknownHostException {
-        helper = new HostnameHelper();
-        hostname = InetAddress.getLocalHost().getHostName();
+  @Before
+  public void init() throws UnknownHostException {
+    helper = new HostnameHelper();
+    hostname = InetAddress.getLocalHost().getHostName();
 
-        LocalNotifier.set(new ConsoleNotifier(true));
-    }
+    LocalNotifier.set(new ConsoleNotifier(true));
+  }
 
-    @Test
-    public void generatesHostname() throws Exception {
-        ImmutableMap<String, Object> optionsHash = ImmutableMap.<String, Object>of(
-        );
+  @Test
+  public void generatesHostname() throws Exception {
+    ImmutableMap<String, Object> optionsHash = ImmutableMap.<String, Object>of();
 
-        String output = render(optionsHash);
-        assertThat(output, equalToIgnoringWhiteSpace(hostname));
-    }
+    String output = render(optionsHash);
+    assertThat(output, equalToIgnoringWhiteSpace(hostname));
+  }
 
-    private String render(ImmutableMap<String, Object> optionsHash) throws IOException {
-        return helper.apply(null,
-                new Options.Builder(null, null, null, null, null)
-                        .setHash(optionsHash).build()
-        ).toString();
-    }
-
+  private String render(ImmutableMap<String, Object> optionsHash) throws IOException {
+    return helper
+        .apply(null, new Options.Builder(null, null, null, null, null).setHash(optionsHash).build())
+        .toString();
+  }
 }

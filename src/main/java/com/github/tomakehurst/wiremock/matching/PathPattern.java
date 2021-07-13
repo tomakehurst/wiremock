@@ -16,62 +16,63 @@
 package com.github.tomakehurst.wiremock.matching;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
 import java.util.Objects;
 
 public abstract class PathPattern extends StringValuePattern {
 
-    protected final StringValuePattern valuePattern;
+  protected final StringValuePattern valuePattern;
 
-    protected PathPattern(String expectedValue, StringValuePattern valuePattern) {
-        super(expectedValue);
-        this.valuePattern = valuePattern;
+  protected PathPattern(String expectedValue, StringValuePattern valuePattern) {
+    super(expectedValue);
+    this.valuePattern = valuePattern;
+  }
+
+  public StringValuePattern getValuePattern() {
+    return valuePattern;
+  }
+
+  @JsonIgnore
+  public boolean isSimple() {
+    return valuePattern == null;
+  }
+
+  @Override
+  public MatchResult match(String value) {
+    if (isSimple()) {
+      return isSimpleMatch(value);
     }
 
-    public StringValuePattern getValuePattern() {
-        return valuePattern;
+    return isAdvancedMatch(value);
+  }
+
+  protected abstract MatchResult isSimpleMatch(String value);
+
+  protected abstract MatchResult isAdvancedMatch(String value);
+
+  public abstract String getExpressionResult(String value);
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    if (!super.equals(o)) return false;
+    PathPattern that = (PathPattern) o;
+    return Objects.equals(expectedValue, that.expectedValue)
+        && Objects.equals(valuePattern, that.valuePattern);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(super.hashCode(), valuePattern);
+  }
+
+  protected static class SubExpressionException extends RuntimeException {
+    public SubExpressionException(String message) {
+      super(message);
     }
 
-    @JsonIgnore
-    public boolean isSimple() {
-        return valuePattern == null;
+    public SubExpressionException(String message, Throwable cause) {
+      super(message, cause);
     }
-
-    @Override
-    public MatchResult match(String value) {
-        if (isSimple()) {
-            return isSimpleMatch(value);
-        }
-
-        return isAdvancedMatch(value);
-    }
-
-    protected abstract MatchResult isSimpleMatch(String value);
-    protected abstract MatchResult isAdvancedMatch(String value);
-    public abstract String getExpressionResult(String value);
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
-        PathPattern that = (PathPattern) o;
-        return Objects.equals(expectedValue, that.expectedValue) && Objects.equals(valuePattern, that.valuePattern);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), valuePattern);
-    }
-
-    protected static class SubExpressionException extends RuntimeException {
-        public SubExpressionException(String message) {
-            super(message);
-        }
-
-        public SubExpressionException(String message, Throwable cause) {
-            super(message, cause);
-        }
-    }
+  }
 }

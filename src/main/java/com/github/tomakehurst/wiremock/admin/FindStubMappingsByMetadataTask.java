@@ -25,10 +25,10 @@ import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 
 public class FindStubMappingsByMetadataTask implements AdminTask {
 
-    @Override
-    public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
-        StringValuePattern pattern = Json.read(request.getBodyAsString(), StringValuePattern.class);
-        ListStubMappingsResult stubMappings = admin.findAllStubsByMetadata(pattern);
-        return ResponseDefinition.okForJson(stubMappings);
-    }
+  @Override
+  public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
+    StringValuePattern pattern = Json.read(request.getBodyAsString(), StringValuePattern.class);
+    ListStubMappingsResult stubMappings = admin.findAllStubsByMetadata(pattern);
+    return ResponseDefinition.okForJson(stubMappings);
+  }
 }

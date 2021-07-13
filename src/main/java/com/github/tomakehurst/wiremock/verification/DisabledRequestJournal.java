@@ -19,51 +19,48 @@ import com.github.tomakehurst.wiremock.matching.RequestPattern;
 import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import com.google.common.base.Optional;
-
 import java.util.List;
 import java.util.UUID;
 
 public class DisabledRequestJournal implements RequestJournal {
 
-    @Override
-    public int countRequestsMatching(RequestPattern requestPattern) {
-        throw new RequestJournalDisabledException();
-    }
+  @Override
+  public int countRequestsMatching(RequestPattern requestPattern) {
+    throw new RequestJournalDisabledException();
+  }
 
-    @Override
-    public List<LoggedRequest> getRequestsMatching(RequestPattern requestPattern) {
-        throw new RequestJournalDisabledException();
-    }
+  @Override
+  public List<LoggedRequest> getRequestsMatching(RequestPattern requestPattern) {
+    throw new RequestJournalDisabledException();
+  }
 
-    @Override
-    public List<ServeEvent> getAllServeEvents() {
-        throw new RequestJournalDisabledException();
-    }
+  @Override
+  public List<ServeEvent> getAllServeEvents() {
+    throw new RequestJournalDisabledException();
+  }
 
-    @Override
-    public Optional<ServeEvent> getServeEvent(UUID id) {
-        throw new RequestJournalDisabledException();
-    }
+  @Override
+  public Optional<ServeEvent> getServeEvent(UUID id) {
+    throw new RequestJournalDisabledException();
+  }
 
-    @Override
-    public void reset() {
-    }
+  @Override
+  public void reset() {}
 
-    @Override
-    public void requestReceived(ServeEvent serveEvent) {
-    }
+  @Override
+  public void requestReceived(ServeEvent serveEvent) {}
 
-    @Override
-    public void removeEvent(UUID eventId) {
-    }
+  @Override
+  public void removeEvent(UUID eventId) {}
 
-    @Override
-    public List<ServeEvent> removeEventsMatching(RequestPattern requestPattern) {
-        throw new RequestJournalDisabledException();
-    }
+  @Override
+  public List<ServeEvent> removeEventsMatching(RequestPattern requestPattern) {
+    throw new RequestJournalDisabledException();
+  }
 
-    @Override
-    public List<ServeEvent> removeServeEventsForStubsMatchingMetadata(StringValuePattern metadataPattern) {
-        throw new RequestJournalDisabledException();
-    }
+  @Override
+  public List<ServeEvent> removeServeEventsForStubsMatchingMetadata(
+      StringValuePattern metadataPattern) {
+    throw new RequestJournalDisabledException();
+  }
 }

@@ -15,27 +15,26 @@
  */
 package com.github.tomakehurst.wiremock.client;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+
 import com.github.tomakehurst.wiremock.common.Json;
 import com.github.tomakehurst.wiremock.global.RequestDelaySpec;
 import org.junit.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-
 public class RequestDelaySpecTest {
 
-    @Test
-    public void canSerialiseToJson() throws Exception {
-        String json = Json.write(new RequestDelaySpec(500));
-        JSONAssert.assertEquals("{ \"milliseconds\": 500 }", json, false);
-    }
+  @Test
+  public void canSerialiseToJson() throws Exception {
+    String json = Json.write(new RequestDelaySpec(500));
+    JSONAssert.assertEquals("{ \"milliseconds\": 500 }", json, false);
+  }
 
-    @Test
-    public void canDeserialiseFromJson() {
-        RequestDelaySpec spec =
-                Json.read("{ \"milliseconds\": 80 }", RequestDelaySpec.class);
+  @Test
+  public void canDeserialiseFromJson() {
+    RequestDelaySpec spec = Json.read("{ \"milliseconds\": 80 }", RequestDelaySpec.class);
 
-        assertThat(spec.milliseconds(), is(80));
-    }
+    assertThat(spec.milliseconds(), is(80));
+  }
 }

@@ -24,10 +24,10 @@ import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 
 public class OldEditStubMappingTask implements AdminTask {
 
-	@Override
-	public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
-		StubMapping stubMapping = StubMapping.buildFrom(request.getBodyAsString());
-		admin.editStubMapping(stubMapping);
-		return ResponseDefinition.noContent();
-	}
+  @Override
+  public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
+    StubMapping stubMapping = StubMapping.buildFrom(request.getBodyAsString());
+    admin.editStubMapping(stubMapping);
+    return ResponseDefinition.noContent();
+  }
 }

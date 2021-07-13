@@ -19,23 +19,19 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.github.tomakehurst.wiremock.http.Request;
 import com.github.tomakehurst.wiremock.matching.ContentPattern;
-import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 
-/**
- * Factory for the StringValuePattern to use in a recorded stub mapping to match request bodies
- */
+/** Factory for the StringValuePattern to use in a recorded stub mapping to match request bodies */
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
     include = JsonTypeInfo.As.PROPERTY,
     property = "matcher",
-    defaultImpl = RequestBodyAutomaticPatternFactory.class
-)
+    defaultImpl = RequestBodyAutomaticPatternFactory.class)
 @JsonSubTypes({
-    @JsonSubTypes.Type(value = RequestBodyAutomaticPatternFactory.class, name = "auto"),
-    @JsonSubTypes.Type(value = RequestBodyEqualToPatternFactory.class, name = "equalTo"),
-    @JsonSubTypes.Type(value = RequestBodyEqualToJsonPatternFactory.class, name = "equalToJson"),
-    @JsonSubTypes.Type(value = RequestBodyEqualToXmlPatternFactory.class, name = "equalToXml")
+  @JsonSubTypes.Type(value = RequestBodyAutomaticPatternFactory.class, name = "auto"),
+  @JsonSubTypes.Type(value = RequestBodyEqualToPatternFactory.class, name = "equalTo"),
+  @JsonSubTypes.Type(value = RequestBodyEqualToJsonPatternFactory.class, name = "equalToJson"),
+  @JsonSubTypes.Type(value = RequestBodyEqualToXmlPatternFactory.class, name = "equalToXml")
 })
 public interface RequestBodyPatternFactory {
-    ContentPattern<?> forRequest(Request request);
+  ContentPattern<?> forRequest(Request request);
 }
