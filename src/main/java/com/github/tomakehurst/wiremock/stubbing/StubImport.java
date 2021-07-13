@@ -17,55 +17,58 @@ package com.github.tomakehurst.wiremock.stubbing;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class StubImport {
 
-    private final List<StubMapping> mappings;
-    private final Options importOptions;
+  private final List<StubMapping> mappings;
+  private final Options importOptions;
 
-    public StubImport(@JsonProperty("mappings") List<StubMapping> mappings,
-                      @JsonProperty("importOptions") Options importOptions) {
-        this.mappings = mappings;
-        this.importOptions = importOptions;
+  public StubImport(
+      @JsonProperty("mappings") List<StubMapping> mappings,
+      @JsonProperty("importOptions") Options importOptions) {
+    this.mappings = mappings;
+    this.importOptions = importOptions;
+  }
+
+  public List<StubMapping> getMappings() {
+    return mappings;
+  }
+
+  public Options getImportOptions() {
+    return importOptions;
+  }
+
+  public static StubImportBuilder stubImport() {
+    return new StubImportBuilder();
+  }
+
+  public static class Options {
+
+    public enum DuplicatePolicy {
+      OVERWRITE,
+      IGNORE
     }
 
-    public List<StubMapping> getMappings() {
-        return mappings;
+    private final DuplicatePolicy duplicatePolicy;
+    private final Boolean deleteAllNotInImport;
+
+    public Options(
+        @JsonProperty("duplicatePolicy") DuplicatePolicy duplicatePolicy,
+        @JsonProperty("deleteAllNotInImport") Boolean deleteAllNotInImport) {
+      this.duplicatePolicy = duplicatePolicy;
+      this.deleteAllNotInImport = deleteAllNotInImport;
     }
 
-    public Options getImportOptions() {
-        return importOptions;
+    public DuplicatePolicy getDuplicatePolicy() {
+      return duplicatePolicy;
     }
 
-    public static StubImportBuilder stubImport() {
-        return new StubImportBuilder();
+    public Boolean getDeleteAllNotInImport() {
+      return deleteAllNotInImport;
     }
 
-    public static class Options {
-
-        public enum DuplicatePolicy { OVERWRITE, IGNORE }
-
-        private final DuplicatePolicy duplicatePolicy;
-        private final Boolean deleteAllNotInImport;
-
-        public Options(@JsonProperty("duplicatePolicy") DuplicatePolicy duplicatePolicy,
-                       @JsonProperty("deleteAllNotInImport") Boolean deleteAllNotInImport) {
-            this.duplicatePolicy = duplicatePolicy;
-            this.deleteAllNotInImport = deleteAllNotInImport;
-        }
-
-        public DuplicatePolicy getDuplicatePolicy() {
-            return duplicatePolicy;
-        }
-
-        public Boolean getDeleteAllNotInImport() {
-            return deleteAllNotInImport;
-        }
-
-        public static final Options DEFAULTS = new Options(DuplicatePolicy.OVERWRITE, false);
-    }
-
+    public static final Options DEFAULTS = new Options(DuplicatePolicy.OVERWRITE, false);
+  }
 }

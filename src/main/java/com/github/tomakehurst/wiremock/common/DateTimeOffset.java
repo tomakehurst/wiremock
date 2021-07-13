@@ -15,78 +15,77 @@
  */
 package com.github.tomakehurst.wiremock.common;
 
+import static com.github.tomakehurst.wiremock.common.DateTimeUnit.SECONDS;
+
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.TimeZone;
-
-import static com.github.tomakehurst.wiremock.common.DateTimeUnit.SECONDS;
 
 public class DateTimeOffset {
 
-    public static final DateTimeOffset NONE = new DateTimeOffset(0, SECONDS);
+  public static final DateTimeOffset NONE = new DateTimeOffset(0, SECONDS);
 
-    private final DateTimeUnit amountUnit;
-    private final int amount;
+  private final DateTimeUnit amountUnit;
+  private final int amount;
 
-    public static DateTimeOffset fromString(String offset) {
-        if (offset.equalsIgnoreCase("now")) {
-            return NONE;
-        }
-
-        String[] parts = offset.split(" ");
-        if (parts.length < 2 || parts.length > 3) {
-            throw new IllegalArgumentException("Offset can be of the short form <amount> <unit> e.g. 8 seconds or long form now +/-<amount> <unit> e.g. now +5 years");
-        }
-
-        int amount;
-        DateTimeUnit amountUnit;
-
-        if (parts.length == 2) {
-            amount = Integer.parseInt(parts[0]);
-            amountUnit = DateTimeUnit.valueOf(parts[1].toUpperCase());
-        } else {
-            amount = Integer.parseInt(parts[1]);
-            amountUnit = DateTimeUnit.valueOf(parts[2].toUpperCase());
-        }
-
-        return new DateTimeOffset(amount, amountUnit);
+  public static DateTimeOffset fromString(String offset) {
+    if (offset.equalsIgnoreCase("now")) {
+      return NONE;
     }
 
-    public DateTimeOffset(int amount, DateTimeUnit amountUnit) {
-        this.amountUnit = amountUnit;
-        this.amount = amount;
+    String[] parts = offset.split(" ");
+    if (parts.length < 2 || parts.length > 3) {
+      throw new IllegalArgumentException(
+          "Offset can be of the short form <amount> <unit> e.g. 8 seconds or long form now +/-<amount> <unit> e.g. now +5 years");
     }
 
-    public DateTimeUnit getAmountUnit() {
-        return amountUnit;
+    int amount;
+    DateTimeUnit amountUnit;
+
+    if (parts.length == 2) {
+      amount = Integer.parseInt(parts[0]);
+      amountUnit = DateTimeUnit.valueOf(parts[1].toUpperCase());
+    } else {
+      amount = Integer.parseInt(parts[1]);
+      amountUnit = DateTimeUnit.valueOf(parts[2].toUpperCase());
     }
 
-    public int getAmount() {
-        return amount;
+    return new DateTimeOffset(amount, amountUnit);
+  }
+
+  public DateTimeOffset(int amount, DateTimeUnit amountUnit) {
+    this.amountUnit = amountUnit;
+    this.amount = amount;
+  }
+
+  public DateTimeUnit getAmountUnit() {
+    return amountUnit;
+  }
+
+  public int getAmount() {
+    return amount;
+  }
+
+  public Date shift(Date date) {
+    if (this == NONE) {
+      return date;
     }
 
-    public Date shift(Date date) {
-        if (this == NONE) {
-            return date;
-        }
+    final ZonedDateTime input = ZonedDateTime.ofInstant(date.toInstant(), ZoneId.of("Z"));
+    ZonedDateTime output = shift(input);
+    return Date.from(output.toInstant());
+  }
 
-        final ZonedDateTime input = ZonedDateTime.ofInstant(date.toInstant(), ZoneId.of("Z"));
-        ZonedDateTime output = shift(input);
-        return Date.from(output.toInstant());
+  public ZonedDateTime shift(ZonedDateTime dateTime) {
+    if (this == NONE) {
+      return dateTime;
     }
 
-    public ZonedDateTime shift(ZonedDateTime dateTime) {
-        if (this == NONE) {
-            return dateTime;
-        }
+    return dateTime.plus(amount, amountUnit.toTemporalUnit());
+  }
 
-        return dateTime.plus(amount, amountUnit.toTemporalUnit());
-    }
-
-    @Override
-    public String toString() {
-        return amount + " " + amountUnit.name().toLowerCase();
-    }
+  @Override
+  public String toString() {
+    return amount + " " + amountUnit.name().toLowerCase();
+  }
 }

@@ -16,48 +16,47 @@
 package com.github.tomakehurst.wiremock.extension.responsetemplating.helpers;
 
 import com.fasterxml.jackson.databind.util.ISO8601Utils;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
 public class RenderableDate extends Date {
-    private static final long DIVIDE_MILLISECONDS_TO_SECONDS = 1000L;
+  private static final long DIVIDE_MILLISECONDS_TO_SECONDS = 1000L;
 
-    private final String format;
-    private final String timezoneName;
+  private final String format;
+  private final String timezoneName;
 
-    public RenderableDate(Date date, String format, String timezone) {
-        super(date.getTime());
-        this.format = format;
-        this.timezoneName = timezone;
+  public RenderableDate(Date date, String format, String timezone) {
+    super(date.getTime());
+    this.format = format;
+    this.timezoneName = timezone;
+  }
+
+  @Override
+  public String toString() {
+    if (format != null) {
+      if (format.equals("epoch")) {
+        return String.valueOf(getTime());
+      }
+
+      if (format.equals("unix")) {
+        return String.valueOf(getTime() / DIVIDE_MILLISECONDS_TO_SECONDS);
+      }
+
+      return formatCustom();
     }
 
-    @Override
-    public String toString() {
-        if (format != null) {
-            if (format.equals("epoch")) {
-                return String.valueOf(getTime());
-            }
+    return timezoneName != null
+        ? ISO8601Utils.format(this, false, TimeZone.getTimeZone(timezoneName))
+        : ISO8601Utils.format(this, false);
+  }
 
-            if (format.equals("unix")) {
-                return String.valueOf(getTime() / DIVIDE_MILLISECONDS_TO_SECONDS);
-            }
-
-            return formatCustom();
-        }
-
-        return timezoneName != null ?
-                ISO8601Utils.format(this, false, TimeZone.getTimeZone(timezoneName)) :
-                ISO8601Utils.format(this, false);
+  private String formatCustom() {
+    SimpleDateFormat dateFormat = new SimpleDateFormat(format);
+    if (timezoneName != null) {
+      TimeZone zone = TimeZone.getTimeZone(timezoneName);
+      dateFormat.setTimeZone(zone);
     }
-
-    private String formatCustom() {
-        SimpleDateFormat dateFormat = new SimpleDateFormat(format);
-        if (timezoneName != null) {
-            TimeZone zone = TimeZone.getTimeZone(timezoneName);
-            dateFormat.setTimeZone(zone);
-        }
-        return dateFormat.format(this);
-    }
+    return dateFormat.format(this);
+  }
 }

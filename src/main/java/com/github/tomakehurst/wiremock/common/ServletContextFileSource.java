@@ -15,34 +15,33 @@
  */
 package com.github.tomakehurst.wiremock.common;
 
-import javax.servlet.ServletContext;
 import java.io.File;
+import javax.servlet.ServletContext;
 
 public class ServletContextFileSource extends AbstractFileSource {
-    
-    private final String rootPath;
-    private final ServletContext servletContext;
-    
-    public ServletContextFileSource(ServletContext servletContext, String rootPath) {
-        super(getRootFile(servletContext, rootPath));
-        this.rootPath = rootPath;
-        this.servletContext = servletContext;
-    }
-    
-    private static File getRootFile(ServletContext servletContext, String rootPath) {
-        String containerRootPath = servletContext.getRealPath(rootPath);
-        servletContext.log("rootPath: " + rootPath);
-        return new File(containerRootPath);
-    }
-    
 
-    @Override
-    public FileSource child(String subDirectoryName) {
-        return new ServletContextFileSource(servletContext, rootPath + '/' + subDirectoryName);
-    }
+  private final String rootPath;
+  private final ServletContext servletContext;
 
-    @Override
-    protected boolean readOnly() {
-        return true;
-    }
+  public ServletContextFileSource(ServletContext servletContext, String rootPath) {
+    super(getRootFile(servletContext, rootPath));
+    this.rootPath = rootPath;
+    this.servletContext = servletContext;
+  }
+
+  private static File getRootFile(ServletContext servletContext, String rootPath) {
+    String containerRootPath = servletContext.getRealPath(rootPath);
+    servletContext.log("rootPath: " + rootPath);
+    return new File(containerRootPath);
+  }
+
+  @Override
+  public FileSource child(String subDirectoryName) {
+    return new ServletContextFileSource(servletContext, rootPath + '/' + subDirectoryName);
+  }
+
+  @Override
+  protected boolean readOnly() {
+    return true;
+  }
 }

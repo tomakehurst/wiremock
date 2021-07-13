@@ -15,66 +15,62 @@
  */
 package com.github.tomakehurst.wiremock.matching;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.Objects;
-
 import static org.apache.commons.lang3.StringUtils.getLevenshteinDistance;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Objects;
 
 public class EqualToPattern extends StringValuePattern {
 
-    private final Boolean caseInsensitive;
+  private final Boolean caseInsensitive;
 
-    public EqualToPattern(
-        @JsonProperty("equalTo") String testValue,
-        @JsonProperty("caseInsensitive") Boolean caseInsensitive
-    ) {
-        super(testValue);
-        this.caseInsensitive = caseInsensitive;
+  public EqualToPattern(
+      @JsonProperty("equalTo") String testValue,
+      @JsonProperty("caseInsensitive") Boolean caseInsensitive) {
+    super(testValue);
+    this.caseInsensitive = caseInsensitive;
+  }
+
+  public EqualToPattern(String expectedValue) {
+    this(expectedValue, null);
+  }
+
+  public String getEqualTo() {
+    return expectedValue;
+  }
+
+  public Boolean getCaseInsensitive() {
+    return caseInsensitive;
+  }
+
+  @Override
+  public MatchResult match(final String value) {
+    return new MatchResult() {
+      @Override
+      public boolean isExactMatch() {
+        return shouldMatchCaseInsensitive()
+            ? value != null && value.equalsIgnoreCase(expectedValue)
+            : Objects.equals(expectedValue, value);
+      }
+
+      @Override
+      public double getDistance() {
+        return normalisedLevenshteinDistance(expectedValue, value);
+      }
+    };
+  }
+
+  private boolean shouldMatchCaseInsensitive() {
+    return caseInsensitive != null && caseInsensitive;
+  }
+
+  private double normalisedLevenshteinDistance(String one, String two) {
+    if (one == null || two == null) {
+      return 1.0;
     }
 
-    public EqualToPattern(String expectedValue) {
-        this(expectedValue, null);
-    }
-
-    public String getEqualTo() {
-        return expectedValue;
-    }
-
-    public Boolean getCaseInsensitive() {
-        return caseInsensitive;
-    }
-
-    @Override
-    public MatchResult match(final String value) {
-        return new MatchResult() {
-            @Override
-            public boolean isExactMatch() {
-                return
-                        shouldMatchCaseInsensitive() ?
-                                value != null && value.equalsIgnoreCase(expectedValue) :
-                                Objects.equals(expectedValue, value);
-            }
-
-            @Override
-            public double getDistance() {
-                return normalisedLevenshteinDistance(expectedValue, value);
-            }
-        };
-    }
-
-    private boolean shouldMatchCaseInsensitive() {
-        return caseInsensitive != null && caseInsensitive;
-    }
-
-    private double normalisedLevenshteinDistance(String one, String two) {
-        if (one == null || two == null) {
-            return 1.0;
-        }
-
-        double maxDistance = Math.max(one.length(), two.length());
-        double actualDistance = getLevenshteinDistance(one, two);
-        return (actualDistance / maxDistance);
-    }
-
+    double maxDistance = Math.max(one.length(), two.length());
+    double actualDistance = getLevenshteinDistance(one, two);
+    return (actualDistance / maxDistance);
+  }
 }

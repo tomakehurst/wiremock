@@ -20,9 +20,9 @@ import com.github.tomakehurst.wiremock.http.Request;
 
 public abstract class AbstractTransformer<T> implements Extension {
 
-    public abstract T transform(Request request, T response, FileSource files, Parameters parameters);
+  public abstract T transform(Request request, T response, FileSource files, Parameters parameters);
 
-    public boolean applyGlobally() {
-        return true;
-    }
+  public boolean applyGlobally() {
+    return true;
+  }
 }

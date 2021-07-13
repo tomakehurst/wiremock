@@ -30,66 +30,69 @@
  */
 package com.github.tomakehurst.wiremock.servlet;
 
+import static com.github.tomakehurst.wiremock.common.Exceptions.throwUnchecked;
+
 import com.github.tomakehurst.wiremock.http.*;
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.io.ByteStreams;
-
-import javax.servlet.http.Part;
 import java.io.IOException;
 import java.util.Collection;
-
-import static com.github.tomakehurst.wiremock.common.Exceptions.throwUnchecked;
+import javax.servlet.http.Part;
 
 public class WireMockHttpServletMultipartAdapter implements Request.Part {
 
-    private final Part mPart;
-    private final HttpHeaders headers;
+  private final Part mPart;
+  private final HttpHeaders headers;
 
-    public WireMockHttpServletMultipartAdapter(final Part servletPart) {
-        mPart = servletPart;
-        Iterable<HttpHeader> httpHeaders = FluentIterable.from(mPart.getHeaderNames()).transform(new Function<String, HttpHeader>() {
-            @Override
-            public HttpHeader apply(String name) {
-                Collection<String> headerValues = servletPart.getHeaders(name);
-                return HttpHeader.httpHeader(name, headerValues.toArray(new String[headerValues.size()]));
-            }
-        });
+  public WireMockHttpServletMultipartAdapter(final Part servletPart) {
+    mPart = servletPart;
+    Iterable<HttpHeader> httpHeaders =
+        FluentIterable.from(mPart.getHeaderNames())
+            .transform(
+                new Function<String, HttpHeader>() {
+                  @Override
+                  public HttpHeader apply(String name) {
+                    Collection<String> headerValues = servletPart.getHeaders(name);
+                    return HttpHeader.httpHeader(
+                        name, headerValues.toArray(new String[headerValues.size()]));
+                  }
+                });
 
-        headers = new HttpHeaders(httpHeaders);
+    headers = new HttpHeaders(httpHeaders);
+  }
+
+  public static WireMockHttpServletMultipartAdapter from(Part servletPart) {
+    return new WireMockHttpServletMultipartAdapter(servletPart);
+  }
+
+  @Override
+  public String getName() {
+    return mPart.getName();
+  }
+
+  @Override
+  public HttpHeader getHeader(String name) {
+    return headers.getHeader(name);
+  }
+
+  @Override
+  public HttpHeaders getHeaders() {
+    return headers;
+  }
+
+  @Override
+  public Body getBody() {
+    try {
+      byte[] bytes = ByteStreams.toByteArray(mPart.getInputStream());
+      HttpHeader header = getHeader(ContentTypeHeader.KEY);
+      ContentTypeHeader contentTypeHeader =
+          header.isPresent()
+              ? new ContentTypeHeader(header.firstValue())
+              : ContentTypeHeader.absent();
+      return Body.ofBinaryOrText(bytes, contentTypeHeader);
+    } catch (IOException e) {
+      return throwUnchecked(e, Body.class);
     }
-
-    public static WireMockHttpServletMultipartAdapter from(Part servletPart) {
-        return new WireMockHttpServletMultipartAdapter(servletPart);
-    }
-
-    @Override
-    public String getName() {
-        return mPart.getName();
-    }
-
-    @Override
-    public HttpHeader getHeader(String name) {
-        return headers.getHeader(name);
-    }
-
-    @Override
-    public HttpHeaders getHeaders() {
-        return headers;
-    }
-
-    @Override
-    public Body getBody() {
-        try {
-            byte[] bytes = ByteStreams.toByteArray(mPart.getInputStream());
-            HttpHeader header = getHeader(ContentTypeHeader.KEY);
-            ContentTypeHeader contentTypeHeader = header.isPresent() ?
-                new ContentTypeHeader(header.firstValue()) :
-                ContentTypeHeader.absent();
-            return Body.ofBinaryOrText(bytes, contentTypeHeader);
-        } catch (IOException e) {
-            return throwUnchecked(e, Body.class);
-        }
-    }
-
+  }
 }

@@ -21,41 +21,41 @@ import com.github.tomakehurst.wiremock.matching.RequestPattern;
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.google.common.base.Function;
-
 import java.net.URI;
 import java.util.Map;
 
 /**
- * Transforms ServeEvents to StubMappings using RequestPatternTransformer and LoggedResponseDefinitionTransformer
+ * Transforms ServeEvents to StubMappings using RequestPatternTransformer and
+ * LoggedResponseDefinitionTransformer
  */
 public class SnapshotStubMappingGenerator implements Function<ServeEvent, StubMapping> {
-    private final RequestPatternTransformer requestTransformer;
-    private final LoggedResponseDefinitionTransformer responseTransformer;
+  private final RequestPatternTransformer requestTransformer;
+  private final LoggedResponseDefinitionTransformer responseTransformer;
 
-    public SnapshotStubMappingGenerator(
-        RequestPatternTransformer requestTransformer,
-        LoggedResponseDefinitionTransformer responseTransformer
-    ) {
-        this.requestTransformer = requestTransformer;
-        this.responseTransformer = responseTransformer;
-    }
+  public SnapshotStubMappingGenerator(
+      RequestPatternTransformer requestTransformer,
+      LoggedResponseDefinitionTransformer responseTransformer) {
+    this.requestTransformer = requestTransformer;
+    this.responseTransformer = responseTransformer;
+  }
 
-    public SnapshotStubMappingGenerator(Map<String, CaptureHeadersSpec> captureHeaders, RequestBodyPatternFactory requestBodyPatternFactory) {
-        this(
-            new RequestPatternTransformer(captureHeaders, requestBodyPatternFactory),
-            new LoggedResponseDefinitionTransformer()
-        );
-    }
+  public SnapshotStubMappingGenerator(
+      Map<String, CaptureHeadersSpec> captureHeaders,
+      RequestBodyPatternFactory requestBodyPatternFactory) {
+    this(
+        new RequestPatternTransformer(captureHeaders, requestBodyPatternFactory),
+        new LoggedResponseDefinitionTransformer());
+  }
 
-    @Override
-    public StubMapping apply(ServeEvent event) {
-        final RequestPattern requestPattern = requestTransformer.apply(event.getRequest()).build();
-        final ResponseDefinition responseDefinition = responseTransformer.apply(event.getResponse());
-        StubMapping stubMapping = new StubMapping(requestPattern, responseDefinition);
+  @Override
+  public StubMapping apply(ServeEvent event) {
+    final RequestPattern requestPattern = requestTransformer.apply(event.getRequest()).build();
+    final ResponseDefinition responseDefinition = responseTransformer.apply(event.getResponse());
+    StubMapping stubMapping = new StubMapping(requestPattern, responseDefinition);
 
-        URI uri = URI.create(event.getRequest().getUrl());
-        stubMapping.setName(SafeNames.makeSafeNameFromUrl(uri.getPath()));
+    URI uri = URI.create(event.getRequest().getUrl());
+    stubMapping.setName(SafeNames.makeSafeNameFromUrl(uri.getPath()));
 
-        return stubMapping;
-    }
+    return stubMapping;
+  }
 }

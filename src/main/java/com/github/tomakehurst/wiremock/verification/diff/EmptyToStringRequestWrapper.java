@@ -17,136 +17,135 @@ package com.github.tomakehurst.wiremock.verification.diff;
 
 import com.github.tomakehurst.wiremock.http.*;
 import com.google.common.base.Optional;
-
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
 public class EmptyToStringRequestWrapper implements Request {
 
-    private final Request target;
+  private final Request target;
 
-    public EmptyToStringRequestWrapper(Request target) {
-        this.target = target;
-    }
+  public EmptyToStringRequestWrapper(Request target) {
+    this.target = target;
+  }
 
-    @Override
-    public String getUrl() {
-        return target.getUrl();
-    }
+  @Override
+  public String getUrl() {
+    return target.getUrl();
+  }
 
-    @Override
-    public String getAbsoluteUrl() {
-        return target.getAbsoluteUrl();
-    }
+  @Override
+  public String getAbsoluteUrl() {
+    return target.getAbsoluteUrl();
+  }
 
-    @Override
-    public RequestMethod getMethod() {
-        return target.getMethod();
-    }
+  @Override
+  public RequestMethod getMethod() {
+    return target.getMethod();
+  }
 
-    @Override
-    public String getScheme() {
-        return target.getScheme();
-    }
+  @Override
+  public String getScheme() {
+    return target.getScheme();
+  }
 
-    @Override
-    public String getHost() {
-        return target.getHost();
-    }
+  @Override
+  public String getHost() {
+    return target.getHost();
+  }
 
-    @Override
-    public int getPort() {
-        return target.getPort();
-    }
+  @Override
+  public int getPort() {
+    return target.getPort();
+  }
 
-    @Override
-    public String getClientIp() {
-        return target.getClientIp();
-    }
+  @Override
+  public String getClientIp() {
+    return target.getClientIp();
+  }
 
-    @Override
-    public String getHeader(String key) {
-        return target.getHeader(key);
-    }
+  @Override
+  public String getHeader(String key) {
+    return target.getHeader(key);
+  }
 
-    @Override
-    public HttpHeader header(String key) {
-        return target.header(key);
-    }
+  @Override
+  public HttpHeader header(String key) {
+    return target.header(key);
+  }
 
-    @Override
-    public ContentTypeHeader contentTypeHeader() {
-        return target.contentTypeHeader();
-    }
+  @Override
+  public ContentTypeHeader contentTypeHeader() {
+    return target.contentTypeHeader();
+  }
 
-    @Override
-    public HttpHeaders getHeaders() {
-        return target.getHeaders();
-    }
+  @Override
+  public HttpHeaders getHeaders() {
+    return target.getHeaders();
+  }
 
-    @Override
-    public boolean containsHeader(String key) {
-        return target.containsHeader(key);
-    }
+  @Override
+  public boolean containsHeader(String key) {
+    return target.containsHeader(key);
+  }
 
-    @Override
-    public Set<String> getAllHeaderKeys() {
-        return target.getAllHeaderKeys();
-    }
+  @Override
+  public Set<String> getAllHeaderKeys() {
+    return target.getAllHeaderKeys();
+  }
 
-    @Override
-    public Map<String, Cookie> getCookies() {
-        return target.getCookies();
-    }
+  @Override
+  public Map<String, Cookie> getCookies() {
+    return target.getCookies();
+  }
 
-    @Override
-    public QueryParameter queryParameter(String key) {
-        return target.queryParameter(key);
-    }
+  @Override
+  public QueryParameter queryParameter(String key) {
+    return target.queryParameter(key);
+  }
 
-    @Override
-    public byte[] getBody() {
-        return target.getBody();
-    }
+  @Override
+  public byte[] getBody() {
+    return target.getBody();
+  }
 
-    @Override
-    public String getBodyAsString() {
-        return target.getBodyAsString();
-    }
+  @Override
+  public String getBodyAsString() {
+    return target.getBodyAsString();
+  }
 
-    @Override
-    public String getBodyAsBase64() {
-        return target.getBodyAsBase64();
-    }
+  @Override
+  public String getBodyAsBase64() {
+    return target.getBodyAsBase64();
+  }
 
-    @Override
-    public boolean isMultipart() {
-        return target.isMultipart();
-    }
+  @Override
+  public boolean isMultipart() {
+    return target.isMultipart();
+  }
 
-    @Override
-    public Collection<Part> getParts() {
-        return target.getParts();
-    }
+  @Override
+  public Collection<Part> getParts() {
+    return target.getParts();
+  }
 
-    @Override
-    public Part getPart(String name) {
-        return target.getPart(name);
-    }
+  @Override
+  public Part getPart(String name) {
+    return target.getPart(name);
+  }
 
-    @Override
-    public boolean isBrowserProxyRequest() {
-        return target.isBrowserProxyRequest();
-    }
+  @Override
+  public boolean isBrowserProxyRequest() {
+    return target.isBrowserProxyRequest();
+  }
 
-    @Override
-    public Optional<Request> getOriginalRequest() {
-        return target.getOriginalRequest();
-    }
+  @Override
+  public Optional<Request> getOriginalRequest() {
+    return target.getOriginalRequest();
+  }
 
-    @Override
-    public String toString() {
-        return " ";
-    }
+  @Override
+  public String toString() {
+    return " ";
+  }
 }

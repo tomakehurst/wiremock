@@ -27,125 +27,122 @@ import net.javacrumbs.jsonunit.core.listener.DifferenceListener;
 
 public class EqualToJsonPattern extends StringValuePattern {
 
-    private final JsonNode expected;
-    private final Boolean ignoreArrayOrder;
-    private final Boolean ignoreExtraElements;
-    private final Boolean serializeAsString;
+  private final JsonNode expected;
+  private final Boolean ignoreArrayOrder;
+  private final Boolean ignoreExtraElements;
+  private final Boolean serializeAsString;
 
-    public EqualToJsonPattern(@JsonProperty("equalToJson") String json,
-                              @JsonProperty("ignoreArrayOrder") Boolean ignoreArrayOrder,
-                              @JsonProperty("ignoreExtraElements") Boolean ignoreExtraElements) {
-        super(json);
-        expected = Json.read(json, JsonNode.class);
-        this.ignoreArrayOrder = ignoreArrayOrder;
-        this.ignoreExtraElements = ignoreExtraElements;
-        this.serializeAsString = true;
+  public EqualToJsonPattern(
+      @JsonProperty("equalToJson") String json,
+      @JsonProperty("ignoreArrayOrder") Boolean ignoreArrayOrder,
+      @JsonProperty("ignoreExtraElements") Boolean ignoreExtraElements) {
+    super(json);
+    expected = Json.read(json, JsonNode.class);
+    this.ignoreArrayOrder = ignoreArrayOrder;
+    this.ignoreExtraElements = ignoreExtraElements;
+    this.serializeAsString = true;
+  }
+
+  public EqualToJsonPattern(
+      JsonNode jsonNode, Boolean ignoreArrayOrder, Boolean ignoreExtraElements) {
+    super(Json.write(jsonNode));
+    expected = jsonNode;
+    this.ignoreArrayOrder = ignoreArrayOrder;
+    this.ignoreExtraElements = ignoreExtraElements;
+    this.serializeAsString = false;
+  }
+
+  @Override
+  public MatchResult match(String value) {
+    final CountingDiffListener diffListener = new CountingDiffListener();
+    Configuration diffConfig = Configuration.empty().withDifferenceListener(diffListener);
+
+    if (shouldIgnoreArrayOrder()) {
+      diffConfig = diffConfig.withOptions(Option.IGNORING_ARRAY_ORDER);
     }
 
-    public EqualToJsonPattern(JsonNode jsonNode,
-                              Boolean ignoreArrayOrder,
-                              Boolean ignoreExtraElements) {
-        super(Json.write(jsonNode));
-        expected = jsonNode;
-        this.ignoreArrayOrder = ignoreArrayOrder;
-        this.ignoreExtraElements = ignoreExtraElements;
-        this.serializeAsString = false;
+    if (shouldIgnoreExtraElements()) {
+      diffConfig =
+          diffConfig.withOptions(Option.IGNORING_EXTRA_ARRAY_ITEMS, Option.IGNORING_EXTRA_FIELDS);
     }
+
+    final JsonNode actual;
+    final Diff diff;
+    try {
+      actual = Json.read(value, JsonNode.class);
+      diff =
+          Diff.create(
+              expected, // JsonUnit knows how to work with JsonNode
+              actual,
+              "",
+              "",
+              diffConfig);
+    } catch (Exception e) {
+      return MatchResult.noMatch();
+    }
+
+    return new MatchResult() {
+      @Override
+      public boolean isExactMatch() {
+        return diff.similar();
+      }
+
+      @Override
+      public double getDistance() {
+        diff.similar();
+        double maxNodes = maxDeepSize(expected, actual);
+        return diffListener.count / maxNodes;
+      }
+    };
+  }
+
+  @JsonProperty("equalToJson")
+  public Object getSerializedEqualToJson() {
+    return serializeAsString ? getValue() : Json.read(getValue(), JsonNode.class);
+  }
+
+  public String getEqualToJson() {
+    return expectedValue;
+  }
+
+  private boolean shouldIgnoreArrayOrder() {
+    return ignoreArrayOrder != null && ignoreArrayOrder;
+  }
+
+  public Boolean isIgnoreArrayOrder() {
+    return ignoreArrayOrder;
+  }
+
+  private boolean shouldIgnoreExtraElements() {
+    return ignoreExtraElements != null && ignoreExtraElements;
+  }
+
+  public Boolean isIgnoreExtraElements() {
+    return ignoreExtraElements;
+  }
+
+  @Override
+  public String getExpected() {
+    return Json.prettyPrint(getValue());
+  }
+
+  private static class CountingDiffListener implements DifferenceListener {
+
+    public int count = 0;
 
     @Override
-    public MatchResult match(String value) {
-        final CountingDiffListener diffListener = new CountingDiffListener();
-        Configuration diffConfig = Configuration.empty()
-                .withDifferenceListener(diffListener);
-
-        if (shouldIgnoreArrayOrder()) {
-            diffConfig = diffConfig.withOptions(Option.IGNORING_ARRAY_ORDER);
-        }
-
-        if (shouldIgnoreExtraElements()) {
-            diffConfig = diffConfig.withOptions(Option.IGNORING_EXTRA_ARRAY_ITEMS, Option.IGNORING_EXTRA_FIELDS);
-        }
-
-        final JsonNode actual;
-        final Diff diff;
-        try {
-            actual = Json.read(value, JsonNode.class);
-            diff = Diff.create(
-                    expected, // JsonUnit knows how to work with JsonNode
-                    actual,
-                    "",
-                    "",
-                    diffConfig
-            );
-        } catch (Exception e) {
-            return MatchResult.noMatch();
-        }
-
-        return new MatchResult() {
-            @Override
-            public boolean isExactMatch() {
-                return diff.similar();
-            }
-
-            @Override
-            public double getDistance() {
-                diff.similar();
-                double maxNodes = maxDeepSize(expected, actual);
-                return diffListener.count / maxNodes;
-            }
-        };
+    public void diff(Difference difference, DifferenceContext context) {
+      final int delta = maxDeepSize(difference.getExpected(), difference.getActual());
+      count += delta == 0 ? 1 : Math.abs(delta);
     }
+  }
 
-    @JsonProperty("equalToJson")
-    public Object getSerializedEqualToJson() {
-        return serializeAsString ? getValue() : Json.read(getValue(), JsonNode.class);
-    }
+  public static int maxDeepSize(Object one, Object two) {
+    return Math.max(one != null ? deepSize(one) : 0, two != null ? deepSize(two) : 0);
+  }
 
-    public String getEqualToJson() {
-        return expectedValue;
-    }
-
-    private boolean shouldIgnoreArrayOrder() {
-        return ignoreArrayOrder != null && ignoreArrayOrder;
-    }
-
-    public Boolean isIgnoreArrayOrder() {
-        return ignoreArrayOrder;
-    }
-
-    private boolean shouldIgnoreExtraElements() {
-        return ignoreExtraElements != null && ignoreExtraElements;
-    }
-
-    public Boolean isIgnoreExtraElements() {
-        return ignoreExtraElements;
-    }
-
-    @Override
-    public String getExpected() {
-        return Json.prettyPrint(getValue());
-    }
-
-    private static class CountingDiffListener implements DifferenceListener {
-
-        public int count = 0;
-
-        @Override
-        public void diff(Difference difference, DifferenceContext context) {
-            final int delta = maxDeepSize(difference.getExpected(), difference.getActual());
-            count += delta == 0 ? 1 : Math.abs(delta);
-        }
-    }
-
-    public static int maxDeepSize(Object one, Object two) {
-        return Math.max(
-                one != null ? deepSize(one) : 0,
-                two != null ? deepSize(two) : 0
-        );
-    }
-
-    private static int deepSize(Object nodeObj) {
-        JsonNode jsonNode = Json.getObjectMapper().convertValue(nodeObj, JsonNode.class);
-        return Json.deepSize(jsonNode);
-    }
+  private static int deepSize(Object nodeObj) {
+    JsonNode jsonNode = Json.getObjectMapper().convertValue(nodeObj, JsonNode.class);
+    return Json.deepSize(jsonNode);
+  }
 }

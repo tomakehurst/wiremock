@@ -24,9 +24,9 @@ import com.github.tomakehurst.wiremock.verification.FindNearMissesResult;
 
 public class FindNearMissesForUnmatchedTask implements AdminTask {
 
-    @Override
-    public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
-        FindNearMissesResult nearMissesResult = admin.findNearMissesForUnmatchedRequests();
-        return ResponseDefinition.okForJson(nearMissesResult);
-    }
+  @Override
+  public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
+    FindNearMissesResult nearMissesResult = admin.findNearMissesForUnmatchedRequests();
+    return ResponseDefinition.okForJson(nearMissesResult);
+  }
 }

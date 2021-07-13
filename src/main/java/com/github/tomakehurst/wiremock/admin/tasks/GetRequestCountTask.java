@@ -15,6 +15,10 @@
  */
 package com.github.tomakehurst.wiremock.admin.tasks;
 
+import static com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder.responseDefinition;
+import static com.github.tomakehurst.wiremock.common.Json.write;
+import static java.net.HttpURLConnection.HTTP_OK;
+
 import com.github.tomakehurst.wiremock.admin.AdminTask;
 import com.github.tomakehurst.wiremock.admin.model.PathParams;
 import com.github.tomakehurst.wiremock.common.Json;
@@ -24,21 +28,17 @@ import com.github.tomakehurst.wiremock.http.ResponseDefinition;
 import com.github.tomakehurst.wiremock.matching.RequestPattern;
 import com.github.tomakehurst.wiremock.verification.VerificationResult;
 
-import static com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder.responseDefinition;
-import static com.github.tomakehurst.wiremock.common.Json.write;
-import static java.net.HttpURLConnection.HTTP_OK;
-
 public class GetRequestCountTask implements AdminTask {
 
-    @Override
-    public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
-        RequestPattern requestPattern = Json.read(request.getBodyAsString(), RequestPattern.class);
-        VerificationResult result = admin.countRequestsMatching(requestPattern);
+  @Override
+  public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
+    RequestPattern requestPattern = Json.read(request.getBodyAsString(), RequestPattern.class);
+    VerificationResult result = admin.countRequestsMatching(requestPattern);
 
-        return responseDefinition()
-                .withStatus(HTTP_OK)
-                .withBody(write(result))
-                .withHeader("Content-Type", "application/json")
-                .build();
-    }
+    return responseDefinition()
+        .withStatus(HTTP_OK)
+        .withBody(write(result))
+        .withHeader("Content-Type", "application/json")
+        .build();
+  }
 }

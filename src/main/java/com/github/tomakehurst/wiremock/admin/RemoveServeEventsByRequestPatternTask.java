@@ -25,10 +25,10 @@ import com.github.tomakehurst.wiremock.verification.FindServeEventsResult;
 
 public class RemoveServeEventsByRequestPatternTask implements AdminTask {
 
-    @Override
-    public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
-        RequestPattern requestPattern = Json.read(request.getBodyAsString(), RequestPattern.class);
-        FindServeEventsResult findServeEventsResult = admin.removeServeEventsMatching(requestPattern);
-        return ResponseDefinition.okForJson(findServeEventsResult);
-    }
+  @Override
+  public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
+    RequestPattern requestPattern = Json.read(request.getBodyAsString(), RequestPattern.class);
+    FindServeEventsResult findServeEventsResult = admin.removeServeEventsMatching(requestPattern);
+    return ResponseDefinition.okForJson(findServeEventsResult);
+  }
 }

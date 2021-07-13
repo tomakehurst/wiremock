@@ -30,20 +30,20 @@
  */
 package com.github.tomakehurst.wiremock.client;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+
 import com.github.tomakehurst.wiremock.core.Options;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-
 public class HttpAdminClientTest {
 
-    @Test
-    public void returnsOptionsWhenCallingGetOptions() {
-        Options options = new WireMockConfiguration().port(8080).bindAddress("localhost");
-        HttpAdminClient client = new HttpAdminClient("localhost", 8080);
-        assertThat(client.getOptions().portNumber(), is(8080));
-        assertThat(client.getOptions().bindAddress(), is("localhost"));
-    }
+  @Test
+  public void returnsOptionsWhenCallingGetOptions() {
+    Options options = new WireMockConfiguration().port(8080).bindAddress("localhost");
+    HttpAdminClient client = new HttpAdminClient("localhost", 8080);
+    assertThat(client.getOptions().portNumber(), is(8080));
+    assertThat(client.getOptions().bindAddress(), is("localhost"));
+  }
 }

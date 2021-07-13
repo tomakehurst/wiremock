@@ -15,38 +15,36 @@
  */
 package com.github.tomakehurst.wiremock.servlet;
 
+import java.io.IOException;
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
 public class ContentTypeSettingFilter implements Filter {
-    
-    private ServletContext context;
 
-    @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
-        context = filterConfig.getServletContext();
+  private ServletContext context;
+
+  @Override
+  public void init(FilterConfig filterConfig) throws ServletException {
+    context = filterConfig.getServletContext();
+  }
+
+  @Override
+  public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+      throws IOException, ServletException {
+
+    if (response instanceof HttpServletResponse) {
+      String filePath = ((HttpServletRequest) request).getRequestURI();
+      String contentType = context.getMimeType(filePath);
+      if (contentType == null) {
+        contentType = "application/json";
+      }
+      ((HttpServletResponse) response).setContentType(contentType);
     }
 
-    @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException,
-            ServletException {
-        
-        if (response instanceof HttpServletResponse) {
-            String filePath = ((HttpServletRequest) request).getRequestURI();
-            String contentType = context.getMimeType(filePath);
-            if (contentType == null) {
-                contentType = "application/json";
-            }
-            ((HttpServletResponse) response).setContentType(contentType);
-        }
-        
-        chain.doFilter(request, response);
-    }
+    chain.doFilter(request, response);
+  }
 
-    @Override
-    public void destroy() {
-    }
-
+  @Override
+  public void destroy() {}
 }

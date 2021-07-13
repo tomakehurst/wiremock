@@ -15,52 +15,52 @@
  */
 package com.github.tomakehurst.wiremock.servlet;
 
+import static com.google.common.base.MoreObjects.firstNonNull;
+
 import com.github.tomakehurst.wiremock.common.Notifier;
 import com.github.tomakehurst.wiremock.common.Slf4jNotifier;
 import com.github.tomakehurst.wiremock.core.WireMockApp;
 import com.github.tomakehurst.wiremock.http.AdminRequestHandler;
 import com.github.tomakehurst.wiremock.http.StubRequestHandler;
 import com.google.common.base.Optional;
-
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
-
 public class WireMockWebContextListener implements ServletContextListener {
 
-    private static final String APP_CONTEXT_KEY = "WireMockApp";
+  private static final String APP_CONTEXT_KEY = "WireMockApp";
 
-    @Override
-    public void contextInitialized(ServletContextEvent sce) {
-        ServletContext context = sce.getServletContext();
+  @Override
+  public void contextInitialized(ServletContextEvent sce) {
+    ServletContext context = sce.getServletContext();
 
-        boolean verboseLoggingEnabled = Boolean.parseBoolean(
+    boolean verboseLoggingEnabled =
+        Boolean.parseBoolean(
             firstNonNull(context.getInitParameter("verboseLoggingEnabled"), "true"));
 
-        WireMockApp wireMockApp = new WireMockApp(new WarConfiguration(context), new NotImplementedContainer());
+    WireMockApp wireMockApp =
+        new WireMockApp(new WarConfiguration(context), new NotImplementedContainer());
 
-        context.setAttribute(APP_CONTEXT_KEY, wireMockApp);
-        context.setAttribute(StubRequestHandler.class.getName(), wireMockApp.buildStubRequestHandler());
-        context.setAttribute(AdminRequestHandler.class.getName(), wireMockApp.buildAdminRequestHandler());
-        context.setAttribute(Notifier.KEY, new Slf4jNotifier(verboseLoggingEnabled));
+    context.setAttribute(APP_CONTEXT_KEY, wireMockApp);
+    context.setAttribute(StubRequestHandler.class.getName(), wireMockApp.buildStubRequestHandler());
+    context.setAttribute(
+        AdminRequestHandler.class.getName(), wireMockApp.buildAdminRequestHandler());
+    context.setAttribute(Notifier.KEY, new Slf4jNotifier(verboseLoggingEnabled));
+  }
+
+  /**
+   * @param context Servlet context for parameter reading
+   * @return Maximum number of entries or absent
+   */
+  private Optional<Integer> readMaxRequestJournalEntries(ServletContext context) {
+    String str = context.getInitParameter("maxRequestJournalEntries");
+    if (str == null) {
+      return Optional.absent();
     }
+    return Optional.of(Integer.parseInt(str));
+  }
 
-    /**
-     * @param context Servlet context for parameter reading
-     * @return Maximum number of entries or absent
-     */
-    private Optional<Integer> readMaxRequestJournalEntries(ServletContext context) {
-        String str = context.getInitParameter("maxRequestJournalEntries");
-        if(str == null) {
-            return Optional.absent();
-        }
-        return Optional.of(Integer.parseInt(str));
-    }
-
-    @Override
-    public void contextDestroyed(ServletContextEvent sce) {
-    }
-
+  @Override
+  public void contextDestroyed(ServletContextEvent sce) {}
 }

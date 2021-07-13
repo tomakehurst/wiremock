@@ -21,19 +21,18 @@ import com.github.tomakehurst.wiremock.admin.model.SingleStubMappingResult;
 import com.github.tomakehurst.wiremock.core.Admin;
 import com.github.tomakehurst.wiremock.http.Request;
 import com.github.tomakehurst.wiremock.http.ResponseDefinition;
-
 import java.util.UUID;
 
 public class GetStubMappingTask implements AdminTask {
 
-    @Override
-    public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
-        String idString = pathParams.get("id");
-        UUID id = UUID.fromString(idString);
+  @Override
+  public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
+    String idString = pathParams.get("id");
+    UUID id = UUID.fromString(idString);
 
-        SingleStubMappingResult stubMappingResult = admin.getStubMapping(id);
-        return stubMappingResult.isPresent() ?
-            ResponseDefinition.okForJson(stubMappingResult.getItem()) :
-            ResponseDefinition.notFound();
-    }
+    SingleStubMappingResult stubMappingResult = admin.getStubMapping(id);
+    return stubMappingResult.isPresent()
+        ? ResponseDefinition.okForJson(stubMappingResult.getItem())
+        : ResponseDefinition.notFound();
+  }
 }

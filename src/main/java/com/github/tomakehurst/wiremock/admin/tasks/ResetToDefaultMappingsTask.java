@@ -23,9 +23,9 @@ import com.github.tomakehurst.wiremock.http.ResponseDefinition;
 
 public class ResetToDefaultMappingsTask implements AdminTask {
 
-    @Override
-    public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
-        admin.resetToDefaultMappings();
-        return ResponseDefinition.ok();
-    }
+  @Override
+  public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
+    admin.resetToDefaultMappings();
+    return ResponseDefinition.ok();
+  }
 }

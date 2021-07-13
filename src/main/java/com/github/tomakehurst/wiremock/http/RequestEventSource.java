@@ -17,5 +17,5 @@ package com.github.tomakehurst.wiremock.http;
 
 public interface RequestEventSource {
 
-    void addRequestListener(RequestListener requestListener);
+  void addRequestListener(RequestListener requestListener);
 }

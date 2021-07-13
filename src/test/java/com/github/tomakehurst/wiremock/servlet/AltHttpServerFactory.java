@@ -15,6 +15,9 @@
  */
 package com.github.tomakehurst.wiremock.servlet;
 
+import static com.github.tomakehurst.wiremock.common.Exceptions.throwUnchecked;
+import static com.github.tomakehurst.wiremock.core.WireMockApp.ADMIN_CONTEXT_ROOT;
+
 import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
 import com.github.tomakehurst.wiremock.common.FileSource;
 import com.github.tomakehurst.wiremock.common.Notifier;
@@ -27,97 +30,91 @@ import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 
-import static com.github.tomakehurst.wiremock.common.Exceptions.throwUnchecked;
-import static com.github.tomakehurst.wiremock.core.WireMockApp.ADMIN_CONTEXT_ROOT;
-
 public class AltHttpServerFactory implements HttpServerFactory {
 
-    @Override
-    public HttpServer buildHttpServer(Options options, AdminRequestHandler adminRequestHandler, StubRequestHandler stubRequestHandler) {
+  @Override
+  public HttpServer buildHttpServer(
+      Options options,
+      AdminRequestHandler adminRequestHandler,
+      StubRequestHandler stubRequestHandler) {
 
-        final Server jettyServer = new Server(0);
-        ConsoleNotifier notifier = new ConsoleNotifier(false);
-        ServletContextHandler adminContext = addAdminContext(
-            jettyServer,
-            adminRequestHandler,
-            notifier
-        );
-        ServletContextHandler mockServiceContext = addMockServiceContext(
-            jettyServer,
-            stubRequestHandler,
-            options.filesRoot(),
-            notifier
-        );
+    final Server jettyServer = new Server(0);
+    ConsoleNotifier notifier = new ConsoleNotifier(false);
+    ServletContextHandler adminContext =
+        addAdminContext(jettyServer, adminRequestHandler, notifier);
+    ServletContextHandler mockServiceContext =
+        addMockServiceContext(jettyServer, stubRequestHandler, options.filesRoot(), notifier);
 
-        HandlerCollection handlers = new HandlerCollection();
-        handlers.setHandlers(new Handler[]{adminContext, mockServiceContext});
-        jettyServer.setHandler(handlers);
+    HandlerCollection handlers = new HandlerCollection();
+    handlers.setHandlers(new Handler[] {adminContext, mockServiceContext});
+    jettyServer.setHandler(handlers);
 
-        return new HttpServer() {
+    return new HttpServer() {
 
-            @Override
-            public void start() {
-                try {
-                    jettyServer.start();
-                } catch (Exception e) {
-                    throwUnchecked(e);
-                }
-            }
+      @Override
+      public void start() {
+        try {
+          jettyServer.start();
+        } catch (Exception e) {
+          throwUnchecked(e);
+        }
+      }
 
-            @Override
-            public void stop() {
-                try {
-                    jettyServer.stop();
-                } catch (Exception e) {
-                throwUnchecked(e);
-            }
-            }
+      @Override
+      public void stop() {
+        try {
+          jettyServer.stop();
+        } catch (Exception e) {
+          throwUnchecked(e);
+        }
+      }
 
-            @Override
-            public boolean isRunning() {
-                return jettyServer.isRunning();
-            }
+      @Override
+      public boolean isRunning() {
+        return jettyServer.isRunning();
+      }
 
-            @Override
-            public int port() {
-                return ((ServerConnector) jettyServer.getConnectors()[0]).getLocalPort();
-            }
+      @Override
+      public int port() {
+        return ((ServerConnector) jettyServer.getConnectors()[0]).getLocalPort();
+      }
 
-            @Override
-            public int httpsPort() {
-                return 0;
-            }
-        };
-    }
+      @Override
+      public int httpsPort() {
+        return 0;
+      }
+    };
+  }
 
-    @SuppressWarnings({"rawtypes", "unchecked" })
-    private ServletContextHandler addMockServiceContext(
-        Server jettyServer,
-        StubRequestHandler stubRequestHandler,
-        FileSource fileSource,
-        Notifier notifier
-    ) {
-        ServletContextHandler mockServiceContext = new ServletContextHandler(jettyServer, "/");
+  @SuppressWarnings({"rawtypes", "unchecked"})
+  private ServletContextHandler addMockServiceContext(
+      Server jettyServer,
+      StubRequestHandler stubRequestHandler,
+      FileSource fileSource,
+      Notifier notifier) {
+    ServletContextHandler mockServiceContext = new ServletContextHandler(jettyServer, "/");
 
-        mockServiceContext.setAttribute(StubRequestHandler.class.getName(), stubRequestHandler);
-        mockServiceContext.setAttribute(Notifier.KEY, notifier);
-        ServletHolder servletHolder = mockServiceContext.addServlet(WireMockHandlerDispatchingServlet.class, "/");
-        servletHolder.setInitParameter(RequestHandler.HANDLER_CLASS_KEY, StubRequestHandler.class.getName());
-        servletHolder.setInitParameter(WireMockHandlerDispatchingServlet.SHOULD_FORWARD_TO_FILES_CONTEXT, "false");
+    mockServiceContext.setAttribute(StubRequestHandler.class.getName(), stubRequestHandler);
+    mockServiceContext.setAttribute(Notifier.KEY, notifier);
+    ServletHolder servletHolder =
+        mockServiceContext.addServlet(WireMockHandlerDispatchingServlet.class, "/");
+    servletHolder.setInitParameter(
+        RequestHandler.HANDLER_CLASS_KEY, StubRequestHandler.class.getName());
+    servletHolder.setInitParameter(
+        WireMockHandlerDispatchingServlet.SHOULD_FORWARD_TO_FILES_CONTEXT, "false");
 
-        return mockServiceContext;
-    }
+    return mockServiceContext;
+  }
 
-    private ServletContextHandler addAdminContext(
-        Server jettyServer,
-        AdminRequestHandler adminRequestHandler,
-        Notifier notifier
-    ) {
-        ServletContextHandler adminContext = new ServletContextHandler(jettyServer, ADMIN_CONTEXT_ROOT);
-        ServletHolder servletHolder = adminContext.addServlet(WireMockHandlerDispatchingServlet.class, "/");
-        servletHolder.setInitParameter(RequestHandler.HANDLER_CLASS_KEY, AdminRequestHandler.class.getName());
-        adminContext.setAttribute(AdminRequestHandler.class.getName(), adminRequestHandler);
-        adminContext.setAttribute(Notifier.KEY, notifier);
-        return adminContext;
-    }
+  private ServletContextHandler addAdminContext(
+      Server jettyServer, AdminRequestHandler adminRequestHandler, Notifier notifier) {
+    ServletContextHandler adminContext = new ServletContextHandler(jettyServer, ADMIN_CONTEXT_ROOT);
+    ServletHolder servletHolder =
+        adminContext.addServlet(WireMockHandlerDispatchingServlet.class, "/");
+    servletHolder.setInitParameter(
+        RequestHandler.HANDLER_CLASS_KEY, AdminRequestHandler.class.getName());
+    adminContext.setAttribute(AdminRequestHandler.class.getName(), adminRequestHandler);
+    adminContext.setAttribute(Notifier.KEY, notifier);
+    return adminContext;
+  }
 }

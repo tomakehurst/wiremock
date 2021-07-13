@@ -15,51 +15,46 @@
  */
 package com.github.tomakehurst.wiremock.extension.responsetemplating.helpers;
 
+import static com.github.tomakehurst.wiremock.common.DateTimeParser.ZONED_PARSERS;
+import static java.util.Collections.singletonList;
+
 import com.github.jknack.handlebars.Options;
 import com.github.tomakehurst.wiremock.common.DateTimeParser;
-
 import java.io.IOException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.Date;
 import java.util.List;
 
-import static com.github.tomakehurst.wiremock.common.DateTimeParser.ZONED_PARSERS;
-import static java.util.Collections.singletonList;
-
 public class ParseDateHelper extends HandlebarsHelper<String> {
 
-    @Override
-    public Object apply(String dateTimeString, Options options) throws IOException {
-        String format = options.hash("format", null);
+  @Override
+  public Object apply(String dateTimeString, Options options) throws IOException {
+    String format = options.hash("format", null);
 
-        return format == null ?
-            parseOrNull(dateTimeString) :
-            parseOrNull(dateTimeString, DateTimeParser.forFormat(format));
+    return format == null
+        ? parseOrNull(dateTimeString)
+        : parseOrNull(dateTimeString, DateTimeParser.forFormat(format));
+  }
+
+  private static Date parseOrNull(String dateTimeString) {
+    return parseOrNull(dateTimeString, (DateTimeParser) null);
+  }
+
+  private static Date parseOrNull(String dateTimeString, DateTimeParser parser) {
+    final List<DateTimeParser> parsers = parser != null ? singletonList(parser) : ZONED_PARSERS;
+    return parseOrNull(dateTimeString, parsers);
+  }
+
+  private static Date parseOrNull(String dateTimeString, List<DateTimeParser> parsers) {
+    if (parsers.isEmpty()) {
+      return null;
     }
 
-    private static Date parseOrNull(String dateTimeString) {
-        return parseOrNull(dateTimeString, (DateTimeParser) null);
+    try {
+      final DateTimeParser headParser = parsers.get(0);
+      return headParser.parseDate(dateTimeString);
+    } catch (DateTimeParseException e) {
+      return parseOrNull(dateTimeString, parsers.subList(1, parsers.size()));
     }
-
-    private static Date parseOrNull(String dateTimeString, DateTimeParser parser) {
-        final List<DateTimeParser> parsers = parser != null ? singletonList(parser) : ZONED_PARSERS;
-        return parseOrNull(dateTimeString, parsers);
-    }
-
-    private static Date parseOrNull(String dateTimeString, List<DateTimeParser> parsers) {
-        if (parsers.isEmpty()) {
-            return null;
-        }
-
-        try {
-            final DateTimeParser headParser = parsers.get(0);
-            return headParser.parseDate(dateTimeString);
-        } catch (DateTimeParseException e) {
-            return parseOrNull(dateTimeString, parsers.subList(1, parsers.size()));
-        }
-    }
-
-
+  }
 }

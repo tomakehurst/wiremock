@@ -15,60 +15,58 @@
  */
 package com.github.tomakehurst.wiremock.common;
 
-import org.apache.commons.lang3.text.WordUtils;
-
-import java.nio.charset.Charset;
-
 import static com.google.common.base.Charsets.UTF_8;
 
+import java.nio.charset.Charset;
+import org.apache.commons.lang3.text.WordUtils;
+
 public class Strings {
-    public static final Charset DEFAULT_CHARSET = UTF_8;
+  public static final Charset DEFAULT_CHARSET = UTF_8;
 
-    public static String stringFromBytes(byte[] bytes) {
-        return stringFromBytes(bytes, DEFAULT_CHARSET);
+  public static String stringFromBytes(byte[] bytes) {
+    return stringFromBytes(bytes, DEFAULT_CHARSET);
+  }
+
+  public static String stringFromBytes(byte[] bytes, Charset charset) {
+    if (bytes == null) {
+      return null;
     }
 
-    public static String stringFromBytes(byte[] bytes, Charset charset) {
-        if (bytes == null) {
-            return null;
-        }
+    return new String(bytes, charset);
+  }
 
-        return new String(bytes, charset);
+  public static byte[] bytesFromString(String str) {
+    return bytesFromString(str, DEFAULT_CHARSET);
+  }
+
+  public static byte[] bytesFromString(String str, Charset charset) {
+    if (str == null) {
+      return null;
     }
 
-    public static byte[] bytesFromString(String str) {
-        return bytesFromString(str, DEFAULT_CHARSET);
+    return str.getBytes(charset);
+  }
+
+  public static String wrapIfLongestLineExceedsLimit(String s, int maxLineLength) {
+    int longestLength = findLongestLineLength(s);
+    if (longestLength > maxLineLength) {
+      String wrapped = WordUtils.wrap(s, maxLineLength, null, true);
+      return wrapped.replaceAll("(?m)^[ \t]*\r?\n", "");
     }
 
-    public static byte[] bytesFromString(String str, Charset charset) {
-        if (str == null) {
-            return null;
-        }
+    return s;
+  }
 
-        return str.getBytes(charset);
+  private static int findLongestLineLength(String s) {
+    String[] lines = s.split("\n");
+    int longestLength = 0;
+    for (String line : lines) {
+      int length = line.length();
+      if (length > longestLength) {
+        longestLength = length;
+      }
     }
 
-    public static String wrapIfLongestLineExceedsLimit(String s, int maxLineLength) {
-        int longestLength = findLongestLineLength(s);
-        if (longestLength > maxLineLength) {
-            String wrapped = WordUtils.wrap(s, maxLineLength, null, true);
-            return wrapped.replaceAll("(?m)^[ \t]*\r?\n", "");
-        }
-
-        return s;
-    }
-
-    private static int findLongestLineLength(String s) {
-        String[] lines = s.split("\n");
-        int longestLength = 0;
-        for (String line: lines) {
-            int length = line.length();
-            if (length > longestLength) {
-                longestLength = length;
-            }
-        }
-
-        return longestLength;
-    }
-
+    return longestLength;
+  }
 }

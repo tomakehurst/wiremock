@@ -22,42 +22,43 @@ import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 
 public class SnapshotStubMappingBodyExtractor {
-    private final FileSource fileSource;
+  private final FileSource fileSource;
 
-    public SnapshotStubMappingBodyExtractor(FileSource fileSource) {
-        this.fileSource = fileSource;
-    }
+  public SnapshotStubMappingBodyExtractor(FileSource fileSource) {
+    this.fileSource = fileSource;
+  }
 
-    /**
-     * Extracts body of the ResponseDefinition to a file written to the files source.
-     * Modifies the ResponseDefinition to point to the file in-place.
-     *
-     * @param stubMapping Stub mapping to extract
-     */
-    public void extractInPlace(StubMapping stubMapping) {
-        byte[] body = stubMapping.getResponse().getByteBody();
-        HttpHeaders responseHeaders = stubMapping.getResponse().getHeaders();
-        String extension = ContentTypes.determineFileExtension(
+  /**
+   * Extracts body of the ResponseDefinition to a file written to the files source. Modifies the
+   * ResponseDefinition to point to the file in-place.
+   *
+   * @param stubMapping Stub mapping to extract
+   */
+  public void extractInPlace(StubMapping stubMapping) {
+    byte[] body = stubMapping.getResponse().getByteBody();
+    HttpHeaders responseHeaders = stubMapping.getResponse().getHeaders();
+    String extension =
+        ContentTypes.determineFileExtension(
             stubMapping.getRequest().getUrl(),
-            responseHeaders != null ? responseHeaders.getContentTypeHeader() : ContentTypeHeader.absent(),
+            responseHeaders != null
+                ? responseHeaders.getContentTypeHeader()
+                : ContentTypeHeader.absent(),
             body);
 
-        String bodyFileName = SafeNames.makeSafeFileName(stubMapping, extension);
+    String bodyFileName = SafeNames.makeSafeFileName(stubMapping, extension);
 
-         // used to prevent ambiguous method call error for withBody()
-        String noStringBody = null;
-        byte[] noByteBody = null;
+    // used to prevent ambiguous method call error for withBody()
+    String noStringBody = null;
+    byte[] noByteBody = null;
 
-        stubMapping.setResponse(
-            ResponseDefinitionBuilder
-                .like(stubMapping.getResponse())
-                .withBodyFile(bodyFileName)
-                .withBody(noStringBody)
-                .withBody(noByteBody)
-                .withBase64Body(null)
-                .build()
-        );
+    stubMapping.setResponse(
+        ResponseDefinitionBuilder.like(stubMapping.getResponse())
+            .withBodyFile(bodyFileName)
+            .withBody(noStringBody)
+            .withBody(noByteBody)
+            .withBase64Body(null)
+            .build());
 
-        fileSource.writeBinaryFile(bodyFileName, body);
-    }
+    fileSource.writeBinaryFile(bodyFileName, body);
+  }
 }

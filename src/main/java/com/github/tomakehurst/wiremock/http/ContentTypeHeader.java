@@ -18,52 +18,49 @@ package com.github.tomakehurst.wiremock.http;
 import com.github.tomakehurst.wiremock.common.Strings;
 import com.google.common.base.Optional;
 import java.nio.charset.Charset;
-import static com.google.common.base.Charsets.UTF_8;
-
-import java.nio.charset.Charset;
 
 public class ContentTypeHeader extends HttpHeader {
 
-	public static final String KEY = "Content-Type";
-	
-	private String[] parts;
+  public static final String KEY = "Content-Type";
 
-	public ContentTypeHeader(String stringValue) {
-        super(KEY, stringValue);
-		parts = stringValue != null ? stringValue.split(";") : new String[0];
-	}
+  private String[] parts;
 
-    private ContentTypeHeader() {
-        super(KEY);
+  public ContentTypeHeader(String stringValue) {
+    super(KEY, stringValue);
+    parts = stringValue != null ? stringValue.split(";") : new String[0];
+  }
+
+  private ContentTypeHeader() {
+    super(KEY);
+  }
+
+  public static ContentTypeHeader absent() {
+    return new ContentTypeHeader();
+  }
+
+  public ContentTypeHeader or(String stringValue) {
+    return isPresent() ? this : new ContentTypeHeader(stringValue);
+  }
+
+  public String mimeTypePart() {
+    return parts != null ? parts[0] : null;
+  }
+
+  public Optional<String> encodingPart() {
+    for (int i = 1; i < parts.length; i++) {
+      if (parts[i].matches("\\s*charset\\s*=.*")) {
+        return Optional.of(parts[i].split("=")[1].replace("\"", ""));
+      }
     }
 
-    public static ContentTypeHeader absent() {
-        return new ContentTypeHeader();
+    return Optional.absent();
+  }
+
+  public Charset charset() {
+    if (isPresent() && encodingPart().isPresent()) {
+      return Charset.forName(encodingPart().get());
     }
 
-    public ContentTypeHeader or(String stringValue) {
-        return isPresent() ? this : new ContentTypeHeader(stringValue);
-    }
-
-	public String mimeTypePart() {
-		return parts != null ? parts[0] : null;
-	}
-	
-	public Optional<String> encodingPart() {
-		for (int i = 1; i < parts.length; i++) {
-			if (parts[i].matches("\\s*charset\\s*=.*") ) {
-				return Optional.of(parts[i].split("=")[1].replace("\"", ""));
-			}
-		}
-
-		return Optional.absent();
-	}
-
-	public Charset charset() {
-		if (isPresent() && encodingPart().isPresent()) {
-			return Charset.forName(encodingPart().get());
-		}
-
-		return Strings.DEFAULT_CHARSET;
-	}
+    return Strings.DEFAULT_CHARSET;
+  }
 }

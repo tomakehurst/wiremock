@@ -15,6 +15,11 @@
  */
 package com.github.tomakehurst.wiremock.recording;
 
+import static com.github.tomakehurst.wiremock.matching.RequestPatternBuilder.newRequestPattern;
+import static com.github.tomakehurst.wiremock.testsupport.MockRequestBuilder.aRequest;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+
 import com.github.tomakehurst.wiremock.common.Timing;
 import com.github.tomakehurst.wiremock.http.LoggedResponse;
 import com.github.tomakehurst.wiremock.http.Request;
@@ -27,55 +32,52 @@ import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import org.jmock.Mockery;
 import org.junit.Test;
 
-import static com.github.tomakehurst.wiremock.matching.RequestPatternBuilder.newRequestPattern;
-import static com.github.tomakehurst.wiremock.testsupport.MockRequestBuilder.aRequest;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-
 public class SnapshotStubMappingGeneratorTest {
-    @Test
-    public void apply() {
-        final RequestPatternBuilder requestPatternBuilder = newRequestPattern().withUrl("/foo");
-        final ResponseDefinition responseDefinition = ResponseDefinition.ok();
+  @Test
+  public void apply() {
+    final RequestPatternBuilder requestPatternBuilder = newRequestPattern().withUrl("/foo");
+    final ResponseDefinition responseDefinition = ResponseDefinition.ok();
 
-        SnapshotStubMappingGenerator stubMappingTransformer = new SnapshotStubMappingGenerator(
+    SnapshotStubMappingGenerator stubMappingTransformer =
+        new SnapshotStubMappingGenerator(
             requestPatternTransformer(requestPatternBuilder),
-            responseDefinitionTransformer(responseDefinition)
-        );
+            responseDefinitionTransformer(responseDefinition));
 
-        StubMapping actual = stubMappingTransformer.apply(serveEvent());
-        StubMapping expected = new StubMapping(requestPatternBuilder.build(), responseDefinition);
-        expected.setId(actual.getId());
+    StubMapping actual = stubMappingTransformer.apply(serveEvent());
+    StubMapping expected = new StubMapping(requestPatternBuilder.build(), responseDefinition);
+    expected.setId(actual.getId());
 
-        assertThat(actual, is(expected));
-    }
+    assertThat(actual, is(expected));
+  }
 
-    private static RequestPatternTransformer requestPatternTransformer(final RequestPatternBuilder requestPatternBuilder) {
-        return new RequestPatternTransformer(null, null) {
-            @Override
-            public RequestPatternBuilder apply(Request request) {
-                return requestPatternBuilder;
-            }
-        };
-    }
+  private static RequestPatternTransformer requestPatternTransformer(
+      final RequestPatternBuilder requestPatternBuilder) {
+    return new RequestPatternTransformer(null, null) {
+      @Override
+      public RequestPatternBuilder apply(Request request) {
+        return requestPatternBuilder;
+      }
+    };
+  }
 
-    private static LoggedResponseDefinitionTransformer responseDefinitionTransformer(final ResponseDefinition responseDefinition) {
-        return new LoggedResponseDefinitionTransformer() {
-            @Override
-            public ResponseDefinition apply(LoggedResponse response) {
-                return responseDefinition;
-            }
-        };
-    }
+  private static LoggedResponseDefinitionTransformer responseDefinitionTransformer(
+      final ResponseDefinition responseDefinition) {
+    return new LoggedResponseDefinitionTransformer() {
+      @Override
+      public ResponseDefinition apply(LoggedResponse response) {
+        return responseDefinition;
+      }
+    };
+  }
 
-    private static ServeEvent serveEvent() {
-        return new ServeEvent(
-            null,
-            LoggedRequest.createFrom(aRequest(new Mockery()).build()),
-            null,
-            null,
-            LoggedResponse.from(Response.notConfigured()),
-            false,
-            Timing.UNTIMED);
-    }
+  private static ServeEvent serveEvent() {
+    return new ServeEvent(
+        null,
+        LoggedRequest.createFrom(aRequest(new Mockery()).build()),
+        null,
+        null,
+        LoggedResponse.from(Response.notConfigured()),
+        false,
+        Timing.UNTIMED);
+  }
 }

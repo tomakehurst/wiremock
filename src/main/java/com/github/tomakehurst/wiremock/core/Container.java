@@ -15,15 +15,11 @@
  */
 package com.github.tomakehurst.wiremock.core;
 
-/**
- * A container of a WireMockApp instance
- */
+/** A container of a WireMockApp instance */
 public interface Container {
 
-    int port();
+  int port();
 
-    /**
-     * Shuts down the container, stopping execution of WireMock, gracefully if possible.
-     */
-    void shutdown();
+  /** Shuts down the container, stopping execution of WireMock, gracefully if possible. */
+  void shutdown();
 }

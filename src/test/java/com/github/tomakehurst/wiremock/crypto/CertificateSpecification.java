@@ -22,5 +22,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 public interface CertificateSpecification {
-    X509Certificate certificateFor(KeyPair keyPair) throws CertificateException, InvalidKeyException, SignatureException;
+  X509Certificate certificateFor(KeyPair keyPair)
+      throws CertificateException, InvalidKeyException, SignatureException;
 }

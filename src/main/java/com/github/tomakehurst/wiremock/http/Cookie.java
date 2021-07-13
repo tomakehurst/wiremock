@@ -15,66 +15,65 @@
  */
 package com.github.tomakehurst.wiremock.http;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.github.tomakehurst.wiremock.common.ListOrSingle;
 import com.google.common.base.Joiner;
-
 import java.util.Collections;
 import java.util.List;
 
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
-
 public class Cookie extends MultiValue {
 
-    @JsonCreator
-    public static Cookie cookie(ListOrSingle<String> values) {
-        return new Cookie(null, values);
-    }
+  @JsonCreator
+  public static Cookie cookie(ListOrSingle<String> values) {
+    return new Cookie(null, values);
+  }
 
-    public static Cookie cookie(String value) {
-        return new Cookie(null, value);
-    }
+  public static Cookie cookie(String value) {
+    return new Cookie(null, value);
+  }
 
-    public static Cookie absent() {
-        return new Cookie(null, Collections.<String>emptyList());
-    }
+  public static Cookie absent() {
+    return new Cookie(null, Collections.<String>emptyList());
+  }
 
-    public Cookie(String value) {
-        super(null, singletonList(value));
-    }
+  public Cookie(String value) {
+    super(null, singletonList(value));
+  }
 
-    public Cookie(List<String> values) {
-        this(null, values);
-    }
+  public Cookie(List<String> values) {
+    this(null, values);
+  }
 
-    public Cookie(String name, String... value) {
-        super(name, asList(value));
-    }
+  public Cookie(String name, String... value) {
+    super(name, asList(value));
+  }
 
-    public Cookie(String name, List<String> values) {
-        super(name, values);
-    }
+  public Cookie(String name, List<String> values) {
+    super(name, values);
+  }
 
-    @JsonIgnore
-    public boolean isAbsent() {
-        return !isPresent();
-    }
+  @JsonIgnore
+  public boolean isAbsent() {
+    return !isPresent();
+  }
 
-    @JsonValue
-    public ListOrSingle<String> getValues() {
-        return new ListOrSingle<>(isPresent() ? values() : Collections.<String>emptyList());
-    }
+  @JsonValue
+  public ListOrSingle<String> getValues() {
+    return new ListOrSingle<>(isPresent() ? values() : Collections.<String>emptyList());
+  }
 
-    @JsonIgnore
-    public String getValue() {
-        return firstValue();
-    }
+  @JsonIgnore
+  public String getValue() {
+    return firstValue();
+  }
 
-    @Override
-    public String toString() {
-        return isAbsent() ? "(absent)" : Joiner.on("; ").join(getValues());
-    }
+  @Override
+  public String toString() {
+    return isAbsent() ? "(absent)" : Joiner.on("; ").join(getValues());
+  }
 }

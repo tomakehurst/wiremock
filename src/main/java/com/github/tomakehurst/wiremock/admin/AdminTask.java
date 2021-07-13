@@ -21,5 +21,5 @@ import com.github.tomakehurst.wiremock.http.Request;
 import com.github.tomakehurst.wiremock.http.ResponseDefinition;
 
 public interface AdminTask {
-    ResponseDefinition execute(Admin admin, Request request, PathParams pathParams);
+  ResponseDefinition execute(Admin admin, Request request, PathParams pathParams);
 }

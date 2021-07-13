@@ -19,16 +19,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ContainsPattern extends StringValuePattern {
 
-    public ContainsPattern(@JsonProperty("contains") String expectedValue) {
-        super(expectedValue);
-    }
+  public ContainsPattern(@JsonProperty("contains") String expectedValue) {
+    super(expectedValue);
+  }
 
-    public String getContains() {
-        return expectedValue;
-    }
+  public String getContains() {
+    return expectedValue;
+  }
 
-    @Override
-    public MatchResult match(String value) {
-        return MatchResult.of(value != null && value.contains(expectedValue));
-    }
+  @Override
+  public MatchResult match(String value) {
+    return MatchResult.of(value != null && value.contains(expectedValue));
+  }
 }

@@ -16,48 +16,65 @@
 package com.github.tomakehurst.wiremock.http;
 
 import com.google.common.base.Optional;
-
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
 public interface Request {
 
-    interface Part {
-        String getName();
-        HttpHeader getHeader(String name);
-        HttpHeaders getHeaders();
-        Body getBody();
-    }
+  interface Part {
+    String getName();
 
-    String getUrl();
-    String getAbsoluteUrl();
-    RequestMethod getMethod();
-    String getScheme();
-    String getHost();
-    int getPort();
-    String getClientIp();
+    HttpHeader getHeader(String name);
 
-    String getHeader(String key);
-    HttpHeader header(String key);
-    ContentTypeHeader contentTypeHeader();
     HttpHeaders getHeaders();
-    boolean containsHeader(String key);
-    Set<String> getAllHeaderKeys();
 
-    Map<String, Cookie> getCookies();
+    Body getBody();
+  }
 
-    QueryParameter queryParameter(String key);
+  String getUrl();
 
-    byte[] getBody();
-    String getBodyAsString();
-    String getBodyAsBase64();
+  String getAbsoluteUrl();
 
-    boolean isMultipart();
-    Collection<Part> getParts();
-    Part getPart(String name);
+  RequestMethod getMethod();
 
-    boolean isBrowserProxyRequest();
+  String getScheme();
 
-    Optional<Request> getOriginalRequest();
+  String getHost();
+
+  int getPort();
+
+  String getClientIp();
+
+  String getHeader(String key);
+
+  HttpHeader header(String key);
+
+  ContentTypeHeader contentTypeHeader();
+
+  HttpHeaders getHeaders();
+
+  boolean containsHeader(String key);
+
+  Set<String> getAllHeaderKeys();
+
+  Map<String, Cookie> getCookies();
+
+  QueryParameter queryParameter(String key);
+
+  byte[] getBody();
+
+  String getBodyAsString();
+
+  String getBodyAsBase64();
+
+  boolean isMultipart();
+
+  Collection<Part> getParts();
+
+  Part getPart(String name);
+
+  boolean isBrowserProxyRequest();
+
+  Optional<Request> getOriginalRequest();
 }

@@ -1,5 +1,5 @@
 plugins {
-    id "com.github.lkishalmi.gatling" version "0.7.1"
+  id "com.github.lkishalmi.gatling" version "0.7.1"
 }
 
 apply plugin: 'idea'
@@ -7,22 +7,22 @@ apply plugin: 'java'
 apply plugin: 'scala'
 
 repositories {
-    mavenLocal()
-    mavenCentral()
-    jcenter()
+  mavenLocal()
+  mavenCentral()
+  jcenter()
 }
 
 dependencies {
-    compile 'org.scala-lang:scala-library:2.11.8'
-    compile 'io.gatling.highcharts:gatling-charts-highcharts:2.3.0'
-    compile 'com.github.tomakehurst:wiremock:2.17.0'
-    gatlingCompile 'com.github.tomakehurst:wiremock:2.17.0'
+  compile 'org.scala-lang:scala-library:2.11.8'
+  compile 'io.gatling.highcharts:gatling-charts-highcharts:2.3.0'
+  compile 'com.github.tomakehurst:wiremock:2.17.0'
+  gatlingCompile 'com.github.tomakehurst:wiremock:2.17.0'
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.5.1'
+  gradleVersion = '4.5.1'
 }
 
 gatling {
-    simulations { include "**/*Simulation.scala" }
+  simulations { include "**/*Simulation.scala" }
 }

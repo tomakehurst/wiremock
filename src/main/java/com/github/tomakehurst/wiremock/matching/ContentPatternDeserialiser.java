@@ -17,56 +17,46 @@ package com.github.tomakehurst.wiremock.matching;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.deser.std.JsonNodeDeserializer;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.github.tomakehurst.wiremock.common.Json;
-import com.github.tomakehurst.wiremock.common.Pair;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.util.List;
 import java.util.Map;
-
-import static com.github.tomakehurst.wiremock.common.Exceptions.throwUnchecked;
-import static com.github.tomakehurst.wiremock.common.Pair.pair;
 
 public class ContentPatternDeserialiser extends JsonDeserializer<ContentPattern<?>> {
 
-    @Override
-    public ContentPattern<?> deserialize(JsonParser parser, DeserializationContext context) throws IOException, JsonProcessingException {
-        JsonNode rootNode = parser.readValueAsTree();
+  @Override
+  public ContentPattern<?> deserialize(JsonParser parser, DeserializationContext context)
+      throws IOException, JsonProcessingException {
+    JsonNode rootNode = parser.readValueAsTree();
 
-        if (isAbsent(rootNode)) {
-            return AbsentPattern.ABSENT;
-        }
-
-        if (rootNode.has("binaryEqualTo")) {
-            return deserializeBinaryEqualTo(rootNode);
-        }
-
-        return new StringValuePatternJsonDeserializer().buildStringValuePattern(rootNode);
+    if (isAbsent(rootNode)) {
+      return AbsentPattern.ABSENT;
     }
 
-    private BinaryEqualToPattern deserializeBinaryEqualTo(JsonNode rootNode) throws JsonMappingException {
-        String operand = rootNode.findValue("binaryEqualTo").textValue();
-
-        return new BinaryEqualToPattern(operand);
+    if (rootNode.has("binaryEqualTo")) {
+      return deserializeBinaryEqualTo(rootNode);
     }
 
-    private static boolean isAbsent(JsonNode rootNode) {
-        for (Map.Entry<String, JsonNode> node: ImmutableList.copyOf(rootNode.fields())) {
-            if (node.getKey().equals("absent")) {
-                return true;
-            }
-        }
+    return new StringValuePatternJsonDeserializer().buildStringValuePattern(rootNode);
+  }
 
-        return false;
+  private BinaryEqualToPattern deserializeBinaryEqualTo(JsonNode rootNode)
+      throws JsonMappingException {
+    String operand = rootNode.findValue("binaryEqualTo").textValue();
+
+    return new BinaryEqualToPattern(operand);
+  }
+
+  private static boolean isAbsent(JsonNode rootNode) {
+    for (Map.Entry<String, JsonNode> node : ImmutableList.copyOf(rootNode.fields())) {
+      if (node.getKey().equals("absent")) {
+        return true;
+      }
     }
+
+    return false;
+  }
 }

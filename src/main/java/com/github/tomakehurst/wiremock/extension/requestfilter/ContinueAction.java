@@ -19,13 +19,13 @@ import com.github.tomakehurst.wiremock.http.Request;
 
 public class ContinueAction extends RequestFilterAction {
 
-    private final Request request;
+  private final Request request;
 
-    ContinueAction(Request request) {
-        this.request = request;
-    }
+  ContinueAction(Request request) {
+    this.request = request;
+  }
 
-    public Request getRequest() {
-        return request;
-    }
+  public Request getRequest() {
+    return request;
+  }
 }

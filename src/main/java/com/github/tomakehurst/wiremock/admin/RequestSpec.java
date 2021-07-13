@@ -15,65 +15,65 @@
  */
 package com.github.tomakehurst.wiremock.admin;
 
-import com.github.tomakehurst.wiremock.admin.model.PathParams;
-import com.github.tomakehurst.wiremock.http.RequestMethod;
-
 import static com.github.tomakehurst.wiremock.http.RequestMethod.ANY;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.github.tomakehurst.wiremock.admin.model.PathParams;
+import com.github.tomakehurst.wiremock.http.RequestMethod;
+
 public class RequestSpec {
 
-    private final RequestMethod method;
-    private final AdminUriTemplate uriTemplate;
+  private final RequestMethod method;
+  private final AdminUriTemplate uriTemplate;
 
-    public RequestSpec(RequestMethod method, String uriTemplate) {
-        checkNotNull(method);
-        checkNotNull(uriTemplate);
-        this.method = method;
-        this.uriTemplate = new AdminUriTemplate(uriTemplate);
-    }
+  public RequestSpec(RequestMethod method, String uriTemplate) {
+    checkNotNull(method);
+    checkNotNull(uriTemplate);
+    this.method = method;
+    this.uriTemplate = new AdminUriTemplate(uriTemplate);
+  }
 
-    public static RequestSpec requestSpec(RequestMethod method, String path) {
-        return new RequestSpec(method, path);
-    }
+  public static RequestSpec requestSpec(RequestMethod method, String path) {
+    return new RequestSpec(method, path);
+  }
 
-    public RequestMethod method() {
-        return method;
-    }
+  public RequestMethod method() {
+    return method;
+  }
 
-    public AdminUriTemplate getUriTemplate() {
-        return uriTemplate;
-    }
+  public AdminUriTemplate getUriTemplate() {
+    return uriTemplate;
+  }
 
-    public String path() {
-        return path(PathParams.empty());
-    }
+  public String path() {
+    return path(PathParams.empty());
+  }
 
-    public String path(PathParams pathParams) {
-        return uriTemplate.render(pathParams);
-    }
+  public String path(PathParams pathParams) {
+    return uriTemplate.render(pathParams);
+  }
 
-    public boolean matches(RequestMethod method, String path) {
-        return (this.method.equals(ANY) || this.method.equals(method)) && uriTemplate.matches(path);
-    }
+  public boolean matches(RequestMethod method, String path) {
+    return (this.method.equals(ANY) || this.method.equals(method)) && uriTemplate.matches(path);
+  }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
 
-        RequestSpec that = (RequestSpec) o;
+    RequestSpec that = (RequestSpec) o;
 
-        if (!method.equals(that.method)) return false;
-        if (!uriTemplate.equals(that.uriTemplate)) return false;
+    if (!method.equals(that.method)) return false;
+    if (!uriTemplate.equals(that.uriTemplate)) return false;
 
-        return true;
-    }
+    return true;
+  }
 
-    @Override
-    public int hashCode() {
-        int result = method.hashCode();
-        result = 31 * result + uriTemplate.hashCode();
-        return result;
-    }
+  @Override
+  public int hashCode() {
+    int result = method.hashCode();
+    result = 31 * result + uriTemplate.hashCode();
+    return result;
+  }
 }

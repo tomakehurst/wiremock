@@ -17,53 +17,51 @@ package com.github.tomakehurst.wiremock.extension.responsetemplating.helpers;
 
 import com.github.jknack.handlebars.Options;
 import com.github.tomakehurst.wiremock.extension.responsetemplating.SystemKeyAuthoriser;
-import org.apache.commons.lang3.StringUtils;
-
 import java.security.AccessControlException;
-import java.util.regex.Pattern;
+import org.apache.commons.lang3.StringUtils;
 
 public class SystemValueHelper extends HandlebarsHelper<Object> {
 
-    private final SystemKeyAuthoriser systemKeyAuthoriser;
+  private final SystemKeyAuthoriser systemKeyAuthoriser;
 
-    public SystemValueHelper(SystemKeyAuthoriser systemKeyAuthoriser) {
-        this.systemKeyAuthoriser = systemKeyAuthoriser;
+  public SystemValueHelper(SystemKeyAuthoriser systemKeyAuthoriser) {
+    this.systemKeyAuthoriser = systemKeyAuthoriser;
+  }
+
+  @Override
+  public String apply(Object context, Options options) {
+    String key = options.hash("key", "");
+    String type = options.hash("type", "ENVIRONMENT");
+    if (StringUtils.isEmpty(key)) {
+      return this.handleError("The key cannot be empty");
+    }
+    if (!systemKeyAuthoriser.isPermitted(key)) {
+      return this.handleError("Access to " + key + " is denied");
     }
 
-    @Override
-    public String apply(Object context, Options options) {
-        String key = options.hash("key", "");
-        String type = options.hash("type", "ENVIRONMENT");
-        if (StringUtils.isEmpty(key)) {
-            return this.handleError("The key cannot be empty");
-        }
-        if (!systemKeyAuthoriser.isPermitted(key)) {
-            return this.handleError("Access to " + key + " is denied");
-        }
+    String rawValue = "";
 
-        String rawValue = "";
+    try {
+      switch (type) {
+        case "ENVIRONMENT":
+          rawValue = getSystemEnvironment(key);
+          break;
+        case "PROPERTY":
+          rawValue = getSystemProperties(key);
+          break;
+      }
+      return rawValue;
 
-        try {
-            switch (type) {
-                case "ENVIRONMENT":
-                    rawValue = getSystemEnvironment(key);
-                    break;
-                case "PROPERTY":
-                    rawValue = getSystemProperties(key);
-                    break;
-            }
-            return rawValue;
-
-        } catch (AccessControlException e) {
-            return this.handleError("Access to " + key + " is denied");
-        }
+    } catch (AccessControlException e) {
+      return this.handleError("Access to " + key + " is denied");
     }
+  }
 
-    private String getSystemEnvironment(final String key) {
-        return System.getenv(key);
-    }
+  private String getSystemEnvironment(final String key) {
+    return System.getenv(key);
+  }
 
-    private String getSystemProperties(final String key) {
-        return System.getProperty(key);
-    }
+  private String getSystemProperties(final String key) {
+    return System.getProperty(key);
+  }
 }

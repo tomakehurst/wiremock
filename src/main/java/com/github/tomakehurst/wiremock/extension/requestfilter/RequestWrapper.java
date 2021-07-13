@@ -15,14 +15,6 @@
  */
 package com.github.tomakehurst.wiremock.extension.requestfilter;
 
-import com.github.tomakehurst.wiremock.http.*;
-import com.google.common.base.Function;
-import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableMap;
-
-import java.util.*;
-
 import static com.github.tomakehurst.wiremock.common.Encoding.encodeBase64;
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.collect.FluentIterable.from;
@@ -31,319 +23,342 @@ import static com.google.common.collect.Maps.newHashMap;
 import static org.apache.commons.lang3.StringUtils.countMatches;
 import static org.apache.commons.lang3.StringUtils.ordinalIndexOf;
 
+import com.github.tomakehurst.wiremock.http.*;
+import com.google.common.base.Function;
+import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableMap;
+import java.util.*;
+
 public class RequestWrapper implements Request {
 
-    private final Request delegate;
+  private final Request delegate;
 
-    private final RequestMethod method;
-    private final FieldTransformer<String> absoluteUrlTransformer;
-    private final List<HttpHeader> addedHeaders;
-    private final List<String> removedHeaders;
-    private final Map<CaseInsensitiveKey, FieldTransformer<List<String>>> headerTransformers;
-    private final Map<String, Cookie> additionalCookies;
-    private final List<String> cookiesToRemove;
-    private final Map<String, FieldTransformer<Cookie>> cookieTransformers;
-    private final FieldTransformer<Body> bodyTransformer;
-    private final FieldTransformer<Part> multipartTransformer;
+  private final RequestMethod method;
+  private final FieldTransformer<String> absoluteUrlTransformer;
+  private final List<HttpHeader> addedHeaders;
+  private final List<String> removedHeaders;
+  private final Map<CaseInsensitiveKey, FieldTransformer<List<String>>> headerTransformers;
+  private final Map<String, Cookie> additionalCookies;
+  private final List<String> cookiesToRemove;
+  private final Map<String, FieldTransformer<Cookie>> cookieTransformers;
+  private final FieldTransformer<Body> bodyTransformer;
+  private final FieldTransformer<Part> multipartTransformer;
 
-    public RequestWrapper(Request delegate) {
-        this(
-                delegate,
-                null,
-                null,
-                Collections.<HttpHeader>emptyList(),
-                Collections.<String>emptyList(),
-                Collections.<CaseInsensitiveKey, FieldTransformer<List<String>>>emptyMap(),
-                Collections.<String, Cookie>emptyMap(),
-                Collections.<String>emptyList(),
-                Collections.<String, FieldTransformer<Cookie>>emptyMap(),
-                null,
-                null
-        );
+  public RequestWrapper(Request delegate) {
+    this(
+        delegate,
+        null,
+        null,
+        Collections.<HttpHeader>emptyList(),
+        Collections.<String>emptyList(),
+        Collections.<CaseInsensitiveKey, FieldTransformer<List<String>>>emptyMap(),
+        Collections.<String, Cookie>emptyMap(),
+        Collections.<String>emptyList(),
+        Collections.<String, FieldTransformer<Cookie>>emptyMap(),
+        null,
+        null);
+  }
+
+  public RequestWrapper(
+      Request delegate,
+      RequestMethod method,
+      FieldTransformer<String> absoluteUrlTransformer,
+      List<HttpHeader> addedHeaders,
+      List<String> removedHeaders,
+      Map<CaseInsensitiveKey, FieldTransformer<List<String>>> headerTransformers,
+      Map<String, Cookie> additionalCookies,
+      List<String> cookiesToRemove,
+      Map<String, FieldTransformer<Cookie>> cookieTransformers,
+      FieldTransformer<Body> bodyTransformer,
+      FieldTransformer<Part> multipartTransformer) {
+    this.delegate = delegate;
+
+    this.method = method;
+    this.absoluteUrlTransformer = absoluteUrlTransformer;
+    this.addedHeaders = addedHeaders;
+    this.removedHeaders = removedHeaders;
+    this.headerTransformers = headerTransformers;
+    this.additionalCookies = additionalCookies;
+    this.cookiesToRemove = cookiesToRemove;
+    this.cookieTransformers = cookieTransformers;
+    this.bodyTransformer = bodyTransformer;
+    this.multipartTransformer = multipartTransformer;
+  }
+
+  public static Builder create() {
+    return new Builder();
+  }
+
+  @Override
+  public String getUrl() {
+    String absoluteUrl = getAbsoluteUrl();
+    int relativeStartIndex =
+        countMatches(absoluteUrl, "/") >= 3
+            ? ordinalIndexOf(absoluteUrl, "/", 3)
+            : absoluteUrl.length();
+    return absoluteUrl.substring(relativeStartIndex);
+  }
+
+  @Override
+  public String getAbsoluteUrl() {
+    if (absoluteUrlTransformer != null) {
+      return absoluteUrlTransformer.transform(delegate.getAbsoluteUrl());
     }
 
-    public RequestWrapper(
-            Request delegate,
-            RequestMethod method,
-            FieldTransformer<String> absoluteUrlTransformer,
-            List<HttpHeader> addedHeaders,
-            List<String> removedHeaders,
-            Map<CaseInsensitiveKey, FieldTransformer<List<String>>> headerTransformers,
-            Map<String, Cookie> additionalCookies,
-            List<String> cookiesToRemove,
-            Map<String, FieldTransformer<Cookie>> cookieTransformers,
-            FieldTransformer<Body> bodyTransformer,
-            FieldTransformer<Part> multipartTransformer
-    ) {
-        this.delegate = delegate;
+    return delegate.getAbsoluteUrl();
+  }
 
-        this.method = method;
-        this.absoluteUrlTransformer = absoluteUrlTransformer;
-        this.addedHeaders = addedHeaders;
-        this.removedHeaders = removedHeaders;
-        this.headerTransformers = headerTransformers;
-        this.additionalCookies = additionalCookies;
-        this.cookiesToRemove = cookiesToRemove;
-        this.cookieTransformers = cookieTransformers;
-        this.bodyTransformer = bodyTransformer;
-        this.multipartTransformer = multipartTransformer;
-    }
+  @Override
+  public RequestMethod getMethod() {
+    return firstNonNull(method, delegate.getMethod());
+  }
 
-    public static Builder create() {
-        return new Builder();
-    }
+  @Override
+  public String getScheme() {
+    return delegate.getScheme();
+  }
 
-    @Override
-    public String getUrl() {
-        String absoluteUrl = getAbsoluteUrl();
-        int relativeStartIndex =
-                countMatches(absoluteUrl, "/") >= 3 ?
-                ordinalIndexOf(absoluteUrl, "/", 3) :
-                absoluteUrl.length();
-        return absoluteUrl.substring(relativeStartIndex);
-    }
+  @Override
+  public String getHost() {
+    return delegate.getHost();
+  }
 
-    @Override
-    public String getAbsoluteUrl() {
-        if (absoluteUrlTransformer != null) {
-            return absoluteUrlTransformer.transform(delegate.getAbsoluteUrl());
-        }
+  @Override
+  public int getPort() {
+    return delegate.getPort();
+  }
 
-        return delegate.getAbsoluteUrl();
-    }
+  @Override
+  public String getClientIp() {
+    return delegate.getClientIp();
+  }
 
-    @Override
-    public RequestMethod getMethod() {
-        return firstNonNull(method, delegate.getMethod());
-    }
+  @Override
+  public String getHeader(String key) {
+    return getHeaders().getHeader(key).firstValue();
+  }
 
-    @Override
-    public String getScheme() {
-        return delegate.getScheme();
-    }
+  @Override
+  public HttpHeader header(String key) {
+    return getHeaders().getHeader(key);
+  }
 
-    @Override
-    public String getHost() {
-        return delegate.getHost();
-    }
+  @Override
+  public ContentTypeHeader contentTypeHeader() {
+    return delegate.contentTypeHeader();
+  }
 
-    @Override
-    public int getPort() {
-        return delegate.getPort();
-    }
+  @Override
+  public HttpHeaders getHeaders() {
+    Collection<HttpHeader> existingHeaders = delegate.getHeaders().all();
 
-    @Override
-    public String getClientIp() {
-        return delegate.getClientIp();
-    }
-
-    @Override
-    public String getHeader(String key) {
-        return getHeaders().getHeader(key).firstValue();
-    }
-
-    @Override
-    public HttpHeader header(String key) {
-        return getHeaders().getHeader(key);
-    }
-
-    @Override
-    public ContentTypeHeader contentTypeHeader() {
-        return delegate.contentTypeHeader();
-    }
-
-    @Override
-    public HttpHeaders getHeaders() {
-        Collection<HttpHeader> existingHeaders = delegate.getHeaders().all();
-
-        List<HttpHeader> combinedHeaders = from(existingHeaders)
-                .append(addedHeaders)
-                .filter(new Predicate<HttpHeader>() {
-                    @Override
-                    public boolean apply(HttpHeader httpHeader) {
-                        return !removedHeaders.contains(httpHeader.key());
-                    }
+    List<HttpHeader> combinedHeaders =
+        from(existingHeaders)
+            .append(addedHeaders)
+            .filter(
+                new Predicate<HttpHeader>() {
+                  @Override
+                  public boolean apply(HttpHeader httpHeader) {
+                    return !removedHeaders.contains(httpHeader.key());
+                  }
                 })
-                .transform(new Function<HttpHeader, HttpHeader>() {
-                    @Override
-                    public HttpHeader apply(HttpHeader httpHeader) {
-                        if (headerTransformers.containsKey(httpHeader.caseInsensitiveKey())) {
-                            FieldTransformer<List<String>> transformer = headerTransformers.get(httpHeader.caseInsensitiveKey());
-                            List<String> newValues = transformer.transform(httpHeader.values());
-                            return new HttpHeader(httpHeader.key(), newValues);
-                        }
-
-                        return httpHeader;
+            .transform(
+                new Function<HttpHeader, HttpHeader>() {
+                  @Override
+                  public HttpHeader apply(HttpHeader httpHeader) {
+                    if (headerTransformers.containsKey(httpHeader.caseInsensitiveKey())) {
+                      FieldTransformer<List<String>> transformer =
+                          headerTransformers.get(httpHeader.caseInsensitiveKey());
+                      List<String> newValues = transformer.transform(httpHeader.values());
+                      return new HttpHeader(httpHeader.key(), newValues);
                     }
+
+                    return httpHeader;
+                  }
                 })
-                .toList();
-        return new HttpHeaders(combinedHeaders);
+            .toList();
+    return new HttpHeaders(combinedHeaders);
+  }
+
+  @Override
+  public boolean containsHeader(String key) {
+    return getHeaders().keys().contains(key);
+  }
+
+  @Override
+  public Set<String> getAllHeaderKeys() {
+    return getHeaders().keys();
+  }
+
+  @Override
+  public Map<String, Cookie> getCookies() {
+    ImmutableMap.Builder<String, Cookie> builder = ImmutableMap.builder();
+    for (Map.Entry<String, Cookie> entry : delegate.getCookies().entrySet()) {
+      Cookie newCookie =
+          cookieTransformers.containsKey(entry.getKey())
+              ? cookieTransformers.get(entry.getKey()).transform(entry.getValue())
+              : entry.getValue();
+
+      if (!cookiesToRemove.contains(entry.getKey())) {
+        builder.put(entry.getKey(), newCookie);
+      }
     }
 
-    @Override
-    public boolean containsHeader(String key) {
-        return getHeaders().keys().contains(key);
+    builder.putAll(additionalCookies);
+
+    return builder.build();
+  }
+
+  @Override
+  public QueryParameter queryParameter(String key) {
+    return delegate.queryParameter(key);
+  }
+
+  @Override
+  public byte[] getBody() {
+    if (bodyTransformer != null) {
+      return bodyTransformer.transform(new Body(delegate.getBody())).asBytes();
     }
 
-    @Override
-    public Set<String> getAllHeaderKeys() {
-        return getHeaders().keys();
+    return delegate.getBody();
+  }
+
+  @Override
+  public String getBodyAsString() {
+    if (bodyTransformer != null) {
+      return bodyTransformer.transform(new Body(delegate.getBodyAsString())).asString();
     }
 
-    @Override
-    public Map<String, Cookie> getCookies() {
-        ImmutableMap.Builder<String, Cookie> builder = ImmutableMap.builder();
-        for (Map.Entry<String, Cookie> entry: delegate.getCookies().entrySet()) {
-            Cookie newCookie = cookieTransformers.containsKey(entry.getKey()) ?
-                    cookieTransformers.get(entry.getKey()).transform(entry.getValue()) :
-                    entry.getValue();
+    return delegate.getBodyAsString();
+  }
 
-            if (!cookiesToRemove.contains(entry.getKey())) {
-                builder.put(entry.getKey(), newCookie);
-            }
-        }
+  @Override
+  public String getBodyAsBase64() {
+    return encodeBase64(getBody());
+  }
 
-        builder.putAll(additionalCookies);
+  @Override
+  public boolean isMultipart() {
+    return delegate.isMultipart();
+  }
 
-        return builder.build();
+  @Override
+  public Collection<Part> getParts() {
+    if (delegate.getParts() == null || multipartTransformer == null) {
+      return delegate.getParts();
     }
 
-    @Override
-    public QueryParameter queryParameter(String key) {
-        return delegate.queryParameter(key);
+    return from(delegate.getParts())
+        .transform(
+            new Function<Part, Part>() {
+              @Override
+              public Part apply(Part part) {
+                return multipartTransformer.transform(part);
+              }
+            })
+        .toList();
+  }
+
+  @Override
+  public Part getPart(String name) {
+    if (multipartTransformer != null) {
+      return multipartTransformer.transform(delegate.getPart(name));
     }
 
-    @Override
-    public byte[] getBody() {
-        if (bodyTransformer != null) {
-            return bodyTransformer.transform(new Body(delegate.getBody())).asBytes();
-        }
+    return delegate.getPart(name);
+  }
 
-        return delegate.getBody();
+  @Override
+  public boolean isBrowserProxyRequest() {
+    return delegate.isBrowserProxyRequest();
+  }
+
+  @Override
+  public Optional<Request> getOriginalRequest() {
+    return delegate.getOriginalRequest();
+  }
+
+  public static class Builder {
+
+    private RequestMethod requestMethod;
+    private FieldTransformer<String> absoluteUrlTransformer;
+
+    private final List<HttpHeader> additionalHeaders = newArrayList();
+    private final List<String> headersToRemove = newArrayList();
+    private final Map<CaseInsensitiveKey, FieldTransformer<List<String>>> headerTransformers =
+        newHashMap();
+
+    private final Map<String, Cookie> additionalCookies = newHashMap();
+    private final List<String> cookiesToRemove = newArrayList();
+    private final Map<String, FieldTransformer<Cookie>> cookieTransformers = newHashMap();
+
+    private FieldTransformer<Body> bodyTransformer;
+    private FieldTransformer<Part> mutlipartTransformer;
+
+    public Builder addHeader(String key, String... values) {
+      additionalHeaders.add(new HttpHeader(key, values));
+      return this;
     }
 
-    @Override
-    public String getBodyAsString() {
-        if (bodyTransformer != null) {
-            return bodyTransformer.transform(new Body(delegate.getBodyAsString())).asString();
-        }
-
-        return delegate.getBodyAsString();
+    public Builder removeHeader(String key) {
+      headersToRemove.add(key);
+      return this;
     }
 
-    @Override
-    public String getBodyAsBase64() {
-        return encodeBase64(getBody());
+    public Builder transformHeader(String key, FieldTransformer<List<String>> transformer) {
+      headerTransformers.put(CaseInsensitiveKey.from(key), transformer);
+      return this;
     }
 
-    @Override
-    public boolean isMultipart() {
-        return delegate.isMultipart();
+    public Builder setMethod(RequestMethod method) {
+      requestMethod = method;
+      return this;
     }
 
-    @Override
-    public Collection<Part> getParts() {
-        if (delegate.getParts() == null || multipartTransformer == null) {
-            return delegate.getParts();
-        }
-
-        return from(delegate.getParts())
-                .transform(new Function<Part, Part>() {
-                    @Override
-                    public Part apply(Part part) {
-                        return multipartTransformer.transform(part);
-                    }
-                })
-                .toList();
+    public Builder transformAbsoluteUrl(FieldTransformer<String> transformer) {
+      absoluteUrlTransformer = transformer;
+      return this;
     }
 
-    @Override
-    public Part getPart(String name) {
-        if (multipartTransformer != null) {
-            return multipartTransformer.transform(delegate.getPart(name));
-        }
-
-        return delegate.getPart(name);
+    public Request wrap(Request request) {
+      return new RequestWrapper(
+          request,
+          requestMethod,
+          absoluteUrlTransformer,
+          additionalHeaders,
+          headersToRemove,
+          headerTransformers,
+          additionalCookies,
+          cookiesToRemove,
+          cookieTransformers,
+          bodyTransformer,
+          mutlipartTransformer);
     }
 
-    @Override
-    public boolean isBrowserProxyRequest() {
-        return delegate.isBrowserProxyRequest();
+    public Builder transformBody(FieldTransformer<Body> transformer) {
+      bodyTransformer = transformer;
+      return this;
     }
 
-    @Override
-    public Optional<Request> getOriginalRequest() {
-        return delegate.getOriginalRequest();
+    public Builder transformCookie(String name, FieldTransformer<Cookie> transformer) {
+      cookieTransformers.put(name, transformer);
+      return this;
     }
 
-    public static class Builder {
-
-        private RequestMethod requestMethod;
-        private FieldTransformer<String> absoluteUrlTransformer;
-
-        private final List<HttpHeader> additionalHeaders = newArrayList();
-        private final List<String> headersToRemove = newArrayList();
-        private final Map<CaseInsensitiveKey, FieldTransformer<List<String>>> headerTransformers = newHashMap();
-
-        private final Map<String, Cookie> additionalCookies = newHashMap();
-        private final List<String> cookiesToRemove = newArrayList();
-        private final Map<String, FieldTransformer<Cookie>> cookieTransformers = newHashMap();
-
-        private FieldTransformer<Body> bodyTransformer;
-        private FieldTransformer<Part> mutlipartTransformer;
-
-        public Builder addHeader(String key, String... values) {
-            additionalHeaders.add(new HttpHeader(key, values));
-            return this;
-        }
-
-        public Builder removeHeader(String key) {
-            headersToRemove.add(key);
-            return this;
-        }
-
-        public Builder transformHeader(String key, FieldTransformer<List<String>> transformer) {
-            headerTransformers.put(CaseInsensitiveKey.from(key), transformer);
-            return this;
-        }
-
-        public Builder setMethod(RequestMethod method) {
-            requestMethod = method;
-            return this;
-        }
-
-        public Builder transformAbsoluteUrl(FieldTransformer<String> transformer) {
-            absoluteUrlTransformer = transformer;
-            return this;
-        }
-
-        public Request wrap(Request request) {
-            return new RequestWrapper(request, requestMethod, absoluteUrlTransformer, additionalHeaders, headersToRemove, headerTransformers, additionalCookies, cookiesToRemove, cookieTransformers, bodyTransformer, mutlipartTransformer);
-        }
-
-        public Builder transformBody(FieldTransformer<Body> transformer) {
-            bodyTransformer = transformer;
-            return this;
-        }
-
-        public Builder transformCookie(String name, FieldTransformer<Cookie> transformer) {
-            cookieTransformers.put(name, transformer);
-            return this;
-        }
-
-        public Builder transformParts(FieldTransformer<Part> transformer) {
-            mutlipartTransformer = transformer;
-            return this;
-        }
-
-        public Builder addCookie(String name, Cookie value) {
-            additionalCookies.put(name, value);
-            return this;
-        }
-
-        public Builder removeCookie(String name) {
-            cookiesToRemove.add(name);
-            return this;
-        }
+    public Builder transformParts(FieldTransformer<Part> transformer) {
+      mutlipartTransformer = transformer;
+      return this;
     }
+
+    public Builder addCookie(String name, Cookie value) {
+      additionalCookies.put(name, value);
+      return this;
+    }
+
+    public Builder removeCookie(String name) {
+      cookiesToRemove.add(name);
+      return this;
+    }
+  }
 }

@@ -15,59 +15,55 @@
  */
 package com.github.tomakehurst.wiremock.extension.responsetemplating;
 
-import java.io.IOException;
-
 import com.github.jknack.handlebars.Context;
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.Template;
 import com.github.tomakehurst.wiremock.common.Exceptions;
+import java.io.IOException;
 
 public class HandlebarsOptimizedTemplate {
 
-	private final Template template;
+  private final Template template;
 
-	private String startContent;
-	private String templateContent;
-	private String endContent;
+  private String startContent;
+  private String templateContent;
+  private String endContent;
 
-	public HandlebarsOptimizedTemplate(final Handlebars handlebars, final String content) {
-		startContent = content;
-		templateContent = "";
-		endContent = "";
+  public HandlebarsOptimizedTemplate(final Handlebars handlebars, final String content) {
+    startContent = content;
+    templateContent = "";
+    endContent = "";
 
-		int firstDelimStartPosition = content.indexOf(Handlebars.DELIM_START);
-		if (firstDelimStartPosition != -1) {
-			int lastDelimEndPosition = content.lastIndexOf(Handlebars.DELIM_END);
-			if (lastDelimEndPosition != -1) {
-				startContent = content.substring(0, firstDelimStartPosition);
-				templateContent = content.substring(firstDelimStartPosition,
-						lastDelimEndPosition + Handlebars.DELIM_END.length());
-				endContent = content.substring(lastDelimEndPosition + Handlebars.DELIM_END.length(), content.length());
-			}
-		}
+    int firstDelimStartPosition = content.indexOf(Handlebars.DELIM_START);
+    if (firstDelimStartPosition != -1) {
+      int lastDelimEndPosition = content.lastIndexOf(Handlebars.DELIM_END);
+      if (lastDelimEndPosition != -1) {
+        startContent = content.substring(0, firstDelimStartPosition);
+        templateContent =
+            content.substring(
+                firstDelimStartPosition, lastDelimEndPosition + Handlebars.DELIM_END.length());
+        endContent =
+            content.substring(
+                lastDelimEndPosition + Handlebars.DELIM_END.length(), content.length());
+      }
+    }
 
-		this.template = uncheckedCompileTemplate(handlebars, templateContent);
-	}
+    this.template = uncheckedCompileTemplate(handlebars, templateContent);
+  }
 
-	private static Template uncheckedCompileTemplate(Handlebars handlebars, String templateContent) {
-		try {
-			return handlebars.compileInline(templateContent);
-		} catch (IOException e) {
-			return Exceptions.throwUnchecked(e, Template.class);
-		}
-	}
+  private static Template uncheckedCompileTemplate(Handlebars handlebars, String templateContent) {
+    try {
+      return handlebars.compileInline(templateContent);
+    } catch (IOException e) {
+      return Exceptions.throwUnchecked(e, Template.class);
+    }
+  }
 
-	public String apply(Object contextData) throws IOException {
-		final RenderCache renderCache = new RenderCache();
-		Context context = Context
-				.newBuilder(contextData)
-				.combine("renderCache", renderCache)
-				.build();
+  public String apply(Object contextData) throws IOException {
+    final RenderCache renderCache = new RenderCache();
+    Context context = Context.newBuilder(contextData).combine("renderCache", renderCache).build();
 
-		StringBuilder sb = new StringBuilder();
-		return sb.append(startContent)
-				 .append(template.apply(context))
-				 .append(endContent)
-				 .toString();
-	}
+    StringBuilder sb = new StringBuilder();
+    return sb.append(startContent).append(template.apply(context)).append(endContent).toString();
+  }
 }

@@ -15,49 +15,44 @@
  */
 package com.github.tomakehurst.wiremock.common;
 
+import static com.github.tomakehurst.wiremock.common.Exceptions.throwUnchecked;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
-import static com.github.tomakehurst.wiremock.common.Exceptions.throwUnchecked;
-
 public class Encoding {
 
-    private static Base64Encoder encoder = null;
+  private static Base64Encoder encoder = null;
 
-    private static Base64Encoder getInstance() {
+  private static Base64Encoder getInstance() {
+    if (encoder == null) {
+      synchronized (Encoding.class) {
         if (encoder == null) {
-            synchronized(Encoding.class) {
-                if (encoder == null) {
-                    encoder = new GuavaBase64Encoder();
-                }
-            }
+          encoder = new GuavaBase64Encoder();
         }
-
-        return encoder;
+      }
     }
 
-    public static byte[] decodeBase64(String base64) {
-        return base64 != null ?
-               getInstance().decode(base64) :
-               null;
-    }
+    return encoder;
+  }
 
-    public static String encodeBase64(byte[] content) {
-        return encodeBase64(content, true);
-    }
+  public static byte[] decodeBase64(String base64) {
+    return base64 != null ? getInstance().decode(base64) : null;
+  }
 
-    public static String encodeBase64(byte[] content, boolean padding) {
-        return content != null ?
-                getInstance().encode(content, padding) :
-                null;
-    }
+  public static String encodeBase64(byte[] content) {
+    return encodeBase64(content, true);
+  }
 
-    public static String urlEncode(String unencodedUrl) {
-        try {
-            return URLEncoder.encode(unencodedUrl, "utf-8");
-        } catch (UnsupportedEncodingException e) {
-            return throwUnchecked(e, String.class);
-        }
-    }
+  public static String encodeBase64(byte[] content, boolean padding) {
+    return content != null ? getInstance().encode(content, padding) : null;
+  }
 
+  public static String urlEncode(String unencodedUrl) {
+    try {
+      return URLEncoder.encode(unencodedUrl, "utf-8");
+    } catch (UnsupportedEncodingException e) {
+      return throwUnchecked(e, String.class);
+    }
+  }
 }

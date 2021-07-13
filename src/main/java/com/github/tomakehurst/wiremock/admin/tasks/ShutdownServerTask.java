@@ -22,9 +22,9 @@ import com.github.tomakehurst.wiremock.http.Request;
 import com.github.tomakehurst.wiremock.http.ResponseDefinition;
 
 public class ShutdownServerTask implements AdminTask {
-    @Override
-    public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
-        admin.shutdownServer();
-        return ResponseDefinition.ok();
-    }
+  @Override
+  public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
+    admin.shutdownServer();
+    return ResponseDefinition.ok();
+  }
 }

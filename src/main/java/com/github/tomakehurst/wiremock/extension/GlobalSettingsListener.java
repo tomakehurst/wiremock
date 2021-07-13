@@ -19,6 +19,7 @@ import com.github.tomakehurst.wiremock.global.GlobalSettings;
 
 public interface GlobalSettingsListener extends Extension {
 
-    void beforeGlobalSettingsUpdated(GlobalSettings oldSettings, GlobalSettings newSettings);
-    void afterGlobalSettingsUpdated(GlobalSettings oldSettings, GlobalSettings newSettings);
+  void beforeGlobalSettingsUpdated(GlobalSettings oldSettings, GlobalSettings newSettings);
+
+  void afterGlobalSettingsUpdated(GlobalSettings oldSettings, GlobalSettings newSettings);
 }

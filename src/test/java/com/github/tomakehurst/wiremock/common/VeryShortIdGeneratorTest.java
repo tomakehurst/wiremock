@@ -15,21 +15,20 @@
  */
 package com.github.tomakehurst.wiremock.common;
 
-import org.junit.Test;
-
 import static com.github.tomakehurst.wiremock.testsupport.WireMatchers.matches;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+import org.junit.Test;
+
 public class VeryShortIdGeneratorTest {
 
-    @Test
-    public void IdsGeneratedContainOnlyLegalCharsAndAreRightLength() {
-        final IdGenerator generator = new VeryShortIdGenerator();
-        
-        for (int i = 0; i < 1000; i++) {
-            final String id = generator.generate();
-            assertThat(id, matches("[A-Za-z0-9]{5}"));
-        }
+  @Test
+  public void IdsGeneratedContainOnlyLegalCharsAndAreRightLength() {
+    final IdGenerator generator = new VeryShortIdGenerator();
+
+    for (int i = 0; i < 1000; i++) {
+      final String id = generator.generate();
+      assertThat(id, matches("[A-Za-z0-9]{5}"));
     }
-    
+  }
 }

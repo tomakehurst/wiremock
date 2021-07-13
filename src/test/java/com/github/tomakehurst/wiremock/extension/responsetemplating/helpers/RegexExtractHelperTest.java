@@ -30,47 +30,55 @@ import org.junit.Test;
 
 public class RegexExtractHelperTest extends HandlebarsHelperTestBase {
 
-    private RegexExtractHelper helper;
+  private RegexExtractHelper helper;
 
-    @Before
-    public void init() {
-        helper = new RegexExtractHelper();
-        LocalNotifier.set(new ConsoleNotifier(true));
-    }
+  @Before
+  public void init() {
+    helper = new RegexExtractHelper();
+    LocalNotifier.set(new ConsoleNotifier(true));
+  }
 
-    @Test
-    public void canExtractSingleRegexMatch() {
-        final ResponseDefinition responseDefinition = this.transformer.transform(
-            mockRequest()
-                .url("/api/abc,def,ghi"),
+  @Test
+  public void canExtractSingleRegexMatch() {
+    final ResponseDefinition responseDefinition =
+        this.transformer.transform(
+            mockRequest().url("/api/abc,def,ghi"),
             aResponse()
-                .withBody("{\"test\": \"{{regexExtract request.path.[1] '([A-Za-z]+)'}}\"}").build(),
+                .withBody("{\"test\": \"{{regexExtract request.path.[1] '([A-Za-z]+)'}}\"}")
+                .build(),
             noFileSource(),
             Parameters.empty());
 
-        assertThat(responseDefinition.getBody(), is("{\"test\": \"abc\"}"));
-    }
+    assertThat(responseDefinition.getBody(), is("{\"test\": \"abc\"}"));
+  }
 
-    @Test
-    public void canExtractMultipleRegexMatches() {
-        final ResponseDefinition responseDefinition = this.transformer.transform(
-                mockRequest()
-                    .url("/api/abc,def,ghi"),
-                aResponse()
-                    .withBody("{\"test\": \"{{regexExtract request.path.[1] '([A-Za-z]+)' 'parts'}}{{#each parts}}{{this}} {{/each}}\"}").build(),
-                noFileSource(),
-                Parameters.empty());
+  @Test
+  public void canExtractMultipleRegexMatches() {
+    final ResponseDefinition responseDefinition =
+        this.transformer.transform(
+            mockRequest().url("/api/abc,def,ghi"),
+            aResponse()
+                .withBody(
+                    "{\"test\": \"{{regexExtract request.path.[1] '([A-Za-z]+)' 'parts'}}{{#each parts}}{{this}} {{/each}}\"}")
+                .build(),
+            noFileSource(),
+            Parameters.empty());
 
-        assertThat(responseDefinition.getBody(), is("{\"test\": \"abc def ghi \"}"));
-    }
+    assertThat(responseDefinition.getBody(), is("{\"test\": \"abc def ghi \"}"));
+  }
 
-    @Test
-    public void noMatchErrorWhenNoRegexMatch() {
-        testHelperError(helper, "/123/456,789,900", "([A-Za-z]+)", is("[ERROR: Nothing matched ([A-Za-z]+)]"));
-    }
+  @Test
+  public void noMatchErrorWhenNoRegexMatch() {
+    testHelperError(
+        helper, "/123/456,789,900", "([A-Za-z]+)", is("[ERROR: Nothing matched ([A-Za-z]+)]"));
+  }
 
-    @Test
-    public void invalidRegExErrorWhenRegexStringIsInvalid() {
-        testHelperError(helper, "/123/456,789,900", "(([A-Za-z]+)", is("[ERROR: Invalid regex string (([A-Za-z]+)]"));
-    }
+  @Test
+  public void invalidRegExErrorWhenRegexStringIsInvalid() {
+    testHelperError(
+        helper,
+        "/123/456,789,900",
+        "(([A-Za-z]+)",
+        is("[ERROR: Invalid regex string (([A-Za-z]+)]"));
+  }
 }

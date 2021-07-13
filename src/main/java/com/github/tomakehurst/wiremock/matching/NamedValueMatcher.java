@@ -19,9 +19,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public interface NamedValueMatcher<T> extends ValueMatcher<T> {
 
-    @JsonIgnore
-    String getName();
+  @JsonIgnore
+  String getName();
 
-    @JsonIgnore
-    String getExpected();
+  @JsonIgnore
+  String getExpected();
 }

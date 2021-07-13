@@ -17,11 +17,11 @@ package com.github.tomakehurst.wiremock.common;
 
 public class InvalidInputException extends ClientError {
 
-    public InvalidInputException(Errors errors) {
-        super(errors);
-    }
+  public InvalidInputException(Errors errors) {
+    super(errors);
+  }
 
-    protected InvalidInputException(Throwable cause, Errors errors) {
-        super(cause, errors);
-    }
+  protected InvalidInputException(Throwable cause, Errors errors) {
+    super(cause, errors);
+  }
 }

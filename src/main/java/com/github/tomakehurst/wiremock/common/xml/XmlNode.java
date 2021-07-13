@@ -15,13 +15,17 @@
  */
 package com.github.tomakehurst.wiremock.common.xml;
 
+import static com.github.tomakehurst.wiremock.common.Exceptions.throwUnchecked;
+import static javax.xml.transform.OutputKeys.INDENT;
+import static javax.xml.transform.OutputKeys.OMIT_XML_DECLARATION;
+
 import com.github.tomakehurst.wiremock.common.ListOrSingle;
 import com.google.common.collect.ImmutableMap;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.XMLReader;
-
+import java.io.StringWriter;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Collections;
+import java.util.Map;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
@@ -31,140 +35,149 @@ import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathFactory;
-import java.io.StringWriter;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Collections;
-import java.util.Map;
-
-import static com.github.tomakehurst.wiremock.common.Exceptions.throwUnchecked;
-import static javax.xml.transform.OutputKeys.INDENT;
-import static javax.xml.transform.OutputKeys.OMIT_XML_DECLARATION;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.XMLReader;
 
 public class XmlNode {
 
-    protected static final InheritableThreadLocal<XPath> XPATH_CACHE = new InheritableThreadLocal<XPath>() {
+  protected static final InheritableThreadLocal<XPath> XPATH_CACHE =
+      new InheritableThreadLocal<XPath>() {
         @Override
         protected XPath initialValue() {
-            final XPathFactory xPathfactory = XPathFactory.newInstance();
-            return xPathfactory.newXPath();
+          final XPathFactory xPathfactory = XPathFactory.newInstance();
+          return xPathfactory.newXPath();
         }
-    };
+      };
 
-    protected static final InheritableThreadLocal<Transformer> TRANSFORMER_CACHE = new InheritableThreadLocal<Transformer>() {
+  protected static final InheritableThreadLocal<Transformer> TRANSFORMER_CACHE =
+      new InheritableThreadLocal<Transformer>() {
         @Override
         protected Transformer initialValue() {
-            TransformerFactory transformerFactory;
-            try {
-                transformerFactory = (TransformerFactory) Class.forName("com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl").newInstance();
-                transformerFactory.setAttribute("indent-number", 2);
-            } catch (Exception e) {
-                transformerFactory = TransformerFactory.newInstance();
-            }
+          TransformerFactory transformerFactory;
+          try {
+            transformerFactory =
+                (TransformerFactory)
+                    Class.forName(
+                            "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl")
+                        .newInstance();
+            transformerFactory.setAttribute("indent-number", 2);
+          } catch (Exception e) {
+            transformerFactory = TransformerFactory.newInstance();
+          }
 
-            try {
-                Transformer transformer = transformerFactory.newTransformer();
-                transformer.setOutputProperty(INDENT, "yes");
-                transformer.setOutputProperty(OMIT_XML_DECLARATION, "yes");
-                return transformer;
-            } catch (TransformerConfigurationException e) {
-                return throwUnchecked(e, Transformer.class);
-            }
+          try {
+            Transformer transformer = transformerFactory.newTransformer();
+            transformer.setOutputProperty(INDENT, "yes");
+            transformer.setOutputProperty(OMIT_XML_DECLARATION, "yes");
+            return transformer;
+          } catch (TransformerConfigurationException e) {
+            return throwUnchecked(e, Transformer.class);
+          }
         }
-    };
+      };
 
-    private static final Class<XMLReader> DOM2SAX_XMLREADER_CLASS = getDom2SaxAvailability();
-    private static Class<XMLReader> getDom2SaxAvailability() {
-        try {
-            return (Class<XMLReader>) Class.forName("com.sun.org.apache.xalan.internal.xsltc.trax.DOM2SAX");
-        } catch (ClassNotFoundException e) {
-            return null;
-        }
+  private static final Class<XMLReader> DOM2SAX_XMLREADER_CLASS = getDom2SaxAvailability();
+
+  private static Class<XMLReader> getDom2SaxAvailability() {
+    try {
+      return (Class<XMLReader>)
+          Class.forName("com.sun.org.apache.xalan.internal.xsltc.trax.DOM2SAX");
+    } catch (ClassNotFoundException e) {
+      return null;
+    }
+  }
+
+  private final Node domNode;
+  private final Map<String, String> attributes;
+
+  public XmlNode(Node domNode) {
+    this.domNode = domNode;
+    attributes =
+        domNode.hasAttributes()
+            ? convertAttributeMap(domNode.getAttributes())
+            : Collections.<String, String>emptyMap();
+  }
+
+  private static Map<String, String> convertAttributeMap(NamedNodeMap namedNodeMap) {
+    ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
+    for (int i = 0; i < namedNodeMap.getLength(); i++) {
+      Node node = namedNodeMap.item(i);
+      builder.put(node.getNodeName(), node.getNodeValue());
     }
 
-    private final Node domNode;
-    private final Map<String, String> attributes;
+    return builder.build();
+  }
 
-    public XmlNode(Node domNode) {
-        this.domNode = domNode;
-        attributes = domNode.hasAttributes() ?
-                convertAttributeMap(domNode.getAttributes()) :
-                Collections.<String, String>emptyMap();
+  public Map<String, String> getAttributes() {
+    return attributes;
+  }
+
+  protected static ListOrSingle<XmlNode> toListOrSingle(NodeList nodeList) {
+    ListOrSingle<XmlNode> nodes = new ListOrSingle<>();
+    for (int i = 0; i < nodeList.getLength(); i++) {
+      nodes.add(new XmlNode(nodeList.item(i)));
     }
 
-    private static Map<String, String> convertAttributeMap(NamedNodeMap namedNodeMap) {
-        ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
-        for (int i = 0; i < namedNodeMap.getLength(); i++) {
-            Node node = namedNodeMap.item(i);
-            builder.put(node.getNodeName(), node.getNodeValue());
-        }
+    return nodes;
+  }
 
-        return builder.build();
-    }
+  public String getName() {
+    return domNode.getNodeName();
+  }
 
-    public Map<String, String> getAttributes() {
-        return attributes;
-    }
+  public String getText() {
+    return domNode.getTextContent();
+  }
 
-    protected static ListOrSingle<XmlNode> toListOrSingle(NodeList nodeList) {
-        ListOrSingle<XmlNode> nodes = new ListOrSingle<>();
-        for (int i = 0; i < nodeList.getLength(); i++) {
-            nodes.add(new XmlNode(nodeList.item(i)));
-        }
-
-        return nodes;
-    }
-
-    public String getName() {
-        return domNode.getNodeName();
-    }
-
-    public String getText() {
+  @Override
+  public String toString() {
+    switch (domNode.getNodeType()) {
+      case Node.TEXT_NODE:
+      case Node.ATTRIBUTE_NODE:
         return domNode.getTextContent();
+      case Node.DOCUMENT_NODE:
+      case Node.ELEMENT_NODE:
+        return render();
+      default:
+        return domNode.toString();
     }
+  }
 
-    @Override
-    public String toString() {
-        switch (domNode.getNodeType()) {
-            case Node.TEXT_NODE:
-            case Node.ATTRIBUTE_NODE:
-                return domNode.getTextContent();
-            case Node.DOCUMENT_NODE:
-            case Node.ELEMENT_NODE:
-                return render();
-            default:
-                return domNode.toString();
-        }
+  private String render() {
+    try {
+      Transformer transformer = TRANSFORMER_CACHE.get();
+      StreamResult result = new StreamResult(new StringWriter());
+      Source source = getSourceForTransform(domNode);
+      transformer.transform(source, result);
+      return result.getWriter().toString();
+    } catch (Exception e) {
+      return throwUnchecked(e, String.class);
     }
+  }
 
-    private String render() {
-        try {
-            Transformer transformer = TRANSFORMER_CACHE.get();
-            StreamResult result = new StreamResult(new StringWriter());
-            Source source = getSourceForTransform(domNode);
-            transformer.transform(source, result);
-            return result.getWriter().toString();
-        } catch (Exception e) {
-            return throwUnchecked(e, String.class);
-        }
-    }
-
-    // This nasty little hack attempts to ensure no exception is thrown when attempting to print an XML node with
-    // unbound namespace prefixes (which can happen when you've selected an element via XPath whose namespaces are declared in a parent element).
-    // For some reason Transformer is happy to do this with a SAX source, but not a DOM source.
-    private static Source getSourceForTransform(Node node) {
-        if (DOM2SAX_XMLREADER_CLASS != null) {
-            try {
-                Constructor<XMLReader> constructor = DOM2SAX_XMLREADER_CLASS.getConstructor(Node.class);
-                XMLReader dom2SAX = constructor.newInstance(node);
-                SAXSource saxSource = new SAXSource();
-                saxSource.setXMLReader(dom2SAX);
-                return saxSource;
-            } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                return new DOMSource(node);
-            }
-        }
-
+  // This nasty little hack attempts to ensure no exception is thrown when attempting to print an
+  // XML node with
+  // unbound namespace prefixes (which can happen when you've selected an element via XPath whose
+  // namespaces are declared in a parent element).
+  // For some reason Transformer is happy to do this with a SAX source, but not a DOM source.
+  private static Source getSourceForTransform(Node node) {
+    if (DOM2SAX_XMLREADER_CLASS != null) {
+      try {
+        Constructor<XMLReader> constructor = DOM2SAX_XMLREADER_CLASS.getConstructor(Node.class);
+        XMLReader dom2SAX = constructor.newInstance(node);
+        SAXSource saxSource = new SAXSource();
+        saxSource.setXMLReader(dom2SAX);
+        return saxSource;
+      } catch (NoSuchMethodException
+          | InstantiationException
+          | IllegalAccessException
+          | InvocationTargetException e) {
         return new DOMSource(node);
+      }
     }
+
+    return new DOMSource(node);
+  }
 }

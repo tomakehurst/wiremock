@@ -20,9 +20,9 @@ import com.github.tomakehurst.wiremock.http.Request;
 
 public interface RequestFilter extends Extension {
 
-    RequestFilterAction filter(Request request);
+  RequestFilterAction filter(Request request);
 
-    boolean applyToAdmin();
-    boolean applyToStubs();
+  boolean applyToAdmin();
 
+  boolean applyToStubs();
 }

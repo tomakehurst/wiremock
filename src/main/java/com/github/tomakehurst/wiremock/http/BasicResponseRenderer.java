@@ -15,19 +15,19 @@
  */
 package com.github.tomakehurst.wiremock.http;
 
-import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
-
 import static com.github.tomakehurst.wiremock.http.Response.response;
+
+import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 
 public class BasicResponseRenderer implements ResponseRenderer {
 
-    @Override
-    public Response render(ServeEvent serveEvent) {
-        ResponseDefinition responseDefinition = serveEvent.getResponseDefinition();
-        return response()
-            .status(responseDefinition.getStatus())
-            .headers(responseDefinition.getHeaders())
-            .body(responseDefinition.getByteBody())
-            .build();
-    }
+  @Override
+  public Response render(ServeEvent serveEvent) {
+    ResponseDefinition responseDefinition = serveEvent.getResponseDefinition();
+    return response()
+        .status(responseDefinition.getStatus())
+        .headers(responseDefinition.getHeaders())
+        .body(responseDefinition.getByteBody())
+        .build();
+  }
 }

@@ -23,65 +23,86 @@ import com.github.tomakehurst.wiremock.recording.RecordSpec;
 import com.github.tomakehurst.wiremock.recording.RecordSpecBuilder;
 import com.github.tomakehurst.wiremock.recording.RecordingStatusResult;
 import com.github.tomakehurst.wiremock.recording.SnapshotRecordResult;
-import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import com.github.tomakehurst.wiremock.stubbing.StubImport;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.github.tomakehurst.wiremock.verification.*;
-
-import java.util.List;
 import java.util.UUID;
 
 public interface Admin {
 
-	void addStubMapping(StubMapping stubMapping);
-	void editStubMapping(StubMapping stubMapping);
-	void removeStubMapping(StubMapping stubbMapping);
-    ListStubMappingsResult listAllStubMappings();
-    SingleStubMappingResult getStubMapping(UUID id);
-    void saveMappings();
+  void addStubMapping(StubMapping stubMapping);
 
-	void resetRequests();
-    void resetScenarios();
-    void resetMappings();
-    void resetAll();
-    void resetToDefaultMappings();
+  void editStubMapping(StubMapping stubMapping);
 
-    GetServeEventsResult getServeEvents();
-    SingleServedStubResult getServedStub(UUID id);
-    VerificationResult countRequestsMatching(RequestPattern requestPattern);
-    FindRequestsResult findRequestsMatching(RequestPattern requestPattern);
-    FindRequestsResult findUnmatchedRequests();
+  void removeStubMapping(StubMapping stubbMapping);
 
-    void removeServeEvent(UUID eventId);
-    FindServeEventsResult removeServeEventsMatching(RequestPattern requestPattern);
-    FindServeEventsResult removeServeEventsForStubsMatchingMetadata(StringValuePattern pattern);
+  ListStubMappingsResult listAllStubMappings();
 
-    FindNearMissesResult findTopNearMissesFor(LoggedRequest loggedRequest);
-    FindNearMissesResult findTopNearMissesFor(RequestPattern requestPattern);
-    FindNearMissesResult findNearMissesForUnmatchedRequests();
+  SingleStubMappingResult getStubMapping(UUID id);
 
-    GetScenariosResult getAllScenarios();
+  void saveMappings();
 
-    void updateGlobalSettings(GlobalSettings settings);
+  void resetRequests();
 
-    SnapshotRecordResult snapshotRecord();
-    SnapshotRecordResult snapshotRecord(RecordSpec spec);
-    SnapshotRecordResult snapshotRecord(RecordSpecBuilder spec);
+  void resetScenarios();
 
-    void startRecording(String targetBaseUrl);
-    void startRecording(RecordSpec spec);
-    void startRecording(RecordSpecBuilder recordSpec);
-    SnapshotRecordResult stopRecording();
-    RecordingStatusResult getRecordingStatus();
+  void resetMappings();
 
-    Options getOptions();
+  void resetAll();
 
-    void shutdownServer();
+  void resetToDefaultMappings();
 
-    ListStubMappingsResult findAllStubsByMetadata(StringValuePattern pattern);
-    void removeStubsByMetadata(StringValuePattern pattern);
+  GetServeEventsResult getServeEvents();
 
-    void importStubs(StubImport stubImport);
+  SingleServedStubResult getServedStub(UUID id);
 
-    GetGlobalSettingsResult getGlobalSettings();
+  VerificationResult countRequestsMatching(RequestPattern requestPattern);
+
+  FindRequestsResult findRequestsMatching(RequestPattern requestPattern);
+
+  FindRequestsResult findUnmatchedRequests();
+
+  void removeServeEvent(UUID eventId);
+
+  FindServeEventsResult removeServeEventsMatching(RequestPattern requestPattern);
+
+  FindServeEventsResult removeServeEventsForStubsMatchingMetadata(StringValuePattern pattern);
+
+  FindNearMissesResult findTopNearMissesFor(LoggedRequest loggedRequest);
+
+  FindNearMissesResult findTopNearMissesFor(RequestPattern requestPattern);
+
+  FindNearMissesResult findNearMissesForUnmatchedRequests();
+
+  GetScenariosResult getAllScenarios();
+
+  void updateGlobalSettings(GlobalSettings settings);
+
+  SnapshotRecordResult snapshotRecord();
+
+  SnapshotRecordResult snapshotRecord(RecordSpec spec);
+
+  SnapshotRecordResult snapshotRecord(RecordSpecBuilder spec);
+
+  void startRecording(String targetBaseUrl);
+
+  void startRecording(RecordSpec spec);
+
+  void startRecording(RecordSpecBuilder recordSpec);
+
+  SnapshotRecordResult stopRecording();
+
+  RecordingStatusResult getRecordingStatus();
+
+  Options getOptions();
+
+  void shutdownServer();
+
+  ListStubMappingsResult findAllStubsByMetadata(StringValuePattern pattern);
+
+  void removeStubsByMetadata(StringValuePattern pattern);
+
+  void importStubs(StubImport stubImport);
+
+  GetGlobalSettingsResult getGlobalSettings();
 }

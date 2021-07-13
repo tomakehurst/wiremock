@@ -23,50 +23,50 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
 /**
- * @deprecated JUnit disallows this approach from version 4.11. Use {@link WireMockClassRule} instead
+ * @deprecated JUnit disallows this approach from version 4.11. Use {@link WireMockClassRule}
+ *     instead
  */
 @Deprecated
 public class WireMockStaticRule implements MethodRule {
 
-	private final WireMockServer wireMockServer;
-	
-	public WireMockStaticRule(int port) {
-		wireMockServer = new WireMockServer(port);
-		wireMockServer.start();
-		WireMock.configureFor("localhost", port);
-	}
-	
-	public WireMockStaticRule() {
-		this(Options.DEFAULT_PORT);
-	}
-	
-	public void stopServer() {
-		wireMockServer.stop();
-	}
+  private final WireMockServer wireMockServer;
 
-	@Override
-	public Statement apply(final Statement base, final FrameworkMethod method, Object target) {
-		return new Statement() {
+  public WireMockStaticRule(int port) {
+    wireMockServer = new WireMockServer(port);
+    wireMockServer.start();
+    WireMock.configureFor("localhost", port);
+  }
 
-			@Override
-			public void evaluate() throws Throwable {
-				try {
-                    before();
-                    base.evaluate();
-                } finally {
-                    after();
-                    WireMock.reset();
-                }
-			}
-			
-		};
-	}
+  public WireMockStaticRule() {
+    this(Options.DEFAULT_PORT);
+  }
 
-    protected void before() {
-        // NOOP
-    }
+  public void stopServer() {
+    wireMockServer.stop();
+  }
 
-    protected void after() {
-        // NOOP
-    }
+  @Override
+  public Statement apply(final Statement base, final FrameworkMethod method, Object target) {
+    return new Statement() {
+
+      @Override
+      public void evaluate() throws Throwable {
+        try {
+          before();
+          base.evaluate();
+        } finally {
+          after();
+          WireMock.reset();
+        }
+      }
+    };
+  }
+
+  protected void before() {
+    // NOOP
+  }
+
+  protected void after() {
+    // NOOP
+  }
 }

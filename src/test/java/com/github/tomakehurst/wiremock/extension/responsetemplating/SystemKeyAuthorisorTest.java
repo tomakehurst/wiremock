@@ -15,39 +15,40 @@
  */
 package com.github.tomakehurst.wiremock.extension.responsetemplating;
 
-import com.google.common.collect.ImmutableSet;
-import org.junit.Test;
-
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.google.common.collect.ImmutableSet;
+import org.junit.Test;
+
 public class SystemKeyAuthorisorTest {
 
-    @Test
-    public void permitsAllowedKeys() {
-        SystemKeyAuthoriser authoriser = new SystemKeyAuthoriser(ImmutableSet.of("allowed_.*", "permitted_.*"));
+  @Test
+  public void permitsAllowedKeys() {
+    SystemKeyAuthoriser authoriser =
+        new SystemKeyAuthoriser(ImmutableSet.of("allowed_.*", "permitted_.*"));
 
-        assertTrue(authoriser.isPermitted("allowed_key_1"));
-        assertTrue(authoriser.isPermitted("ALLOWED_KEY_2"));
-        assertTrue(authoriser.isPermitted("permitted_key_3"));
-    }
+    assertTrue(authoriser.isPermitted("allowed_key_1"));
+    assertTrue(authoriser.isPermitted("ALLOWED_KEY_2"));
+    assertTrue(authoriser.isPermitted("permitted_key_3"));
+  }
 
-    @Test
-    public void forbidsNonAllowedKeys() {
-        SystemKeyAuthoriser authoriser = new SystemKeyAuthoriser(ImmutableSet.of("allowed_.*", "permitted_.*"));
+  @Test
+  public void forbidsNonAllowedKeys() {
+    SystemKeyAuthoriser authoriser =
+        new SystemKeyAuthoriser(ImmutableSet.of("allowed_.*", "permitted_.*"));
 
-        assertFalse(authoriser.isPermitted("forbidden_key_1"));
-        assertFalse(authoriser.isPermitted("notallowed_key_2"));
-        assertFalse(authoriser.isPermitted("notpermitted_key_3"));
-    }
+    assertFalse(authoriser.isPermitted("forbidden_key_1"));
+    assertFalse(authoriser.isPermitted("notallowed_key_2"));
+    assertFalse(authoriser.isPermitted("notpermitted_key_3"));
+  }
 
-    @Test
-    public void defaultsToWireMockPrefixIfNoPatternsSpecified() {
-        SystemKeyAuthoriser authoriser = new SystemKeyAuthoriser(null);
+  @Test
+  public void defaultsToWireMockPrefixIfNoPatternsSpecified() {
+    SystemKeyAuthoriser authoriser = new SystemKeyAuthoriser(null);
 
-        assertTrue(authoriser.isPermitted("wiremock_key_1"));
-        assertTrue(authoriser.isPermitted("wiremock.thing.2"));
-        assertFalse(authoriser.isPermitted("notallowed_key_2"));
-    }
-
+    assertTrue(authoriser.isPermitted("wiremock_key_1"));
+    assertTrue(authoriser.isPermitted("wiremock.thing.2"));
+    assertFalse(authoriser.isPermitted("notallowed_key_2"));
+  }
 }

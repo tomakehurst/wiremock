@@ -21,10 +21,10 @@ import com.github.tomakehurst.wiremock.http.Response;
 
 public class MockHttpResponder implements HttpResponder {
 
-    public Response response;
+  public Response response;
 
-    @Override
-    public void respond(Request request, Response response) {
-        this.response = response;
-    }
+  @Override
+  public void respond(Request request, Response response) {
+    this.response = response;
+  }
 }

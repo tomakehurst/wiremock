@@ -18,35 +18,35 @@ package com.github.tomakehurst.wiremock.matching;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.BeanSerializerBuilder;
 import com.fasterxml.jackson.databind.ser.BeanSerializerFactory;
-
 import java.io.IOException;
 
 public abstract class PathPatternJsonSerializer<T extends PathPattern> extends JsonSerializer<T> {
 
-    @Override
-    public void serialize(T value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-        gen.writeStartObject();
+  @Override
+  public void serialize(T value, JsonGenerator gen, SerializerProvider serializers)
+      throws IOException {
+    gen.writeStartObject();
 
-        if (value.isSimple()) {
-            gen.writeStringField(value.getName(), value.getExpected());
-        } else {
-            AdvancedPathPattern advancedPathPattern = new AdvancedPathPattern(value.getExpected(), value.getValuePattern());
-            gen.writeFieldName(value.getName());
+    if (value.isSimple()) {
+      gen.writeStringField(value.getName(), value.getExpected());
+    } else {
+      AdvancedPathPattern advancedPathPattern =
+          new AdvancedPathPattern(value.getExpected(), value.getValuePattern());
+      gen.writeFieldName(value.getName());
 
-            JavaType javaType = serializers.getConfig().constructType(advancedPathPattern.getClass());
-            JsonSerializer<Object> serializer = BeanSerializerFactory.instance.createSerializer(serializers, javaType);
-            serializer.serialize(advancedPathPattern, gen, serializers);
-        }
-
-        serializeAdditionalFields(value, gen, serializers);
-
-        gen.writeEndObject();
+      JavaType javaType = serializers.getConfig().constructType(advancedPathPattern.getClass());
+      JsonSerializer<Object> serializer =
+          BeanSerializerFactory.instance.createSerializer(serializers, javaType);
+      serializer.serialize(advancedPathPattern, gen, serializers);
     }
 
-    protected abstract void serializeAdditionalFields(T value, JsonGenerator gen, SerializerProvider serializers) throws IOException;
+    serializeAdditionalFields(value, gen, serializers);
 
+    gen.writeEndObject();
+  }
+
+  protected abstract void serializeAdditionalFields(
+      T value, JsonGenerator gen, SerializerProvider serializers) throws IOException;
 }

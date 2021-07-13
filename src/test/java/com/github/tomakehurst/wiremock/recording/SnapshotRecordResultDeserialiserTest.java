@@ -15,57 +15,57 @@
  */
 package com.github.tomakehurst.wiremock.recording;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
+
 import com.github.tomakehurst.wiremock.common.Json;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-
 public class SnapshotRecordResultDeserialiserTest {
 
-    @Test
-    public void supportsFullResponse() {
-        SnapshotRecordResult result = Json.read(
-            "{                                     \n" +
-                "    \"mappings\": [                    \n" +
-                "        {                              \n" +
-                "            \"request\": {             \n" +
-                "                \"url\": \"/hello\",   \n" +
-                "                \"method\": \"GET\"    \n" +
-                "            },                         \n" +
-                "            \"response\": {            \n" +
-                "                \"status\": 201        \n" +
-                "            }                          \n" +
-                "        },                             \n" +
-                "        {}                             \n" +
-                "    ]                                  \n" +
-                "}",
-            SnapshotRecordResult.class
-        );
+  @Test
+  public void supportsFullResponse() {
+    SnapshotRecordResult result =
+        Json.read(
+            "{                                     \n"
+                + "    \"mappings\": [                    \n"
+                + "        {                              \n"
+                + "            \"request\": {             \n"
+                + "                \"url\": \"/hello\",   \n"
+                + "                \"method\": \"GET\"    \n"
+                + "            },                         \n"
+                + "            \"response\": {            \n"
+                + "                \"status\": 201        \n"
+                + "            }                          \n"
+                + "        },                             \n"
+                + "        {}                             \n"
+                + "    ]                                  \n"
+                + "}",
+            SnapshotRecordResult.class);
 
-        assertThat(result, instanceOf(SnapshotRecordResult.Full.class));
-        assertThat(result.getStubMappings().size(), is(2));
-        assertThat(result.getStubMappings().get(0), instanceOf(StubMapping.class));
-    }
+    assertThat(result, instanceOf(SnapshotRecordResult.Full.class));
+    assertThat(result.getStubMappings().size(), is(2));
+    assertThat(result.getStubMappings().get(0), instanceOf(StubMapping.class));
+  }
 
-    @Test
-    public void supportsIdsOnlyResponse() {
-        SnapshotRecordResult result = Json.read(
-            "{                                                     \n" +
-                "    \"ids\": [                                         \n" +
-                "        \"d3f32721-ab5e-479c-9f7a-fda76ed5d803\",      \n" +
-                "        \"162d0567-4baf-408b-ad7f-41a779638082\",      \n" +
-                "        \"02ee46c3-0b49-40ca-a424-8298c099b6db\"       \n" +
-                "    ]                                                  \n" +
-                "}",
-            SnapshotRecordResult.class
-        );
+  @Test
+  public void supportsIdsOnlyResponse() {
+    SnapshotRecordResult result =
+        Json.read(
+            "{                                                     \n"
+                + "    \"ids\": [                                         \n"
+                + "        \"d3f32721-ab5e-479c-9f7a-fda76ed5d803\",      \n"
+                + "        \"162d0567-4baf-408b-ad7f-41a779638082\",      \n"
+                + "        \"02ee46c3-0b49-40ca-a424-8298c099b6db\"       \n"
+                + "    ]                                                  \n"
+                + "}",
+            SnapshotRecordResult.class);
 
-        assertThat(result, instanceOf(SnapshotRecordResult.Ids.class));
+    assertThat(result, instanceOf(SnapshotRecordResult.Ids.class));
 
-        SnapshotRecordResult.Ids idsResult = (SnapshotRecordResult.Ids) result;
-        assertThat(idsResult.getIds().size(), is(3));
-    }
+    SnapshotRecordResult.Ids idsResult = (SnapshotRecordResult.Ids) result;
+    assertThat(idsResult.getIds().size(), is(3));
+  }
 }

@@ -15,32 +15,34 @@
  */
 package com.github.tomakehurst.wiremock.recording;
 
+import static com.github.tomakehurst.wiremock.matching.MockRequest.mockRequest;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+
 import com.github.tomakehurst.wiremock.matching.EqualToJsonPattern;
 import org.junit.Test;
 
-import static com.github.tomakehurst.wiremock.matching.MockRequest.mockRequest;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-
 public class RequestBodyEqualToJsonPatternFactoryTest {
 
-    @Test
-    public void withIgnoreArrayOrder() {
-        RequestBodyEqualToJsonPatternFactory patternFactory = new RequestBodyEqualToJsonPatternFactory(true, false);
-        EqualToJsonPattern pattern = patternFactory.forRequest(mockRequest().body("{}"));
+  @Test
+  public void withIgnoreArrayOrder() {
+    RequestBodyEqualToJsonPatternFactory patternFactory =
+        new RequestBodyEqualToJsonPatternFactory(true, false);
+    EqualToJsonPattern pattern = patternFactory.forRequest(mockRequest().body("{}"));
 
-        assertThat(pattern.getEqualToJson(), is("{}"));
-        assertThat(pattern.isIgnoreExtraElements(), is(false));
-        assertThat(pattern.isIgnoreArrayOrder(), is(true));
-    }
+    assertThat(pattern.getEqualToJson(), is("{}"));
+    assertThat(pattern.isIgnoreExtraElements(), is(false));
+    assertThat(pattern.isIgnoreArrayOrder(), is(true));
+  }
 
-    @Test
-    public void withIgnoreExtraElements() {
-        RequestBodyEqualToJsonPatternFactory patternFactory = new RequestBodyEqualToJsonPatternFactory(false, true);
-        EqualToJsonPattern pattern = patternFactory.forRequest(mockRequest().body("{}"));
+  @Test
+  public void withIgnoreExtraElements() {
+    RequestBodyEqualToJsonPatternFactory patternFactory =
+        new RequestBodyEqualToJsonPatternFactory(false, true);
+    EqualToJsonPattern pattern = patternFactory.forRequest(mockRequest().body("{}"));
 
-        assertThat(pattern.getEqualToJson(), is("{}"));
-        assertThat(pattern.isIgnoreExtraElements(), is(true));
-        assertThat(pattern.isIgnoreArrayOrder(), is(false));
-    }
+    assertThat(pattern.getEqualToJson(), is("{}"));
+    assertThat(pattern.isIgnoreExtraElements(), is(true));
+    assertThat(pattern.isIgnoreArrayOrder(), is(false));
+  }
 }

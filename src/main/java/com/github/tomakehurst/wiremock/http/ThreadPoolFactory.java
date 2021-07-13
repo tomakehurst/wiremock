@@ -20,5 +20,5 @@ import org.eclipse.jetty.util.thread.ThreadPool;
 
 public interface ThreadPoolFactory {
 
-    ThreadPool buildThreadPool(Options options);
+  ThreadPool buildThreadPool(Options options);
 }

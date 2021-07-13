@@ -26,12 +26,13 @@ import com.github.tomakehurst.wiremock.http.ResponseDefinition;
 
 public class GetAllStubMappingsTask implements AdminTask {
 
-    @Override
-    public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
-        ListStubMappingsResult result = new ListStubMappingsResult(
-            LimitAndOffsetPaginator.fromRequest(admin.listAllStubMappings().getMappings(), request)
-        );
+  @Override
+  public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
+    ListStubMappingsResult result =
+        new ListStubMappingsResult(
+            LimitAndOffsetPaginator.fromRequest(
+                admin.listAllStubMappings().getMappings(), request));
 
-        return ResponseDefinitionBuilder.jsonResponse(result);
-    }
+    return ResponseDefinitionBuilder.jsonResponse(result);
+  }
 }

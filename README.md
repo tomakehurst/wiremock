@@ -37,8 +37,22 @@ following guidelines:
 * Please make one change per pull request.
 * If the new feature is significantly large/complex/breaks existing behaviour, please first post a summary of your idea
 on the mailing list to generate a discussion. This will avoid significant amounts of coding time spent on changes that ultimately get rejected.
-* Try to avoid reformats of files that change the indentation, tabs to spaces etc., as this makes reviewing diffs much
-more difficult.
+* This project utilises the [Spotless Gradle Plugin](https://github.com/diffplug/spotless/tree/HEAD/plugin-gradle) to manage code style. You can
+apply changes by running `./gradlew spotlessApply`, or by adding the following configuration as a global Gralde configuration to an initscript file
+i.e. `~/.gradle/init.d/spotless.gradle`:
+
+```gradle
+allprojects {
+  afterEvaluate {
+    def spotless = tasks.findByName('spotlessApply')
+    if (spotless) {
+      tasks.withType(JavaCompile) {
+        finalizedBy(spotless)
+      }
+    }
+  }
+}
+```
 
 Building WireMock locally
 -------------------------

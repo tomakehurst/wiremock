@@ -22,19 +22,20 @@ import com.github.tomakehurst.wiremock.matching.EqualToPattern;
 
 public class RequestBodyEqualToPatternFactory implements RequestBodyPatternFactory {
 
-    private final Boolean caseInsensitive;
+  private final Boolean caseInsensitive;
 
-    @JsonCreator
-    public RequestBodyEqualToPatternFactory(@JsonProperty("caseInsensitive") Boolean caseInsensitive) {
-        this.caseInsensitive = caseInsensitive;
-    }
+  @JsonCreator
+  public RequestBodyEqualToPatternFactory(
+      @JsonProperty("caseInsensitive") Boolean caseInsensitive) {
+    this.caseInsensitive = caseInsensitive;
+  }
 
-    public Boolean isCaseInsensitive() {
-        return caseInsensitive;
-    }
+  public Boolean isCaseInsensitive() {
+    return caseInsensitive;
+  }
 
-    @Override
-    public EqualToPattern forRequest(Request request) {
-        return new EqualToPattern(request.getBodyAsString(), caseInsensitive);
-    }
+  @Override
+  public EqualToPattern forRequest(Request request) {
+    return new EqualToPattern(request.getBodyAsString(), caseInsensitive);
+  }
 }

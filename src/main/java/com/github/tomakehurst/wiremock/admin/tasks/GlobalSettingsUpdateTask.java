@@ -26,16 +26,17 @@ import com.github.tomakehurst.wiremock.http.ResponseDefinition;
 
 public class GlobalSettingsUpdateTask implements AdminTask {
 
-    @Override
-    public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
-        GlobalSettings newSettings;
-        try {
-            newSettings = Json.read(request.getBodyAsString(), GlobalSettings.class);
-        } catch (Exception e) {
-            newSettings = Json.read(request.getBodyAsString(), GetGlobalSettingsResult.class).getSettings();
-        }
-
-        admin.updateGlobalSettings(newSettings);
-        return ResponseDefinition.ok();
+  @Override
+  public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
+    GlobalSettings newSettings;
+    try {
+      newSettings = Json.read(request.getBodyAsString(), GlobalSettings.class);
+    } catch (Exception e) {
+      newSettings =
+          Json.read(request.getBodyAsString(), GetGlobalSettingsResult.class).getSettings();
     }
+
+    admin.updateGlobalSettings(newSettings);
+    return ResponseDefinition.ok();
+  }
 }

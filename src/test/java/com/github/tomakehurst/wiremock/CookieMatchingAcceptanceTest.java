@@ -15,130 +15,155 @@
  */
 package com.github.tomakehurst.wiremock;
 
-import com.github.tomakehurst.wiremock.testsupport.WireMockResponse;
-import com.github.tomakehurst.wiremock.verification.LoggedRequest;
-import org.junit.Test;
-
-import java.util.List;
-
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.testsupport.TestHttpHeader.withHeader;
 import static com.google.common.net.HttpHeaders.COOKIE;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+
+import com.github.tomakehurst.wiremock.testsupport.WireMockResponse;
+import com.github.tomakehurst.wiremock.verification.LoggedRequest;
+import java.util.List;
+import org.junit.Test;
 
 public class CookieMatchingAcceptanceTest extends AcceptanceTestBase {
 
-    @Test
-    public void matchesOnWellFormedCookie() {
-        stubFor(get(urlEqualTo("/good/cookie"))
+  @Test
+  public void matchesOnWellFormedCookie() {
+    stubFor(
+        get(urlEqualTo("/good/cookie"))
             .withCookie("my_cookie", containing("mycookievalue"))
             .willReturn(aResponse().withStatus(200)));
 
-        WireMockResponse response =
-            testClient.get("/good/cookie", withHeader(COOKIE, "my_cookie=xxx-mycookievalue-xxx"));
+    WireMockResponse response =
+        testClient.get("/good/cookie", withHeader(COOKIE, "my_cookie=xxx-mycookievalue-xxx"));
 
-        assertThat(response.statusCode(), is(200));
-    }
+    assertThat(response.statusCode(), is(200));
+  }
 
-    @Test
-    public void matchesWhenMultipleCookiesAreSentAndRequired() {
-        stubFor(get(urlEqualTo("/good/cookies"))
+  @Test
+  public void matchesWhenMultipleCookiesAreSentAndRequired() {
+    stubFor(
+        get(urlEqualTo("/good/cookies"))
             .withCookie("my_cookie", containing("mycookievalue"))
             .withCookie("my_other_cookie", equalTo("exact-other-value"))
             .willReturn(aResponse().withStatus(200)));
 
-        WireMockResponse response =
-            testClient.get("/good/cookies", withHeader(COOKIE, "my_cookie=xxx-mycookievalue-xxx; my_other_cookie=exact-other-value; irrelevant_cookie=whatever"));
+    WireMockResponse response =
+        testClient.get(
+            "/good/cookies",
+            withHeader(
+                COOKIE,
+                "my_cookie=xxx-mycookievalue-xxx; my_other_cookie=exact-other-value; irrelevant_cookie=whatever"));
 
-        assertThat(response.statusCode(), is(200));
-    }
+    assertThat(response.statusCode(), is(200));
+  }
 
-    @Test
-    public void doesNotMatchWhenExpectedCookieIsAbsent() {
-        stubFor(get(urlEqualTo("/missing/cookie"))
+  @Test
+  public void doesNotMatchWhenExpectedCookieIsAbsent() {
+    stubFor(
+        get(urlEqualTo("/missing/cookie"))
             .withCookie("my_cookie", containing("mycookievalue"))
             .willReturn(aResponse().withStatus(200)));
 
-        WireMockResponse response =
-            testClient.get("/missing/cookie", withHeader(COOKIE, "the_wrong_cookie=xxx-mycookievalue-xxx"));
+    WireMockResponse response =
+        testClient.get(
+            "/missing/cookie", withHeader(COOKIE, "the_wrong_cookie=xxx-mycookievalue-xxx"));
 
-        assertThat(response.statusCode(), is(404));
-    }
+    assertThat(response.statusCode(), is(404));
+  }
 
-    @Test
-    public void doesNotMatchWhenExpectedCookieHasTheWrongValue() {
-        stubFor(get(urlEqualTo("/bad/cookie"))
+  @Test
+  public void doesNotMatchWhenExpectedCookieHasTheWrongValue() {
+    stubFor(
+        get(urlEqualTo("/bad/cookie"))
             .withCookie("my_cookie", containing("mycookievalue"))
             .willReturn(aResponse().withStatus(200)));
 
-        WireMockResponse response =
-            testClient.get("/bad/cookie", withHeader(COOKIE, "my_cookie=youwontfindthis"));
+    WireMockResponse response =
+        testClient.get("/bad/cookie", withHeader(COOKIE, "my_cookie=youwontfindthis"));
 
-        assertThat(response.statusCode(), is(404));
-    }
+    assertThat(response.statusCode(), is(404));
+  }
 
-    @Test
-    public void doesNotMatchWhenExpectedCookieIsMalformed() {
-        stubFor(get(urlEqualTo("/very-bad/cookie"))
+  @Test
+  public void doesNotMatchWhenExpectedCookieIsMalformed() {
+    stubFor(
+        get(urlEqualTo("/very-bad/cookie"))
             .withCookie("my_cookie", containing("mycookievalue"))
             .willReturn(aResponse().withStatus(200)));
 
-        WireMockResponse response =
-            testClient.get("/very-bad/cookie", withHeader(COOKIE, "my_cookieyouwontfindthis;;sldfjskldjf%%"));
+    WireMockResponse response =
+        testClient.get(
+            "/very-bad/cookie", withHeader(COOKIE, "my_cookieyouwontfindthis;;sldfjskldjf%%"));
 
-        assertThat(response.statusCode(), is(404));
-    }
+    assertThat(response.statusCode(), is(404));
+  }
 
-    @Test
-    public void matchesWhenRequiredAbsentCookieIsAbsent() {
-        stubFor(get(urlEqualTo("/absent/cookie"))
+  @Test
+  public void matchesWhenRequiredAbsentCookieIsAbsent() {
+    stubFor(
+        get(urlEqualTo("/absent/cookie"))
             .withCookie("not_this_cookie", absent())
             .willReturn(aResponse().withStatus(200)));
 
-        WireMockResponse response =
-            testClient.get("/absent/cookie",
-                withHeader(COOKIE, "my_cookie=xxx-mycookievalue-xxx; my_other_cookie=exact-other-value; irrelevant_cookie=whatever"));
+    WireMockResponse response =
+        testClient.get(
+            "/absent/cookie",
+            withHeader(
+                COOKIE,
+                "my_cookie=xxx-mycookievalue-xxx; my_other_cookie=exact-other-value; irrelevant_cookie=whatever"));
 
-        assertThat(response.statusCode(), is(200));
-    }
+    assertThat(response.statusCode(), is(200));
+  }
 
-    @Test
-    public void doesNotMatchWhenRequiredAbsentCookieIsPresent() {
-        stubFor(get(urlEqualTo("/absent/cookie"))
+  @Test
+  public void doesNotMatchWhenRequiredAbsentCookieIsPresent() {
+    stubFor(
+        get(urlEqualTo("/absent/cookie"))
             .withCookie("my_cookie", absent())
             .willReturn(aResponse().withStatus(200)));
 
-        WireMockResponse response =
-            testClient.get("/absent/cookie",
-                withHeader(COOKIE, "my_cookie=xxx-mycookievalue-xxx; my_other_cookie=exact-other-value; irrelevant_cookie=whatever"));
+    WireMockResponse response =
+        testClient.get(
+            "/absent/cookie",
+            withHeader(
+                COOKIE,
+                "my_cookie=xxx-mycookievalue-xxx; my_other_cookie=exact-other-value; irrelevant_cookie=whatever"));
 
-        assertThat(response.statusCode(), is(404));
-    }
+    assertThat(response.statusCode(), is(404));
+  }
 
-    @Test
-    public void revealsCookiesInLoggedRequests() {
-        testClient.get("/good/cookies", withHeader(COOKIE, "my_cookie=xxx-mycookievalue-xxx; my_other_cookie=exact-other-value; irrelevant_cookie=whatever"));
+  @Test
+  public void revealsCookiesInLoggedRequests() {
+    testClient.get(
+        "/good/cookies",
+        withHeader(
+            COOKIE,
+            "my_cookie=xxx-mycookievalue-xxx; my_other_cookie=exact-other-value; irrelevant_cookie=whatever"));
 
-        List<LoggedRequest> requests = findAll(getRequestedFor(urlEqualTo("/good/cookies")));
+    List<LoggedRequest> requests = findAll(getRequestedFor(urlEqualTo("/good/cookies")));
 
-        assertThat(requests.size(), is(1));
-        assertThat(requests.get(0).getCookies().keySet(), hasItem("my_other_cookie"));
-    }
+    assertThat(requests.size(), is(1));
+    assertThat(requests.get(0).getCookies().keySet(), hasItem("my_other_cookie"));
+  }
 
-    @Test
-    public void matchesWhenRequiredCookieSentAsDuplicate() {
-        stubFor(get(urlEqualTo("/duplicate/cookie"))
+  @Test
+  public void matchesWhenRequiredCookieSentAsDuplicate() {
+    stubFor(
+        get(urlEqualTo("/duplicate/cookie"))
             .withCookie("my_cookie", containing("mycookievalue"))
             .withCookie("my_other_cookie", equalTo("value-2"))
             .willReturn(aResponse().withStatus(200)));
 
-        WireMockResponse response =
-            testClient.get("/duplicate/cookie",
-                withHeader(COOKIE, "my_cookie=xxx-mycookievalue-xxx; my_other_cookie=value-1; my_other_cookie=value-2"));
+    WireMockResponse response =
+        testClient.get(
+            "/duplicate/cookie",
+            withHeader(
+                COOKIE,
+                "my_cookie=xxx-mycookievalue-xxx; my_other_cookie=value-1; my_other_cookie=value-2"));
 
-        assertThat(response.statusCode(), is(200));
-    }
-
+    assertThat(response.statusCode(), is(200));
+  }
 }

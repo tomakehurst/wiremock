@@ -15,8 +15,16 @@
  */
 package com.github.tomakehurst.wiremock;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.core.Options.DYNAMIC_PORT;
+import static com.github.tomakehurst.wiremock.testsupport.Assumptions.doNotRunOnMacOSXInCI;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.lessThan;
+
 import com.github.tomakehurst.wiremock.http.HttpClientFactory;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import java.io.IOException;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -27,98 +35,97 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.io.IOException;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static com.github.tomakehurst.wiremock.core.Options.DYNAMIC_PORT;
-import static com.github.tomakehurst.wiremock.testsupport.Assumptions.doNotRunOnMacOSXInCI;
-import static org.hamcrest.Matchers.*;
-import static org.hamcrest.Matchers.lessThan;
-import static org.hamcrest.MatcherAssert.assertThat;
-
 public class ResponseDribbleAcceptanceTest {
 
-    private static final int SOCKET_TIMEOUT_MILLISECONDS = 500;
-    private static final int DOUBLE_THE_SOCKET_TIMEOUT = SOCKET_TIMEOUT_MILLISECONDS * 2;
+  private static final int SOCKET_TIMEOUT_MILLISECONDS = 500;
+  private static final int DOUBLE_THE_SOCKET_TIMEOUT = SOCKET_TIMEOUT_MILLISECONDS * 2;
 
-    private static final byte[] BODY_BYTES = "the long sentence being sent".getBytes();
+  private static final byte[] BODY_BYTES = "the long sentence being sent".getBytes();
 
-    public static final double TOLERANCE = 0.333; // Quite big, but this helps reduce CI failures
+  public static final double TOLERANCE = 0.333; // Quite big, but this helps reduce CI failures
 
-    @Rule
-    public WireMockRule wireMockRule = new WireMockRule(DYNAMIC_PORT, DYNAMIC_PORT);
+  @Rule public WireMockRule wireMockRule = new WireMockRule(DYNAMIC_PORT, DYNAMIC_PORT);
 
-    private HttpClient httpClient;
+  private HttpClient httpClient;
 
-    @Before
-    public void init() throws IOException {
-        stubFor(get("/warmup").willReturn(ok()));
-        httpClient = HttpClientFactory.createClient(SOCKET_TIMEOUT_MILLISECONDS);
-        // Warm up the server
-        httpClient.execute(new HttpGet(String.format("http://localhost:%d/warmup", wireMockRule.port())));
-    }
+  @Before
+  public void init() throws IOException {
+    stubFor(get("/warmup").willReturn(ok()));
+    httpClient = HttpClientFactory.createClient(SOCKET_TIMEOUT_MILLISECONDS);
+    // Warm up the server
+    httpClient.execute(
+        new HttpGet(String.format("http://localhost:%d/warmup", wireMockRule.port())));
+  }
 
-    @Test
-    public void requestIsSuccessfulButTakesLongerThanSocketTimeoutWhenDribbleIsEnabled() throws Exception {
-        doNotRunOnMacOSXInCI();
+  @Test
+  public void requestIsSuccessfulButTakesLongerThanSocketTimeoutWhenDribbleIsEnabled()
+      throws Exception {
+    doNotRunOnMacOSXInCI();
 
-        stubFor(get("/delayedDribble").willReturn(
-                ok()
-                    .withBody(BODY_BYTES)
+    stubFor(
+        get("/delayedDribble")
+            .willReturn(
+                ok().withBody(BODY_BYTES)
                     .withChunkedDribbleDelay(BODY_BYTES.length, DOUBLE_THE_SOCKET_TIMEOUT)));
 
-        long start = System.currentTimeMillis();
-        HttpResponse response = httpClient.execute(new HttpGet(String.format("http://localhost:%d/delayedDribble", wireMockRule.port())));
-        byte[] responseBody = IOUtils.toByteArray(response.getEntity().getContent());
-        int duration = (int) (System.currentTimeMillis() - start);
+    long start = System.currentTimeMillis();
+    HttpResponse response =
+        httpClient.execute(
+            new HttpGet(String.format("http://localhost:%d/delayedDribble", wireMockRule.port())));
+    byte[] responseBody = IOUtils.toByteArray(response.getEntity().getContent());
+    int duration = (int) (System.currentTimeMillis() - start);
 
-        assertThat(response.getStatusLine().getStatusCode(), is(200));
-        assertThat(responseBody, is(BODY_BYTES));
-        assertThat(duration, greaterThanOrEqualTo(SOCKET_TIMEOUT_MILLISECONDS));
-        assertThat((double) duration, isWithinTolerance(DOUBLE_THE_SOCKET_TIMEOUT, TOLERANCE));
-    }
+    assertThat(response.getStatusLine().getStatusCode(), is(200));
+    assertThat(responseBody, is(BODY_BYTES));
+    assertThat(duration, greaterThanOrEqualTo(SOCKET_TIMEOUT_MILLISECONDS));
+    assertThat((double) duration, isWithinTolerance(DOUBLE_THE_SOCKET_TIMEOUT, TOLERANCE));
+  }
 
-    @Test
-    public void servesAStringBodyInChunks() throws Exception {
-        doNotRunOnMacOSXInCI();
-        
-        final int TOTAL_TIME = 500;
+  @Test
+  public void servesAStringBodyInChunks() throws Exception {
+    doNotRunOnMacOSXInCI();
 
-        stubFor(get("/delayedDribble").willReturn(
-            ok()
-                .withBody("Send this in many pieces please!!!")
-                .withChunkedDribbleDelay(2, TOTAL_TIME)));
+    final int TOTAL_TIME = 500;
 
-        long start = System.currentTimeMillis();
-        HttpResponse response = httpClient.execute(new HttpGet(String.format("http://localhost:%d/delayedDribble", wireMockRule.port())));
-        String responseBody = EntityUtils.toString(response.getEntity());
-        double duration = (double) (System.currentTimeMillis() - start);
+    stubFor(
+        get("/delayedDribble")
+            .willReturn(
+                ok().withBody("Send this in many pieces please!!!")
+                    .withChunkedDribbleDelay(2, TOTAL_TIME)));
 
-        assertThat(response.getStatusLine().getStatusCode(), is(200));
-        assertThat(responseBody, is("Send this in many pieces please!!!"));
-        assertThat(duration, isWithinTolerance(TOTAL_TIME, TOLERANCE));
-    }
+    long start = System.currentTimeMillis();
+    HttpResponse response =
+        httpClient.execute(
+            new HttpGet(String.format("http://localhost:%d/delayedDribble", wireMockRule.port())));
+    String responseBody = EntityUtils.toString(response.getEntity());
+    double duration = (double) (System.currentTimeMillis() - start);
 
-    @Test
-    public void requestIsSuccessfulAndBelowSocketTimeoutWhenDribbleIsDisabled() throws Exception {
-        doNotRunOnMacOSXInCI();
+    assertThat(response.getStatusLine().getStatusCode(), is(200));
+    assertThat(responseBody, is("Send this in many pieces please!!!"));
+    assertThat(duration, isWithinTolerance(TOTAL_TIME, TOLERANCE));
+  }
 
-        stubFor(get("/nonDelayedDribble").willReturn(
-                ok()
-                    .withBody(BODY_BYTES)));
+  @Test
+  public void requestIsSuccessfulAndBelowSocketTimeoutWhenDribbleIsDisabled() throws Exception {
+    doNotRunOnMacOSXInCI();
 
-        long start = System.currentTimeMillis();
-        HttpResponse response = httpClient.execute(new HttpGet(String.format("http://localhost:%d/nonDelayedDribble", wireMockRule.port())));
-        byte[] responseBody = IOUtils.toByteArray(response.getEntity().getContent());
-        int duration = (int) (System.currentTimeMillis() - start);
+    stubFor(get("/nonDelayedDribble").willReturn(ok().withBody(BODY_BYTES)));
 
-        assertThat(response.getStatusLine().getStatusCode(), is(200));
-        assertThat(BODY_BYTES, is(responseBody));
-        assertThat(duration, lessThan(SOCKET_TIMEOUT_MILLISECONDS));
-    }
+    long start = System.currentTimeMillis();
+    HttpResponse response =
+        httpClient.execute(
+            new HttpGet(
+                String.format("http://localhost:%d/nonDelayedDribble", wireMockRule.port())));
+    byte[] responseBody = IOUtils.toByteArray(response.getEntity().getContent());
+    int duration = (int) (System.currentTimeMillis() - start);
 
-    private static Matcher<Double> isWithinTolerance(double value, double tolerance) {
-        double maxDelta = value * tolerance;
-        return closeTo(value, maxDelta);
-    }
+    assertThat(response.getStatusLine().getStatusCode(), is(200));
+    assertThat(BODY_BYTES, is(responseBody));
+    assertThat(duration, lessThan(SOCKET_TIMEOUT_MILLISECONDS));
+  }
+
+  private static Matcher<Double> isWithinTolerance(double value, double tolerance) {
+    double maxDelta = value * tolerance;
+    return closeTo(value, maxDelta);
+  }
 }

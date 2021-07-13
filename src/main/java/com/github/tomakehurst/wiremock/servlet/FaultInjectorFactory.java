@@ -31,16 +31,14 @@
 
 package com.github.tomakehurst.wiremock.servlet;
 
+import com.github.tomakehurst.wiremock.core.FaultInjector;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.github.tomakehurst.wiremock.core.FaultInjector;
-
 public interface FaultInjectorFactory {
 
-    String INJECTOR_CLASS_KEY = "FaultHandlerFactoryClass";
+  String INJECTOR_CLASS_KEY = "FaultHandlerFactoryClass";
 
-    FaultInjector buildFaultInjector(HttpServletRequest httpServletRequest,
-            HttpServletResponse httpServletResponse);
-
+  FaultInjector buildFaultInjector(
+      HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse);
 }

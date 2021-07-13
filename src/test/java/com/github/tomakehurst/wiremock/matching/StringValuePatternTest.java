@@ -15,6 +15,9 @@
  */
 package com.github.tomakehurst.wiremock.matching;
 
+import static com.google.common.collect.FluentIterable.from;
+import static java.util.Arrays.asList;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
@@ -22,73 +25,77 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.reflect.ClassPath;
-import org.junit.Test;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
-
-import static com.google.common.collect.FluentIterable.from;
-import static java.util.Arrays.asList;
+import org.junit.Test;
 
 public class StringValuePatternTest {
 
-    @Test
-    public void allSubclassesHaveWorkingToString() throws Exception {
-        ImmutableSet<ClassPath.ClassInfo> allClasses = ClassPath
-            .from(Thread.currentThread().getContextClassLoader())
-            .getAllClasses();
+  @Test
+  public void allSubclassesHaveWorkingToString() throws Exception {
+    ImmutableSet<ClassPath.ClassInfo> allClasses =
+        ClassPath.from(Thread.currentThread().getContextClassLoader()).getAllClasses();
 
-        FluentIterable<Class<?>> classes = from(allClasses)
-            .filter(new Predicate<ClassPath.ClassInfo>() {
-                @Override
-                public boolean apply(ClassPath.ClassInfo input) {
-                    return input.getPackageName().startsWith("com.github.tomakehurst.wiremock.matching");
-                }
-            })
-            .transform(new Function<ClassPath.ClassInfo, Class<?>>() {
-                @Override
-                public Class<?> apply(ClassPath.ClassInfo input) {
+    FluentIterable<Class<?>> classes =
+        from(allClasses)
+            .filter(
+                new Predicate<ClassPath.ClassInfo>() {
+                  @Override
+                  public boolean apply(ClassPath.ClassInfo input) {
+                    return input
+                        .getPackageName()
+                        .startsWith("com.github.tomakehurst.wiremock.matching");
+                  }
+                })
+            .transform(
+                new Function<ClassPath.ClassInfo, Class<?>>() {
+                  @Override
+                  public Class<?> apply(ClassPath.ClassInfo input) {
                     try {
-                        return input.load();
+                      return input.load();
                     } catch (Throwable e) {
-                        return Object.class;
+                      return Object.class;
                     }
-                }
-            })
+                  }
+                })
             .filter(assignableFrom(StringValuePattern.class))
-            .filter(new Predicate<Class<?>>() {
-                @Override
-                public boolean apply(Class<?> input) {
+            .filter(
+                new Predicate<Class<?>>() {
+                  @Override
+                  public boolean apply(Class<?> input) {
                     return !Modifier.isAbstract(input.getModifiers());
-                }
-            });
+                  }
+                });
 
-
-        for (Class<?> clazz: classes) {
-            findConstructorWithStringParamInFirstPosition(clazz);
-        }
-
+    for (Class<?> clazz : classes) {
+      findConstructorWithStringParamInFirstPosition(clazz);
     }
+  }
 
-    private Constructor<?> findConstructorWithStringParamInFirstPosition(Class<?> clazz) {
-        return Iterables.find(asList(clazz.getConstructors()), new Predicate<Constructor<?>>() {
-            @Override
-            public boolean apply(Constructor<?> input) {
-                return input.getParameterTypes().length > 0 &&
-                       input.getParameterTypes()[0].equals(String.class) &&
-                       input.getParameterAnnotations().length > 0 &&
-                       input.getParameterAnnotations()[0].length > 0 &&
-                       input.getParameterAnnotations()[0][0].annotationType().equals(JsonProperty.class) ;
-            }
+  private Constructor<?> findConstructorWithStringParamInFirstPosition(Class<?> clazz) {
+    return Iterables.find(
+        asList(clazz.getConstructors()),
+        new Predicate<Constructor<?>>() {
+          @Override
+          public boolean apply(Constructor<?> input) {
+            return input.getParameterTypes().length > 0
+                && input.getParameterTypes()[0].equals(String.class)
+                && input.getParameterAnnotations().length > 0
+                && input.getParameterAnnotations()[0].length > 0
+                && input
+                    .getParameterAnnotations()[0][0]
+                    .annotationType()
+                    .equals(JsonProperty.class);
+          }
         });
-    }
+  }
 
-    private static Predicate<Class<?>> assignableFrom(final Class<?> clazz) {
-        return new Predicate<Class<?>>() {
-            @Override
-            public boolean apply(Class<?> aClass) {
-                return aClass.isAssignableFrom(clazz);
-            }
-        };
-    }
+  private static Predicate<Class<?>> assignableFrom(final Class<?> clazz) {
+    return new Predicate<Class<?>>() {
+      @Override
+      public boolean apply(Class<?> aClass) {
+        return aClass.isAssignableFrom(clazz);
+      }
+    };
+  }
 }

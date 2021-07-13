@@ -20,21 +20,20 @@ import com.github.tomakehurst.wiremock.extension.Parameters;
 
 public class CustomMatcherDefinition {
 
-    private final String name;
-    private final Parameters parameters;
+  private final String name;
+  private final Parameters parameters;
 
-    public CustomMatcherDefinition(@JsonProperty("name") String name,
-                                   @JsonProperty("parameters") Parameters parameters) {
-        this.name = name;
-        this.parameters = parameters;
-    }
+  public CustomMatcherDefinition(
+      @JsonProperty("name") String name, @JsonProperty("parameters") Parameters parameters) {
+    this.name = name;
+    this.parameters = parameters;
+  }
 
-    public String getName() {
-        return name;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public Parameters getParameters() {
-        return parameters;
-    }
-
+  public Parameters getParameters() {
+    return parameters;
+  }
 }

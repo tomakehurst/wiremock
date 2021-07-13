@@ -25,10 +25,12 @@ import com.github.tomakehurst.wiremock.verification.FindServeEventsResult;
 
 public class RemoveServeEventsByStubMetadataTask implements AdminTask {
 
-    @Override
-    public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
-        StringValuePattern metadataPattern = Json.read(request.getBodyAsString(), StringValuePattern.class);
-        FindServeEventsResult findServeEventsResult = admin.removeServeEventsForStubsMatchingMetadata(metadataPattern);
-        return ResponseDefinition.okForJson(findServeEventsResult);
-    }
+  @Override
+  public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
+    StringValuePattern metadataPattern =
+        Json.read(request.getBodyAsString(), StringValuePattern.class);
+    FindServeEventsResult findServeEventsResult =
+        admin.removeServeEventsForStubsMatchingMetadata(metadataPattern);
+    return ResponseDefinition.okForJson(findServeEventsResult);
+  }
 }

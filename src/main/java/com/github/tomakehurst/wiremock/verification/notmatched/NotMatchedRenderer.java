@@ -23,10 +23,10 @@ import com.github.tomakehurst.wiremock.http.ResponseDefinition;
 
 public abstract class NotMatchedRenderer implements AdminTask {
 
-    @Override
-    public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
-        return render(admin, request);
-    }
+  @Override
+  public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
+    return render(admin, request);
+  }
 
-    protected abstract ResponseDefinition render(Admin admin, Request request);
+  protected abstract ResponseDefinition render(Admin admin, Request request);
 }

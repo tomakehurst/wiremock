@@ -15,79 +15,81 @@
  */
 package com.github.tomakehurst.wiremock.http;
 
-import com.github.tomakehurst.wiremock.matching.StringValuePattern;
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.base.Predicate;
-
-import java.util.List;
-
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.FluentIterable.from;
 import static com.google.common.collect.Iterables.any;
 
+import com.github.tomakehurst.wiremock.matching.StringValuePattern;
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
+import java.util.List;
+
 public class MultiValue {
 
-    protected final String key;
-    protected final List<String> values;
+  protected final String key;
+  protected final List<String> values;
 
-    public MultiValue(String key, List<String> values) {
-        this.key = key;
-        this.values = values;
-    }
+  public MultiValue(String key, List<String> values) {
+    this.key = key;
+    this.values = values;
+  }
 
-    public boolean isPresent() {
-        return values.size() > 0;
-    }
+  public boolean isPresent() {
+    return values.size() > 0;
+  }
 
-    public String key() {
-        return key;
-    }
+  public String key() {
+    return key;
+  }
 
-    public String firstValue() {
-        checkPresent();
-        return values.get(0);
-    }
+  public String firstValue() {
+    checkPresent();
+    return values.get(0);
+  }
 
-    public List<String> values() {
-        checkPresent();
-        return values;
-    }
+  public List<String> values() {
+    checkPresent();
+    return values;
+  }
 
-    private void checkPresent() {
-        checkState(isPresent(), "No value for " + key);
-    }
+  private void checkPresent() {
+    checkState(isPresent(), "No value for " + key);
+  }
 
-    public boolean isSingleValued() {
-        return values.size() == 1;
-    }
+  public boolean isSingleValued() {
+    return values.size() == 1;
+  }
 
-    public boolean containsValue(String expectedValue) {
-        return values.contains(expectedValue);
-    }
+  public boolean containsValue(String expectedValue) {
+    return values.contains(expectedValue);
+  }
 
-    public boolean hasValueMatching(final StringValuePattern valuePattern) {
-        return (valuePattern.nullSafeIsAbsent() && !isPresent())
-                || anyValueMatches(valuePattern);
-    }
+  public boolean hasValueMatching(final StringValuePattern valuePattern) {
+    return (valuePattern.nullSafeIsAbsent() && !isPresent()) || anyValueMatches(valuePattern);
+  }
 
-    private boolean anyValueMatches(final StringValuePattern valuePattern) {
-        return any(values, new Predicate<String>() {
-            public boolean apply(String headerValue) {
-                return valuePattern.match(headerValue).isExactMatch();
-            }
+  private boolean anyValueMatches(final StringValuePattern valuePattern) {
+    return any(
+        values,
+        new Predicate<String>() {
+          public boolean apply(String headerValue) {
+            return valuePattern.match(headerValue).isExactMatch();
+          }
         });
-    }
+  }
 
-    @Override
-    public String toString() {
-        return Joiner.on("\n").join(
-            from(values).transform(new Function<String, String>() {
-                @Override
-                public String apply(String value) {
-                    return key + ": " + value;
-                }
-            })
-        );
-    }
+  @Override
+  public String toString() {
+    return Joiner.on("\n")
+        .join(
+            from(values)
+                .transform(
+                    new Function<String, String>() {
+                      @Override
+                      public String apply(String value) {
+                        return key + ": " + value;
+                      }
+                    }));
+  }
 }

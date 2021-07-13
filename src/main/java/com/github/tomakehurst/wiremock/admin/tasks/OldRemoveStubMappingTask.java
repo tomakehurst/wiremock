@@ -24,10 +24,10 @@ import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 
 public class OldRemoveStubMappingTask implements AdminTask {
 
-    @Override
-    public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
-        StubMapping removeMapping = StubMapping.buildFrom(request.getBodyAsString());
-        admin.removeStubMapping(removeMapping);
-        return ResponseDefinition.ok();
-    }
+  @Override
+  public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
+    StubMapping removeMapping = StubMapping.buildFrom(request.getBodyAsString());
+    admin.removeStubMapping(removeMapping);
+    return ResponseDefinition.ok();
+  }
 }

@@ -15,35 +15,35 @@
  */
 package com.github.tomakehurst.wiremock.common.ssl;
 
-import org.junit.Test;
-
-import java.security.KeyStore;
-
 import static com.github.tomakehurst.wiremock.testsupport.TestFiles.*;
 import static org.junit.Assert.assertNotNull;
 
+import java.security.KeyStore;
+import org.junit.Test;
+
 public class KeyStoreSettingsTest {
 
-    @Test
-    public void loadsTrustStoreFromClasspath() {
-        KeyStoreSettings trustStoreSettings = new KeyStoreSettings(TRUST_STORE_NAME, TRUST_STORE_PASSWORD, "jks");
+  @Test
+  public void loadsTrustStoreFromClasspath() {
+    KeyStoreSettings trustStoreSettings =
+        new KeyStoreSettings(TRUST_STORE_NAME, TRUST_STORE_PASSWORD, "jks");
 
-        KeyStore keyStore = trustStoreSettings.loadStore();
-        assertNotNull(keyStore);
-    }
+    KeyStore keyStore = trustStoreSettings.loadStore();
+    assertNotNull(keyStore);
+  }
 
-    @Test
-    public void loadsTrustStoreFromFilesystem() {
-        KeyStoreSettings trustStoreSettings = new KeyStoreSettings(TRUST_STORE_PATH, TRUST_STORE_PASSWORD, "jks");
+  @Test
+  public void loadsTrustStoreFromFilesystem() {
+    KeyStoreSettings trustStoreSettings =
+        new KeyStoreSettings(TRUST_STORE_PATH, TRUST_STORE_PASSWORD, "jks");
 
-        KeyStore keyStore = trustStoreSettings.loadStore();
-        assertNotNull(keyStore);
-    }
+    KeyStore keyStore = trustStoreSettings.loadStore();
+    assertNotNull(keyStore);
+  }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void failsWhenTrustStoreNotFound() {
-        KeyStoreSettings trustStoreSettings = new KeyStoreSettings("test-unknownstore", "", "jks");
-        trustStoreSettings.loadStore();
-    }
-
+  @Test(expected = IllegalArgumentException.class)
+  public void failsWhenTrustStoreNotFound() {
+    KeyStoreSettings trustStoreSettings = new KeyStoreSettings("test-unknownstore", "", "jks");
+    trustStoreSettings.loadStore();
+  }
 }
