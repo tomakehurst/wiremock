@@ -191,6 +191,7 @@ public class ResponseDefinitionBuilder {
     public static class ProxyResponseDefinitionBuilder extends ResponseDefinitionBuilder {
 
         private List<HttpHeader> additionalRequestHeaders = newArrayList();
+        private String proxyUrlPrefixToRemove;
 
         public ProxyResponseDefinitionBuilder(ResponseDefinitionBuilder from) {
             this.status = from.status;
@@ -215,9 +216,14 @@ public class ResponseDefinitionBuilder {
             return this;
         }
 
+        public ProxyResponseDefinitionBuilder withProxyUrlPrefixToRemove(String proxyUrlPrefixToRemove) {
+            this.proxyUrlPrefixToRemove = proxyUrlPrefixToRemove;
+            return this;
+        }
+
         @Override
         public ResponseDefinition build() {
-            return !additionalRequestHeaders.isEmpty() ? super.build(new HttpHeaders(additionalRequestHeaders)) : super.build();
+            return super.build(!additionalRequestHeaders.isEmpty() ? new HttpHeaders(additionalRequestHeaders) : null, proxyUrlPrefixToRemove);
         }
     }
 
@@ -227,7 +233,7 @@ public class ResponseDefinitionBuilder {
     }
 
     public ResponseDefinition build() {
-        return build(null);
+        return build(null, null);
     }
 
     private boolean isBinaryBody() {
@@ -238,7 +244,7 @@ public class ResponseDefinitionBuilder {
         return jsonBody != null;
     }
 
-    protected ResponseDefinition build(HttpHeaders additionalProxyRequestHeaders) {
+    protected ResponseDefinition build(HttpHeaders additionalProxyRequestHeaders, String proxyUrlPrefixToRemove) {
         HttpHeaders httpHeaders = headers == null || headers.isEmpty() ? null : new HttpHeaders(headers);
         Parameters transformerParameters = this.transformerParameters == null || this.transformerParameters.isEmpty() ? null : Parameters.from(this.transformerParameters);
         if (isBinaryBody()) {
@@ -255,6 +261,7 @@ public class ResponseDefinitionBuilder {
                     delayDistribution,
                     chunkedDribbleDelay,
                     proxyBaseUrl,
+                    proxyUrlPrefixToRemove,
                     fault,
                     responseTransformerNames,
                     transformerParameters,
@@ -274,6 +281,7 @@ public class ResponseDefinitionBuilder {
                     delayDistribution,
                     chunkedDribbleDelay,
                     proxyBaseUrl,
+                    proxyUrlPrefixToRemove,
                     fault,
                     responseTransformerNames,
                     transformerParameters,
@@ -292,6 +300,7 @@ public class ResponseDefinitionBuilder {
                     delayDistribution,
                     chunkedDribbleDelay,
                     proxyBaseUrl,
+                    proxyUrlPrefixToRemove,
                     fault,
                     responseTransformerNames,
                     transformerParameters,

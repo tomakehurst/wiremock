@@ -533,6 +533,22 @@ public class ProxyAcceptanceTest {
         assertThat(allowOriginHeaderValues.size(), is(0));
     }
 
+    @Test
+    public void removesPrefixFromProxyRequestWhenMatching() {
+        initWithDefaultConfig();
+
+        proxy.register(get("/other/service/doc/123")
+                .willReturn(aResponse()
+                        .proxiedFrom(targetServiceBaseUrl + "/approot")
+                        .withProxyUrlPrefixToRemove("/other/service")));
+
+        target.register(get("/approot/doc/123").willReturn(ok()));
+
+        WireMockResponse response = testClient.get("/other/service/doc/123");
+
+        assertThat(response.statusCode(), is(200));
+    }
+
     private void register200StubOnProxyAndTarget(String url) {
         target.register(get(urlEqualTo(url)).willReturn(aResponse().withStatus(200)));
         proxy.register(get(urlEqualTo(url)).willReturn(aResponse().proxiedFrom(targetServiceBaseUrl)));

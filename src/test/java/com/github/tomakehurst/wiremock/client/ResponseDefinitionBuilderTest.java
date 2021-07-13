@@ -30,14 +30,26 @@
  */
 package com.github.tomakehurst.wiremock.client;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.NullNode;
+import com.github.tomakehurst.wiremock.common.Json;
 import com.github.tomakehurst.wiremock.http.Fault;
+import com.github.tomakehurst.wiremock.http.HttpHeader;
+import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.http.ResponseDefinition;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.Charsets;
 import org.junit.Test;
 
+import java.util.Collections;
+
+import static com.google.common.collect.Lists.newArrayList;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.nullValue;
 
 public class ResponseDefinitionBuilderTest {
 
@@ -78,5 +90,78 @@ public class ResponseDefinitionBuilderTest {
         ResponseDefinition copiedResponseDefinition = ResponseDefinitionBuilder.like(originalResponseDefinition).build();
 
         assertThat(copiedResponseDefinition, is(originalResponseDefinition));
+    }
+
+    @Test
+    public void proxyResponseDefinitionWithoutProxyInformationIsNotInResponseDefinition() {
+        ResponseDefinition proxyDefinition = ResponseDefinitionBuilder.responseDefinition()
+                .proxiedFrom("http://my.domain")
+                .build();
+
+        assertThat(proxyDefinition.getAdditionalProxyRequestHeaders(), nullValue());
+        assertThat(proxyDefinition.getProxyUrlPrefixToRemove(), nullValue());
+    }
+
+    @Test
+    public void proxyResponseDefinitionWithoutProxyInformationIsNotInResponseDefinitionWithJsonBody() {
+        ResponseDefinition proxyDefinition = ResponseDefinitionBuilder.responseDefinition()
+                .proxiedFrom("http://my.domain")
+                .withJsonBody(Json.read("{}", JsonNode.class))
+                .build();
+
+        assertThat(proxyDefinition.getAdditionalProxyRequestHeaders(), nullValue());
+        assertThat(proxyDefinition.getProxyUrlPrefixToRemove(), nullValue());
+    }
+
+    @Test
+    public void proxyResponseDefinitionWithoutProxyInformationIsNotInResponseDefinitionWithBinaryBody() {
+        ResponseDefinition proxyDefinition = ResponseDefinitionBuilder.responseDefinition()
+                .proxiedFrom("http://my.domain")
+                .withBody(new byte[] { 0x01 })
+                .build();
+
+        assertThat(proxyDefinition.getAdditionalProxyRequestHeaders(), nullValue());
+        assertThat(proxyDefinition.getProxyUrlPrefixToRemove(), nullValue());
+    }
+
+    @Test
+    public void proxyResponseDefinitionWithExtraInformationIsInResponseDefinition() {
+        ResponseDefinition proxyDefinition = ResponseDefinitionBuilder.responseDefinition()
+                .proxiedFrom("http://my.domain")
+                .withAdditionalRequestHeader("header", "value")
+                .withProxyUrlPrefixToRemove("/remove")
+                .build();
+
+        assertThat(proxyDefinition.getAdditionalProxyRequestHeaders(),
+                equalTo(new HttpHeaders(newArrayList(new HttpHeader("header", "value")))));
+        assertThat(proxyDefinition.getProxyUrlPrefixToRemove(), equalTo("/remove"));
+    }
+
+    @Test
+    public void proxyResponseDefinitionWithExtraInformationIsInResponseDefinitionWithJsonBody() {
+        ResponseDefinition proxyDefinition = ResponseDefinitionBuilder.responseDefinition()
+                .proxiedFrom("http://my.domain")
+                .withAdditionalRequestHeader("header", "value")
+                .withProxyUrlPrefixToRemove("/remove")
+                .withJsonBody(Json.read("{}", JsonNode.class))
+                .build();
+
+        assertThat(proxyDefinition.getAdditionalProxyRequestHeaders(),
+                equalTo(new HttpHeaders(newArrayList(new HttpHeader("header", "value")))));
+        assertThat(proxyDefinition.getProxyUrlPrefixToRemove(), equalTo("/remove"));
+    }
+
+    @Test
+    public void proxyResponseDefinitionWithExtraInformationIsInResponseDefinitionWithBinaryBody() {
+        ResponseDefinition proxyDefinition = ResponseDefinitionBuilder.responseDefinition()
+                .proxiedFrom("http://my.domain")
+                .withAdditionalRequestHeader("header", "value")
+                .withProxyUrlPrefixToRemove("/remove")
+                .withBody(new byte[] { 0x01 })
+                .build();
+
+        assertThat(proxyDefinition.getAdditionalProxyRequestHeaders(),
+                equalTo(new HttpHeaders(newArrayList(new HttpHeader("header", "value")))));
+        assertThat(proxyDefinition.getProxyUrlPrefixToRemove(), equalTo("/remove"));
     }
 }

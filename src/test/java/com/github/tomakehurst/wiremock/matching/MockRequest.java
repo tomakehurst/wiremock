@@ -48,6 +48,7 @@ public class MockRequest implements Request {
     private byte[] body;
     private String clientIp = "1.1.1.1";
     private Collection<Part> multiparts = null;
+    private boolean isBrowserProxyRequest = false;
 
     public static MockRequest mockRequest() {
         return new MockRequest();
@@ -114,6 +115,11 @@ public class MockRequest implements Request {
         }
 
         multiparts.add(part);
+        return this;
+    }
+
+    public MockRequest isBrowserProxyRequest(boolean isBrowserProxyRequest) {
+        this.isBrowserProxyRequest = isBrowserProxyRequest;
         return this;
     }
 
@@ -214,7 +220,7 @@ public class MockRequest implements Request {
 
     @Override
     public boolean isBrowserProxyRequest() {
-        return false;
+        return isBrowserProxyRequest;
     }
 
     @Override
